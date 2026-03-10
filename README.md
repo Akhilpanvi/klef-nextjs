@@ -190,3 +190,4 @@ Identical to the original app:
 3. **Faculty Double-Booked** (INFO) — Same faculty in 2+ different non-additional sections simultaneously
 
 `associative_sectionno` values A/B/C/D/MA mark "additional faculty" rows and are excluded from clash detection.
+# klef-nextjs
