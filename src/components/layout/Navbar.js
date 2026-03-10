@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../AuthContext'
 import { Menu, X, Sun, Moon, Lock, FolderOpen } from 'lucide-react'
+import Image from 'next/image'
 
 const TABS = [
   { label: 'Faculty',       path: '/faculty' },
@@ -49,10 +50,8 @@ export default function Navbar({ onManageData }) {
         padding: '0 18px', boxShadow: '0 2px 12px rgba(201,18,42,.3)',
       }}>
         {/* Brand */}
-        <button onClick={() => router.push('/faculty')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.2rem', color: '#fff', letterSpacing: '-.01em' }}>
-            KLEF Portal
-          </span>
+        <button onClick={() => router.push('/faculty')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <Image src="/logo.png" alt="KL University" height={38} width={220} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} priority />
         </button>
 
         {/* Desktop tabs */}
