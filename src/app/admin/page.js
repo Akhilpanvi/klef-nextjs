@@ -1,0 +1,196 @@
+'use client'
+import { useState, useEffect } from 'react'
+import PortalShell from '@/components/PortalShell'
+import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
+import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
+import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
+
+function AdminContent() {
+  const { user, loading, isAdmin } = useAuth()
+  const router = useRouter()
+  const { get, del, postForm } = useApi()
+
+  const [status,  setStatus]  = useState(null)
+  const [files,   setFiles]   = useState({ timetable: null, rooms: null, master: null })
+  const [busy,    setBusy]    = useState(false)
+  const [log,     setLog]     = useState([])
+
+  useEffect(() => {
+    if (!loading && !user) router.replace('/login')
+    if (!loading && user && !isAdmin) router.replace('/faculty')
+  }, [user, loading, isAdmin])
+
+  const fetchStatus = async () => {
+    const d = await get('/api/upload/status')
+    if (d.success) setStatus(d.status)
+  }
+  useEffect(() => { if (user && isAdmin) fetchStatus() }, [user, isAdmin])
+
+  const setFile = (key) => (e) => setFiles(f => ({ ...f, [key]: e.target.files[0] || null }))
+
+  const upload = async () => {
+    if (!files.timetable && !files.rooms && !files.master)
+      return toast.error('Select at least one file')
+    setBusy(true)
+    const newLog = []
+    try {
+      const fd = new FormData()
+      if (files.timetable) fd.append('timetable', files.timetable)
+      if (files.rooms)     fd.append('rooms', files.rooms)
+      if (files.master)    fd.append('master', files.master)
+
+      const d = await postForm('/api/upload', fd)
+      if (!d.success) throw new Error(d.message)
+
+      for (const [key, r] of Object.entries(d.results)) {
+        if (r.error) {
+          newLog.push({ ok: false, msg: `${key}: ${r.error}` })
+          toast.error(`${key}: ${r.error}`)
+        } else {
+          const cnt = r.inserted ?? (r.upserted + r.modified)
+          newLog.push({ ok: true, msg: `${key}: ${cnt.toLocaleString()} rows loaded into "${r.dataset || 'rooms'}"` })
+          toast.success(`${key} loaded`)
+        }
+      }
+
+      setFiles({ timetable: null, rooms: null, master: null })
+      await fetchStatus()
+    } catch (err) {
+      newLog.push({ ok: false, msg: err.message })
+      toast.error(err.message)
+    } finally {
+      setLog(l => [...newLog, ...l].slice(0, 20))
+      setBusy(false)
+    }
+  }
+
+  const clearDataset = async (dataset) => {
+    if (!confirm(`This will permanently delete all "${dataset}" data. Continue?`)) return
+    const d = await del(`/api/upload/status?dataset=${dataset}`)
+    if (d.success) { toast.success(d.message); fetchStatus() }
+    else toast.error(d.message)
+  }
+
+  if (loading || !user || !isAdmin) return null
+
+  return (
+    <PortalShell>
+      <h2 style={{ margin:'0 0 6px', fontFamily:"'DM Serif Display',serif", fontSize:'1.25rem' }}>Admin Dashboard</h2>
+      <p style={{ color:'var(--text-3)', fontSize:13, margin:'0 0 24px' }}>Upload CSV files to update the portal database.</p>
+
+      {/* Status Cards */}
+      {status && (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:12, marginBottom:24 }}>
+          {[
+            { label:'Live Entries', value: status.live, color:'#16a34a' },
+            { label:'Master Entries', value: status.master, color:'#f59e0b' },
+            { label:'Rooms Loaded', value: status.rooms, color:'#3b82f6' },
+          ].map(s => (
+            <div key={s.label} className="card" style={{ padding:'16px 18px' }}>
+              <div style={{ fontSize:'1.8rem', fontWeight:800, color: s.value > 0 ? s.color : 'var(--text-3)', fontFamily:"'DM Serif Display',serif" }}>
+                {s.value.toLocaleString()}
+              </div>
+              <div style={{ fontSize:12, color:'var(--text-3)', marginTop:4, fontWeight:600, textTransform:'uppercase' }}>{s.label}</div>
+            </div>
+          ))}
+          <div className="card" style={{ padding:'16px 18px' }}>
+            <div style={{ fontSize:'1.8rem', fontWeight:800, color: status.hasData ? '#16a34a' : '#dc2626', fontFamily:"'DM Serif Display',serif" }}>
+              {status.hasData ? '✓' : '✗'}
+            </div>
+            <div style={{ fontSize:12, color:'var(--text-3)', marginTop:4, fontWeight:600, textTransform:'uppercase' }}>Data Loaded</div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+        {/* Upload panel */}
+        <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
+          <h3 style={{ margin:'0 0 16px', fontSize:'1rem', fontWeight:700 }}>📤 Upload New Data</h3>
+          <p style={{ margin:'0 0 16px', fontSize:13, color:'var(--text-3)' }}>
+            Upload the same CSV format as the original files. Uploading will <strong>replace</strong> the existing data for that dataset.
+          </p>
+
+          {[
+            { key:'timetable', label:'Live Timetable CSV', hint:'BTT-XXXXXX.csv — replaces current live timetable', icon:'📅' },
+            { key:'rooms',     label:'Room Metadata CSV',   hint:'KLEF-ERP-RD.csv — upserts room info',              icon:'🚪' },
+            { key:'master',    label:'Master Timetable CSV (optional)', hint:'Used as source for clash detection instead of live', icon:'🔍', warn:true },
+          ].map(({ key, label, hint, icon, warn }) => (
+            <div key={key} style={{ marginBottom:20, padding:14, background:'var(--surface-2)', borderRadius:10, border:'1px solid var(--border)' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                <span>{icon}</span>
+                <span style={{ fontWeight:700, fontSize:14, color: warn ? 'var(--brand)' : 'var(--text)' }}>{label}</span>
+              </div>
+              <p style={{ margin:'0 0 8px', fontSize:12, color:'var(--text-3)' }}>{hint}</p>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <label style={{ flex:1 }}>
+                  <input type="file" accept=".csv,.CSV" onChange={setFile(key)} style={{ display:'none' }} id={`file-${key}`} />
+                  <div
+                    onClick={() => document.getElementById(`file-${key}`).click()}
+                    style={{
+                      padding:'9px 14px', border:`2px dashed ${files[key] ? 'var(--brand)' : 'var(--border)'}`,
+                      borderRadius:8, cursor:'pointer', fontSize:13,
+                      color: files[key] ? 'var(--brand)' : 'var(--text-3)',
+                      background: files[key] ? 'var(--brand-light)' : 'var(--surface)',
+                      transition:'all .15s',
+                    }}>
+                    {files[key] ? `✓ ${files[key].name}` : 'Click to choose CSV file…'}
+                  </div>
+                </label>
+                {files[key] && (
+                  <button className="btn btn-ghost" style={{ padding:'9px 12px' }}
+                    onClick={() => setFiles(f => ({ ...f, [key]: null }))}>
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginTop:8 }}>
+            <button className="btn btn-primary" onClick={upload} disabled={busy} style={{ flex:1 }}>
+              <UploadCloud size={16} />
+              {busy ? 'Uploading & Processing…' : 'Upload Selected Files'}
+            </button>
+            <button className="btn btn-ghost" onClick={fetchStatus}>
+              <RefreshCw size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className="card" style={{ padding:22, borderColor:'#fca5a5' }}>
+          <h3 style={{ margin:'0 0 12px', fontSize:'1rem', fontWeight:700, color:'#dc2626' }}>🗑 Clear Data</h3>
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {[['live','Clear Live Timetable'],['master','Clear Master Timetable'],['all','Clear Everything']].map(([ds, label]) => (
+              <button key={ds} className="btn btn-danger" style={{ justifyContent:'flex-start', opacity: ds === 'all' ? 1 : 0.8 }}
+                onClick={() => clearDataset(ds)}>
+                <Trash2 size={15} /> {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Upload log */}
+        <div className="card" style={{ padding:22 }}>
+          <h3 style={{ margin:'0 0 12px', fontSize:'1rem', fontWeight:700 }}>📋 Upload Log</h3>
+          {log.length === 0 ? (
+            <p style={{ color:'var(--text-3)', fontSize:13 }}>No uploads this session.</p>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {log.map((l, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, fontSize:13 }}>
+                  {l.ok ? <CheckCircle size={15} style={{ color:'#16a34a', flexShrink:0, marginTop:2 }} />
+                        : <AlertCircle size={15} style={{ color:'#dc2626', flexShrink:0, marginTop:2 }} />}
+                  <span style={{ color: l.ok ? 'var(--text)' : '#dc2626' }}>{l.msg}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </PortalShell>
+  )
+}
+
+export default function AdminPage() { return <AuthProvider><AdminContent /></AuthProvider> }

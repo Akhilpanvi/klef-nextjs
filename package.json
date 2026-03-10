@@ -1,0 +1,39 @@
+{
+  "name": "klef-timetable-portal",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS=--tls-min-v1.2 next dev",
+    "build": "NODE_OPTIONS=--tls-min-v1.2 next build",
+    "start": "NODE_OPTIONS=--tls-min-v1.2 next start",
+    "lint": "next lint",
+    "seed": "NODE_OPTIONS=--tls-min-v1.2 node scripts/seed.mjs"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "mongoose": "^8.5.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "xlsx": "^0.18.5",
+    "formidable": "^3.5.1",
+    "papaparse": "^5.4.1",
+    "react-hot-toast": "^2.4.1",
+    "lucide-react": "^0.407.0",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
+    "typescript": "^5",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8",
+    "autoprefixer": "^10.0.1",
+    "tailwindcss": "^3.4.1"
+  }
+}
