@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 function FacultyContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
   const { get } = useApi()
 
@@ -78,6 +78,7 @@ function FacultyContent() {
           entries={result.entries}
           mode="ROOM"
           hlTerm={result.faculty.name}
+          showAllHours={isAdmin}
         />
       ) : !busy && (
         <EmptyState icon="👤" text="Search for a faculty member to view their weekly schedule." />

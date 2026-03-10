@@ -10,11 +10,12 @@ function hl(text, term) {
     '<mark style="background:#fef08a;color:#78350f;padding:0 2px;border-radius:3px;font-weight:700">$1</mark>')
 }
 
-export default function TimetableGrid({ title, badge, entries, mode, hlTerm }) {
+export default function TimetableGrid({ title, badge, entries, mode, hlTerm, showAllHours = false }) {
   if (!entries?.length) return null
 
-  // hours present in data
-  const hours = [...new Set(entries.map(e => e.umat_hourno))].sort((a, b) => a - b)
+  // hours present in data — cap at 11 unless admin
+  const allHours = [...new Set(entries.map(e => e.umat_hourno))].sort((a, b) => a - b)
+  const hours = showAllHours ? allHours : allHours.filter(h => h <= 11)
 
   // Build grid
   const grid = {}
@@ -72,7 +73,7 @@ export default function TimetableGrid({ title, badge, entries, mode, hlTerm }) {
                           <div key={i} className="class-card">
                             <div className="class-card-top">
                               <span>{COMP[c.coursedeliverycomponent] || 'L'}</span>
-                              <span>§{c.main_sectionno}</span>
+                              <span>Sec {c.main_sectionno}</span>
                             </div>
                             <div style={{ fontWeight:700, color:'var(--brand)', fontSize:11, lineHeight:1.3 }}
                               dangerouslySetInnerHTML={{ __html: mainHtml }} />

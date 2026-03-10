@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 function RoomsContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
   const { get } = useApi()
 
@@ -60,6 +60,7 @@ function RoomsContent() {
           entries={result.entries}
           mode="FACULTY"
           hlTerm={result.room.number}
+          showAllHours={isAdmin}
         />
       ) : !busy && <EmptyState icon="🚪" text="Search for a room to view its weekly schedule." />}
     </PortalShell>

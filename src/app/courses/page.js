@@ -11,7 +11,7 @@ const YEARS = [{ v:'1', l:'Year 1' },{ v:'2', l:'Year 2' },{ v:'3', l:'Year 3' }
 const REGS  = [{ v:'', l:'All Batches' },{ v:'R25', l:'R25' },{ v:'R24', l:'R24' },{ v:'R23', l:'R23' },{ v:'R22', l:'R22' }]
 
 function CoursesContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
   const { get } = useApi()
 
@@ -76,6 +76,7 @@ function CoursesContent() {
           badge={`${result.course.code} · Y${result.course.year}`}
           entries={result.entries}
           mode="BOTH"
+          showAllHours={isAdmin}
         />
       ) : !busy && <EmptyState />}
     </PortalShell>

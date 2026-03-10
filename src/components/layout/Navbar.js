@@ -51,7 +51,7 @@ export default function Navbar({ onManageData }) {
       }}>
         {/* Brand */}
         <button onClick={() => router.push('/faculty')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-          <Image src="/logo.png" alt="KL University" height={38} width={220} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} priority />
+          <Image src="/logo.png" alt="KL University" height={36} width={180} style={{ objectFit: 'contain', objectPosition: 'left center', filter: 'brightness(0) invert(1)' }} priority />
         </button>
 
         {/* Desktop tabs */}
