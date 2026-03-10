@@ -51,7 +51,7 @@ export default function Navbar({ onManageData }) {
         {/* Brand */}
         <button onClick={() => router.push('/faculty')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="KL University" style={{ height: 46, width: 'auto', maxWidth: 220, display: 'block', filter: 'brightness(0) invert(1)' }} />
+          <img src="/logo-dark.png" alt="KL University" style={{ height: 46, width: 'auto', maxWidth: 220, display: 'block' }} />
         </button>
 
         {/* Desktop tabs */}

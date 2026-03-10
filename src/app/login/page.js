@@ -11,10 +11,15 @@ function LoginForm() {
   const [busy, setBusy]       = useState(false)
   const [adminMode, setAdmin] = useState(false)
   const [username, setUname]  = useState('')
+  const [dark, setDark]       = useState(false)
 
   useEffect(() => {
     if (!loading && user) router.replace('/faculty')
   }, [user, loading])
+
+  useEffect(() => {
+    setDark(localStorage.getItem('klef_theme') === 'dark')
+  }, [])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -38,14 +43,13 @@ function LoginForm() {
       background:'var(--bg)', padding:20,
     }}>
       <div className="card fade-up" style={{ maxWidth:400, width:'100%', padding:40, textAlign:'center' }}>
-        {/* Logo area */}
-        <div style={{
-          width:64, height:64, background:'var(--brand)', borderRadius:16,
-          display:'flex', alignItems:'center', justifyContent:'center',
-          margin:'0 auto 20px', fontSize:28, boxShadow:'0 4px 20px rgba(201,18,42,.3)',
-        }}>
-          🎓
-        </div>
+        {/* Logo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={dark ? '/logo-dark.png' : '/logo-light.png'}
+          alt="KL University"
+          style={{ height: 64, width: 'auto', maxWidth: 260, display: 'block', margin: '0 auto 20px' }}
+        />
 
         <h1 style={{
           fontFamily:"'DM Serif Display', serif",
