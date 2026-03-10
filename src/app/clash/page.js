@@ -40,7 +40,7 @@ function ClashCard({ c }) {
         </span>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px 18px', fontSize:13 }}>
+      <div className="clash-detail-grid">
         <div><span style={{ fontSize:11, color:'var(--text-3)' }}>Course 1</span><br /><b>{c.courseCode1}</b> — {c.courseName1}</div>
         <div><span style={{ fontSize:11, color:'var(--text-3)' }}>Course 2</span><br /><b>{c.courseCode2}</b> — {c.courseName2}</div>
         <div><span style={{ fontSize:11, color:'var(--text-3)' }}>Sections</span><br />{c.section}</div>

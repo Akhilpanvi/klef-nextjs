@@ -210,8 +210,33 @@ body {
 }
 .fade-up { animation: fadeUp .25s ease both; }
 
+/* ── PORTAL CARD ── */
+.portal-card { padding: 22px 24px; }
+
+/* ── CLASH DETAIL GRID ── */
+.clash-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 18px;
+  font-size: 13px;
+}
+
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   .hide-mobile { display: none !important; }
   .full-mobile { width: 100% !important; }
+
+  /* Tighter card padding */
+  .portal-card { padding: 14px 12px; }
+
+  /* Clash detail 2-col → 1-col */
+  .clash-detail-grid { grid-template-columns: 1fr; gap: 8px 0; }
+}
+
+@media (max-width: 480px) {
+  .btn  { padding: 9px 14px; font-size: 13px; }
+  .pill { padding: 5px 10px; font-size: 12px; min-width: 36px !important; }
+  .input { font-size: 14px; padding: 9px 12px; }
+  .tt-table th, .tt-table td { padding: 3px; font-size: 11px; }
+  .class-card { padding: 4px 5px; }
 }

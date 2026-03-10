@@ -51,7 +51,7 @@ function LoginForm() {
           fontFamily:"'DM Serif Display', serif",
           fontSize:'1.7rem', color:'var(--brand)', margin:'0 0 6px',
         }}>
-          KLEF Portal
+          KL Timetable
         </h1>
         <p style={{ color:'var(--text-3)', fontSize:14, margin:'0 0 28px' }}>
           Timetable & Scheduling System

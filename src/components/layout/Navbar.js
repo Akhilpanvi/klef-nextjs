@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../AuthContext'
 import { Menu, X, Sun, Moon, Lock, FolderOpen } from 'lucide-react'
-import Image from 'next/image'
 
 const TABS = [
   { label: 'Faculty',       path: '/faculty' },
@@ -51,7 +50,8 @@ export default function Navbar({ onManageData }) {
       }}>
         {/* Brand */}
         <button onClick={() => router.push('/faculty')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-          <Image src="/logo.png" alt="KL University" height={36} width={180} style={{ objectFit: 'contain', objectPosition: 'left center', filter: 'brightness(0) invert(1)' }} priority />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="KL University" style={{ height: 46, width: 'auto', maxWidth: 220, display: 'block', filter: 'brightness(0) invert(1)' }} />
         </button>
 
         {/* Desktop tabs */}
