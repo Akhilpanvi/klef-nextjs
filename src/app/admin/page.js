@@ -4,17 +4,19 @@ import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
+import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users } from 'lucide-react'
 
 function AdminContent() {
   const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
   const { get, del, postForm } = useApi()
 
-  const [status,  setStatus]  = useState(null)
-  const [files,   setFiles]   = useState({ timetable: null, rooms: null, master: null })
-  const [busy,    setBusy]    = useState(false)
-  const [log,     setLog]     = useState([])
+  const [status,      setStatus]      = useState(null)
+  const [files,       setFiles]       = useState({ timetable: null, rooms: null, master: null })
+  const [facultyFile, setFacultyFile] = useState(null)
+  const [busy,        setBusy]        = useState(false)
+  const [facultyBusy, setFacultyBusy] = useState(false)
+  const [log,         setLog]         = useState([])
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
@@ -70,6 +72,23 @@ function AdminContent() {
     const d = await del(`/api/upload/status?dataset=${dataset}`)
     if (d.success) { toast.success(d.message); fetchStatus() }
     else toast.error(d.message)
+  }
+
+  const uploadFaculty = async () => {
+    if (!facultyFile) return toast.error('Select a faculty CSV file')
+    setFacultyBusy(true)
+    try {
+      const fd = new FormData()
+      fd.append('faculty', facultyFile)
+      const d = await postForm('/api/admin/upload-faculty', fd)
+      if (!d.success) throw new Error(d.message)
+      toast.success(`Done! Created: ${d.created}, Updated: ${d.updated}, Skipped: ${d.skipped}`)
+      setFacultyFile(null)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setFacultyBusy(false)
+    }
   }
 
   if (loading || !user || !isAdmin) return null
@@ -154,6 +173,40 @@ function AdminContent() {
             </button>
             <button className="btn btn-ghost" onClick={fetchStatus}>
               <RefreshCw size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Faculty CSV upload */}
+        <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
+          <h3 style={{ margin:'0 0 8px', fontSize:'1rem', fontWeight:700 }}>
+            <Users size={16} style={{ verticalAlign:'middle', marginRight:6 }} />
+            Upload Faculty Accounts (KLEF-FD.csv)
+          </h3>
+          <p style={{ margin:'0 0 14px', fontSize:13, color:'var(--text-3)' }}>
+            Creates new faculty accounts and updates existing ones in MongoDB. New accounts use EID as initial password.
+          </p>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <label style={{ flex:1 }}>
+              <input type="file" accept=".csv,.CSV" onChange={e => setFacultyFile(e.target.files[0] || null)} style={{ display:'none' }} id="file-faculty" />
+              <div
+                onClick={() => document.getElementById('file-faculty').click()}
+                style={{
+                  padding:'9px 14px', border:`2px dashed ${facultyFile ? 'var(--brand)' : 'var(--border)'}`,
+                  borderRadius:8, cursor:'pointer', fontSize:13,
+                  color: facultyFile ? 'var(--brand)' : 'var(--text-3)',
+                  background: facultyFile ? 'var(--brand-light)' : 'var(--surface)',
+                  transition:'all .15s',
+                }}>
+                {facultyFile ? `✓ ${facultyFile.name}` : 'Click to choose KLEF-FD.csv…'}
+              </div>
+            </label>
+            {facultyFile && (
+              <button className="btn btn-ghost" style={{ padding:'9px 12px' }} onClick={() => setFacultyFile(null)}>✕</button>
+            )}
+            <button className="btn btn-primary" onClick={uploadFaculty} disabled={facultyBusy || !facultyFile}>
+              <UploadCloud size={15} />
+              {facultyBusy ? 'Uploading…' : 'Upload Faculty'}
             </button>
           </div>
         </div>
