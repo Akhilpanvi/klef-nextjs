@@ -7,11 +7,10 @@ import toast from 'react-hot-toast'
 function LoginForm() {
   const { login, user, loading } = useAuth()
   const router = useRouter()
-  const [eid,       setEid]      = useState('')
-  const [pw,        setPw]       = useState('')
-  const [busy,      setBusy]     = useState(false)
-  const [adminMode, setAdmin]    = useState(false)
-  const [dark,      setDark]     = useState(false)
+  const [eid,  setEid]  = useState('')
+  const [pw,   setPw]   = useState('')
+  const [busy, setBusy] = useState(false)
+  const [dark, setDark] = useState(false)
 
   useEffect(() => {
     if (!loading && user) router.replace('/faculty')
@@ -40,8 +39,6 @@ function LoginForm() {
     }
   }
 
-  const toggleMode = () => { setAdmin(a => !a); setEid(''); setPw('') }
-
   if (loading) return null
 
   return (
@@ -50,7 +47,6 @@ function LoginForm() {
       background: 'var(--bg)', padding: 20,
     }}>
       <div className="card fade-up" style={{ maxWidth: 400, width: '100%', padding: 40, textAlign: 'center' }}>
-        {/* Logo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={dark ? '/logo-dark.png' : '/logo-light.png'}
@@ -62,20 +58,20 @@ function LoginForm() {
           KL Timetable
         </h1>
         <p style={{ color: 'var(--text-3)', fontSize: 14, margin: '0 0 28px' }}>
-          {adminMode ? 'Administrator Login' : 'Faculty Login'}
+          Sign in with your Employee ID
         </p>
 
         <form onSubmit={submit}>
           <input
             className="input"
             type="text"
-            placeholder={adminMode ? 'Admin username' : 'Employee ID (EID)'}
+            placeholder="Employee ID (EID) or Username"
             value={eid}
             onChange={e => setEid(e.target.value)}
             style={{ marginBottom: 10, fontSize: 15 }}
             autoFocus
             autoComplete="username"
-            inputMode={adminMode ? 'text' : 'numeric'}
+            inputMode="text"
           />
           <input
             className="input"
@@ -92,26 +88,13 @@ function LoginForm() {
             disabled={busy || !pw || !eid}
             style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 15 }}
           >
-            {busy ? 'Verifying…' : adminMode ? 'Admin Login' : 'Login'}
+            {busy ? 'Verifying…' : 'Login'}
           </button>
         </form>
 
-        {!adminMode && (
-          <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-3)' }}>
-            First time? Use your EID as both username and password.
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={toggleMode}
-          style={{
-            marginTop: 16, background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 12, color: 'var(--text-3)', textDecoration: 'underline', padding: 0,
-          }}
-        >
-          {adminMode ? '← Faculty login' : 'Admin login'}
-        </button>
+        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-3)' }}>
+          First time? Use your EID as both username and password.
+        </p>
       </div>
     </div>
   )

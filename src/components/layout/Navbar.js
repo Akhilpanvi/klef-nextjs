@@ -10,12 +10,12 @@ const ALL_TABS = [
   { label: 'Courses',       path: '/courses' },
   { label: 'Free Faculty',  path: '/free-faculty' },
   { label: 'Free Rooms',    path: 'https://rooms.kluniversity.me', external: true },
-  { label: '⚠ Clashes',    path: '/clash', bold: true, adminOnly: true },
+  { label: '⚠ Clashes',    path: '/clash', bold: true, perm: 'view_clash' },
 ]
 
 export default function Navbar({ onManageData }) {
-  const { logout, isAdmin, isFaculty } = useAuth()
-  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin)
+  const { logout, isAdmin, isFaculty, hasPermission } = useAuth()
+  const TABS = ALL_TABS.filter(t => !t.perm || hasPermission(t.perm))
   const router   = useRouter()
   const pathname = usePathname()
   const [open, setOpen]   = useState(false)

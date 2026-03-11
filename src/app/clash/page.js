@@ -57,7 +57,7 @@ function ClashCard({ c }) {
 }
 
 function ClashContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, hasPermission } = useAuth()
   const router = useRouter()
   const { post } = useApi()
 
@@ -69,7 +69,10 @@ function ClashContent() {
   const [dayF,     setDayF]     = useState('')
   const [search,   setSearch]   = useState('')
 
-  useEffect(() => { if (!loading && !user) router.replace('/login') }, [user, loading])
+  useEffect(() => {
+    if (!loading && !user) router.replace('/login')
+    if (!loading && user && !hasPermission('view_clash')) router.replace('/faculty')
+  }, [user, loading])
 
   const run = async () => {
     setBusy(true)

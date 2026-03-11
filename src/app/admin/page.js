@@ -1,15 +1,190 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users } from 'lucide-react'
+import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck } from 'lucide-react'
+
+const ALL_PERMISSIONS = [
+  { key: 'view_clash',  label: 'View Clash Detection' },
+  { key: 'manage_data', label: 'Manage Data (Upload/Clear)' },
+]
+
+function FacultyPermissionsPanel({ get, patch }) {
+  const [q,          setQ]          = useState('')
+  const [results,    setResults]    = useState([])
+  const [selected,   setSelected]   = useState(null)
+  const [searching,  setSearching]  = useState(false)
+  const [saving,     setSaving]     = useState(false)
+  const [editPerms,  setEditPerms]  = useState([])
+  const [editRole,   setEditRole]   = useState('faculty')
+
+  const search = useCallback(async () => {
+    if (!q.trim()) return
+    setSearching(true)
+    try {
+      const d = await get(`/api/admin/faculty?q=${encodeURIComponent(q)}&limit=10`)
+      if (d.success) setResults(d.faculty)
+    } finally { setSearching(false) }
+  }, [q, get])
+
+  const select = (f) => {
+    setSelected(f)
+    setEditPerms(f.permissions || [])
+    setEditRole(f.role)
+    setResults([])
+    setQ('')
+  }
+
+  const togglePerm = (key) => {
+    setEditPerms(p => p.includes(key) ? p.filter(x => x !== key) : [...p, key])
+  }
+
+  const save = async () => {
+    if (!selected) return
+    setSaving(true)
+    try {
+      const body = {
+        permissions: editPerms,
+        role: editRole,
+      }
+      // use eid for faculty, username for admin-only accounts
+      if (selected.eid) body.eid = selected.eid
+      else body.username = selected.username
+
+      const d = await patch('/api/admin/faculty', body)
+      if (!d.success) throw new Error(d.message)
+      toast.success(`Updated ${selected.display_name || selected.username}`)
+      setSelected({ ...selected, permissions: editPerms, role: editRole })
+    } catch (err) {
+      toast.error(err.message)
+    } finally { setSaving(false) }
+  }
+
+  const resetPwd = async () => {
+    if (!selected) return
+    if (!confirm(`Reset password for ${selected.display_name || selected.username}?`)) return
+    const body = { resetPassword: true }
+    if (selected.eid) body.eid = selected.eid
+    else body.username = selected.username
+    const d = await patch('/api/admin/faculty', body)
+    if (d.success) toast.success('Password reset. They must change it on next login.')
+    else toast.error(d.message)
+  }
+
+  return (
+    <div className="card" style={{ padding: 22, gridColumn: 'span 2' }}>
+      <h3 style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700 }}>
+        <ShieldCheck size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+        Faculty Permissions & Roles
+      </h3>
+      <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-3)' }}>
+        Search a faculty member to grant/revoke permissions or promote to admin.
+      </p>
+
+      {/* Search */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <input
+          className="input" value={q} onChange={e => setQ(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && search()}
+          placeholder="Search by name, EID or username…"
+          style={{ flex: 1 }}
+        />
+        <button className="btn btn-primary" onClick={search} disabled={searching}>
+          <Search size={15} /> {searching ? 'Searching…' : 'Search'}
+        </button>
+      </div>
+
+      {/* Dropdown results */}
+      {results.length > 0 && (
+        <div style={{ border: '1px solid var(--border)', borderRadius: 8, marginBottom: 14, overflow: 'hidden' }}>
+          {results.map(f => (
+            <button key={f._id} onClick={() => select(f)} style={{
+              display: 'block', width: '100%', padding: '10px 14px',
+              textAlign: 'left', background: 'var(--surface)', border: 'none',
+              borderBottom: '1px solid var(--border)', cursor: 'pointer',
+              fontSize: 13, color: 'var(--text)',
+            }}>
+              <strong>{f.display_name || f.username}</strong>
+              <span style={{ color: 'var(--text-3)', marginLeft: 8 }}>
+                {f.eid && `EID: ${f.eid} · `}{f.dept || ''} · {f.role}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Edit panel */}
+      {selected && (
+        <div style={{ padding: 16, background: 'var(--surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>{selected.display_name || selected.username}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
+                {selected.eid && `EID: ${selected.eid} · `}{selected.dept || ''} · {selected.designation || ''}
+              </div>
+            </div>
+            <button className="btn btn-ghost" onClick={() => setSelected(null)} style={{ fontSize: 12, padding: '4px 10px' }}>✕ Close</button>
+          </div>
+
+          {/* Role */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>ROLE</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['faculty', 'admin'].map(r => (
+                <button key={r} onClick={() => setEditRole(r)} style={{
+                  padding: '6px 16px', borderRadius: 6, border: '2px solid',
+                  borderColor: editRole === r ? 'var(--brand)' : 'var(--border)',
+                  background: editRole === r ? 'var(--brand-light)' : 'var(--surface)',
+                  color: editRole === r ? 'var(--brand)' : 'var(--text)',
+                  fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                }}>
+                  {r === 'admin' ? '⭐ Admin' : '👤 Faculty'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Permissions (only relevant for faculty role) */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>
+              PERMISSIONS {editRole === 'admin' && <span style={{ color: '#16a34a', fontWeight: 400 }}>(Admin has all permissions)</span>}
+            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ALL_PERMISSIONS.map(p => (
+                <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', opacity: editRole === 'admin' ? 0.5 : 1 }}>
+                  <input
+                    type="checkbox"
+                    checked={editRole === 'admin' || editPerms.includes(p.key)}
+                    onChange={() => editRole !== 'admin' && togglePerm(p.key)}
+                    disabled={editRole === 'admin'}
+                    style={{ width: 16, height: 16 }}
+                  />
+                  <span style={{ fontSize: 13 }}>{p.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={save} disabled={saving}>
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+            <button className="btn btn-ghost" onClick={resetPwd} style={{ fontSize: 13 }}>
+              🔑 Reset Password
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function AdminContent() {
   const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
-  const { get, del, postForm } = useApi()
+  const { get, del, patch, postForm } = useApi()
 
   const [status,      setStatus]      = useState(null)
   const [files,       setFiles]       = useState({ timetable: null, rooms: null, master: null })
@@ -123,6 +298,10 @@ function AdminContent() {
       )}
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+
+        {/* Faculty Permissions */}
+        <FacultyPermissionsPanel get={get} patch={patch} />
+
         {/* Upload panel */}
         <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
           <h3 style={{ margin:'0 0 16px', fontSize:'1rem', fontWeight:700 }}>📤 Upload New Data</h3>

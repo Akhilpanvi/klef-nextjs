@@ -44,11 +44,20 @@ export function AuthProvider({ children }) {
     if (d.success) setUser(d.user)
   }, [])
 
+  const isAdmin   = user?.role === 'admin'
+  const isFaculty = user?.role === 'faculty'
+
+  // Returns true if user is admin OR has been granted the specific permission
+  const hasPermission = useCallback((perm) => {
+    if (!user) return false
+    if (user.role === 'admin') return true
+    return Array.isArray(user.permissions) && user.permissions.includes(perm)
+  }, [user])
+
   return (
     <AuthCtx.Provider value={{
       user, loading, login, logout, refreshUser,
-      isAdmin:   user?.role === 'admin',
-      isFaculty: user?.role === 'faculty',
+      isAdmin, isFaculty, hasPermission,
     }}>
       {children}
     </AuthCtx.Provider>
@@ -82,5 +91,8 @@ export function useApi() {
   const del = (url) =>
     fetch(url, { method: 'DELETE', headers: getHeaders() }).then(r => r.json())
 
-  return { get, post, postForm, del }
+  const patch = (url, body) =>
+    fetch(url, { method: 'PATCH', headers: getHeaders(), body: JSON.stringify(body) }).then(r => r.json())
+
+  return { get, post, postForm, del, patch }
 }

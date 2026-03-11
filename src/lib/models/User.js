@@ -14,6 +14,9 @@ const schema = new mongoose.Schema(
     dept:               { type: String, trim: true },
     designation:        { type: String, trim: true },
     mustChangePassword: { type: Boolean, default: false },
+    // Granular permissions granted to faculty by admin
+    // e.g. ['view_clash', 'manage_data']
+    permissions:        { type: [String], default: [] },
   },
   { timestamps: true }
 )
