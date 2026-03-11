@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../AuthContext'
-import { Menu, X, Sun, Moon, Lock, FolderOpen, KeyRound } from 'lucide-react'
+import { Menu, X, Sun, Moon, LogOut, LayoutDashboard, KeyRound } from 'lucide-react'
 
 const ALL_TABS = [
   { label: 'Faculty',       path: '/faculty' },
@@ -71,25 +71,29 @@ export default function Navbar({ onManageData }) {
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           {isAdmin && (
-            <button onClick={() => router.push('/admin')} title="Admin Dashboard" style={iconBtnStyle}>
-              <FolderOpen size={17} />
+            <button onClick={() => router.push('/admin')} title="Admin Dashboard" style={actionBtnStyle}>
+              <LayoutDashboard size={15} />
+              <span className="hide-mobile" style={labelStyle}>Admin</span>
             </button>
           )}
-          <button onClick={() => router.push('/change-password')} title="Change Password" style={iconBtnStyle}>
-            <KeyRound size={16} />
+          <button onClick={() => router.push('/change-password')} title="Change Password" style={actionBtnStyle}>
+            <KeyRound size={15} />
+            <span className="hide-mobile" style={labelStyle}>Password</span>
           </button>
-          <button onClick={toggleTheme} title="Toggle theme" style={iconBtnStyle}>
-            {dark ? <Sun size={17} /> : <Moon size={17} />}
+          <button onClick={toggleTheme} title={dark ? 'Switch to Light mode' : 'Switch to Dark mode'} style={actionBtnStyle}>
+            {dark ? <Sun size={15} /> : <Moon size={15} />}
+            <span className="hide-mobile" style={labelStyle}>{dark ? 'Light' : 'Dark'}</span>
           </button>
-          <button onClick={logout} title="Logout" style={iconBtnStyle}>
-            <Lock size={16} />
+          <button onClick={logout} title="Logout" style={actionBtnStyle}>
+            <LogOut size={15} />
+            <span className="hide-mobile" style={labelStyle}>Logout</span>
           </button>
           <button
             className="hide-desktop"
             onClick={() => setOpen(o => !o)}
-            style={{ ...iconBtnStyle, display: 'none' }}
+            style={{ ...actionBtnStyle, width: 34, padding: '0 9px', display: 'none' }}
             id="hamburger"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
@@ -128,9 +132,13 @@ export default function Navbar({ onManageData }) {
   )
 }
 
-const iconBtnStyle = {
+const actionBtnStyle = {
   background: 'rgba(255,255,255,.15)', border: 'none', color: 'white',
-  width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  transition: 'background .15s',
+  height: 32, borderRadius: 6, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', gap: 5,
+  padding: '0 10px', transition: 'background .15s',
+  whiteSpace: 'nowrap',
+}
+const labelStyle = {
+  fontSize: 11, fontWeight: 700, letterSpacing: '.02em',
 }

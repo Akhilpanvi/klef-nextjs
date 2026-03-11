@@ -111,8 +111,17 @@ function FacultyContent() {
 
   const viewingOld = snapId && snapshots.length > 0 && !snapshots.find(s => s.snapshotId === snapId)?.isActive
 
-  // Profile data: for faculty viewing own page use user, for admin viewing searched faculty use result.faculty
-  const profileData = isFaculty ? user : (result?.faculty || null)
+  // For faculty's own page: merge auth user (looked up by _id, always correct) with API result.
+  // API result may have null profile fields if eid lookup misses; fall back to auth user fields.
+  const PROFILE_KEYS = ['designation','cohort','designation_category','assigned_responsibility','load_as_per_designation','pl']
+  const profileData = (() => {
+    if (!isFaculty) return result?.faculty || null
+    const base = result?.faculty ? { ...result.faculty } : { ...user }
+    PROFILE_KEYS.forEach(k => { if (base[k] == null && user[k] != null) base[k] = user[k] })
+    if (!base.eid && user.eid) base.eid = user.eid
+    if (!base.dept && user.dept) base.dept = user.dept
+    return base
+  })()
 
   // Badge text: weeklyLoad always shown; admin also sees extraLoad if any
   const badgeParts = [
@@ -143,9 +152,7 @@ function FacultyContent() {
             ))}
           </select>
           {viewingOld && (
-            <span style={{ fontSize:12, background:'#fef3c7', color:'#92400e', padding:'3px 10px', borderRadius:999, fontWeight:600, whiteSpace:'nowrap' }}>
-              Historical version
-            </span>
+            <span className="badge badge-yellow">Historical version</span>
           )}
         </div>
       )}

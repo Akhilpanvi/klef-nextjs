@@ -25,7 +25,6 @@ export default function PortalShell({ children }) {
             style={{ color:'var(--brand)', fontWeight:700, textDecoration:'none' }}>
             Ch Akhil Panvi
           </a>
-          {' '}· With guidance from P Murali Krishna and HOD B Tirpathi Reddy (CSE-2)
           <br />
           <span style={{ fontSize:11, opacity:.6 }}>© 2026 KL University Timetable</span>
         </footer>

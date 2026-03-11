@@ -371,19 +371,21 @@ function AdminContent() {
       {status && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:12, marginBottom:24 }}>
           {[
-            { label:'Live Entries', value: status.live, color:'#16a34a' },
-            { label:'Master Entries', value: status.master, color:'#f59e0b' },
-            { label:'Rooms Loaded', value: status.rooms, color:'#3b82f6' },
+            { label:'Live Entries',   value: status.live,   cls:'badge-green'  },
+            { label:'Master Entries', value: status.master, cls:'badge-yellow' },
+            { label:'Rooms Loaded',   value: status.rooms,  cls:'badge-blue'   },
           ].map(s => (
             <div key={s.label} className="card" style={{ padding:'16px 18px' }}>
-              <div style={{ fontSize:'1.8rem', fontWeight:800, color: s.value > 0 ? s.color : 'var(--text-3)', fontFamily:"'DM Serif Display',serif" }}>
+              <div style={{ fontSize:'1.8rem', fontWeight:800, fontFamily:"'DM Serif Display',serif",
+                color: s.value > 0 ? 'var(--brand)' : 'var(--text-3)' }}>
                 {s.value.toLocaleString()}
               </div>
               <div style={{ fontSize:12, color:'var(--text-3)', marginTop:4, fontWeight:600, textTransform:'uppercase' }}>{s.label}</div>
             </div>
           ))}
           <div className="card" style={{ padding:'16px 18px' }}>
-            <div style={{ fontSize:'1.8rem', fontWeight:800, color: status.hasData ? '#16a34a' : '#dc2626', fontFamily:"'DM Serif Display',serif" }}>
+            <div style={{ fontSize:'1.8rem', fontWeight:800, fontFamily:"'DM Serif Display',serif",
+              color: status.hasData ? 'var(--brand)' : 'var(--text-3)' }}>
               {status.hasData ? '✓' : '✗'}
             </div>
             <div style={{ fontSize:12, color:'var(--text-3)', marginTop:4, fontWeight:600, textTransform:'uppercase' }}>Data Loaded</div>
@@ -519,14 +521,12 @@ function AdminContent() {
                     <div style={{ fontWeight:600, fontSize:13, display:'flex', alignItems:'center', gap:8 }}>
                       {v.label}
                       {v.isActive && (
-                        <span style={{ fontSize:11, background:'#16a34a', color:'#fff', padding:'2px 8px', borderRadius:99, fontWeight:700 }}>
-                          ACTIVE
-                        </span>
+                        <span className="badge badge-active">ACTIVE</span>
                       )}
                     </div>
                     <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>
                       {v.rowCount?.toLocaleString()} rows · {new Date(v.uploadedAt).toLocaleString()}
-                      {v.academicYear && <span style={{ marginLeft:6, background:'#dbeafe', color:'#1d4ed8', padding:'1px 7px', borderRadius:99, fontWeight:600 }}>AY {v.academicYear}{v.semester ? ` ${v.semester}` : ''}</span>}
+                      {v.academicYear && <span className="badge badge-blue" style={{ marginLeft:6 }}>AY {v.academicYear}{v.semester ? ` ${v.semester}` : ''}</span>}
                       {v.filename && ` · ${v.filename}`}
                     </div>
                   </div>
@@ -552,8 +552,8 @@ function AdminContent() {
         </div>
 
         {/* Danger zone */}
-        <div className="card" style={{ padding:22, borderColor:'#fca5a5' }}>
-          <h3 style={{ margin:'0 0 12px', fontSize:'1rem', fontWeight:700, color:'#dc2626' }}>🗑 Clear Data</h3>
+        <div className="card" style={{ padding:22, borderColor:'var(--brand)' }}>
+          <h3 style={{ margin:'0 0 12px', fontSize:'1rem', fontWeight:700, color:'var(--brand)' }}>🗑 Clear Data</h3>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {[['live','Clear Live Timetable'],['master','Clear Master Timetable'],['all','Clear Everything']].map(([ds, label]) => (
               <button key={ds} className="btn btn-danger" style={{ justifyContent:'flex-start', opacity: ds === 'all' ? 1 : 0.8 }}

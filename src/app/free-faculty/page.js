@@ -110,9 +110,7 @@ function FreeFacultyContent() {
                       <div style={{ fontWeight:700, fontSize:14 }}>{f.name}</div>
                       <div style={{ fontSize:12, color:'var(--text-3)', marginTop:3 }}>{f.id} · {f.dept}</div>
                     </div>
-                    <span style={{ fontSize:12, background:'#d1fae5', color:'#065f46', padding:'3px 10px', borderRadius:999, fontWeight:700, whiteSpace:'nowrap' }}>
-                      {f.weeklyLoad} hrs
-                    </span>
+                    <span className="badge badge-green">{f.weeklyLoad} hrs</span>
                   </div>
                 ))}
               </div>
