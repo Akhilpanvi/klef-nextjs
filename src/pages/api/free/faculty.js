@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   const dataset = await getActiveDataset('live')
 
   const dayNum     = parseInt(day)
-  const periodNums = periods.split(',').map(Number).filter(p => p >= 1 && p <= 24)
+  const periodNums = periods.split(',').map(Number).filter(p => p >= 1 && p <= 11)
   if (!periodNums.length)
     return res.status(400).json({ success: false, message: 'No valid periods' })
 

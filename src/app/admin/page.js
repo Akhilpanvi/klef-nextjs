@@ -20,7 +20,7 @@ function FacultyPermissionsPanel({ get, patch }) {
   const [editPerms,  setEditPerms]  = useState([])
   const [editRole,   setEditRole]   = useState('faculty')
   const [editProfile, setEditProfile] = useState({
-    cohort: '', designation_category: '', assigned_responsibility: '',
+    designation: '', cohort: '', designation_category: '', assigned_responsibility: '',
     load_as_per_designation: '', pl: '',
   })
 
@@ -38,6 +38,7 @@ function FacultyPermissionsPanel({ get, patch }) {
     setEditPerms(f.permissions || [])
     setEditRole(f.role)
     setEditProfile({
+      designation:             f.designation || '',
       cohort:                  f.cohort || '',
       designation_category:    f.designation_category || '',
       assigned_responsibility: f.assigned_responsibility || '',
@@ -59,8 +60,9 @@ function FacultyPermissionsPanel({ get, patch }) {
       const body = {
         permissions: editPerms,
         role: editRole,
-        cohort:                  editProfile.cohort || undefined,
-        designation_category:    editProfile.designation_category || undefined,
+        designation:             editProfile.designation             || undefined,
+        cohort:                  editProfile.cohort                  || undefined,
+        designation_category:    editProfile.designation_category    || undefined,
         assigned_responsibility: editProfile.assigned_responsibility || undefined,
         load_as_per_designation: editProfile.load_as_per_designation !== '' ? Number(editProfile.load_as_per_designation) : undefined,
         pl:                      editProfile.pl !== '' ? Number(editProfile.pl) : undefined,
@@ -187,6 +189,7 @@ function FacultyPermissionsPanel({ get, patch }) {
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 8 }}>PROFILE</label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
+                { key: 'designation',             label: 'Designation',             placeholder: 'e.g. Assistant Professor' },
                 { key: 'cohort',                  label: 'Cohort',                  placeholder: 'e.g. R22' },
                 { key: 'designation_category',    label: 'Designation Category',    placeholder: 'R / Ac / Ad' },
                 { key: 'assigned_responsibility', label: 'Assigned Responsibility', placeholder: 'e.g. HOD, Advisor' },
@@ -234,6 +237,8 @@ function AdminContent() {
   const [facultyBusy, setFacultyBusy] = useState(false)
   const [log,         setLog]         = useState([])
   const [versions,    setVersions]    = useState([])
+  const [uploadAY,    setUploadAY]    = useState('')
+  const [uploadSem,   setUploadSem]   = useState('')
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
@@ -275,6 +280,8 @@ function AdminContent() {
       if (files.timetable) fd.append('timetable', files.timetable)
       if (files.rooms)     fd.append('rooms', files.rooms)
       if (files.master)    fd.append('master', files.master)
+      if (uploadAY)        fd.append('academicYear', uploadAY)
+      if (uploadSem)       fd.append('semester', uploadSem)
 
       const d = await postForm('/api/upload', fd)
       if (!d.success) throw new Error(d.message)
@@ -429,6 +436,21 @@ function AdminContent() {
             </div>
           ))}
 
+          {/* Academic year + semester tag for live BTT upload */}
+          <div style={{ display:'flex', gap:10, marginTop:4, marginBottom:4, flexWrap:'wrap', padding:'10px 14px',
+            background:'var(--surface-2)', borderRadius:8, border:'1px solid var(--border)', alignItems:'center' }}>
+            <span style={{ fontSize:12, fontWeight:700, color:'var(--text-2)', whiteSpace:'nowrap' }}>📘 AY / Semester:</span>
+            <input
+              className="input" value={uploadAY} onChange={e => setUploadAY(e.target.value)}
+              placeholder="Academic Year e.g. 2025-2026" style={{ flex:1, minWidth:160, fontSize:13 }}
+            />
+            <select className="input" value={uploadSem} onChange={e => setUploadSem(e.target.value)} style={{ maxWidth:140, fontSize:13 }}>
+              <option value="">Semester…</option>
+              <option value="Odd">Odd</option>
+              <option value="Even">Even</option>
+            </select>
+          </div>
+
           <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginTop:8 }}>
             <button className="btn btn-primary" onClick={upload} disabled={busy} style={{ flex:1 }}>
               <UploadCloud size={16} />
@@ -504,6 +526,7 @@ function AdminContent() {
                     </div>
                     <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>
                       {v.rowCount?.toLocaleString()} rows · {new Date(v.uploadedAt).toLocaleString()}
+                      {v.academicYear && <span style={{ marginLeft:6, background:'#dbeafe', color:'#1d4ed8', padding:'1px 7px', borderRadius:99, fontWeight:600 }}>AY {v.academicYear}{v.semester ? ` ${v.semester}` : ''}</span>}
                       {v.filename && ` · ${v.filename}`}
                     </div>
                   </div>

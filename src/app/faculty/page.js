@@ -9,17 +9,17 @@ import toast from 'react-hot-toast'
 
 const DESG_LABEL = { R: 'Research', Ac: 'Academic', Ad: 'Administrative' }
 
-function ProfileCard({ user }) {
-  if (!user) return null
+function ProfileCard({ data }) {
+  if (!data) return null
   const fields = [
-    { label: 'EID',                     value: user.eid },
-    { label: 'Department',              value: user.dept },
-    { label: 'Designation',             value: user.designation },
-    { label: 'Cohort',                  value: user.cohort },
-    { label: 'Designation Category',    value: user.designation_category ? `${user.designation_category} — ${DESG_LABEL[user.designation_category] || user.designation_category}` : null },
-    { label: 'Assigned Responsibility', value: user.assigned_responsibility },
-    { label: 'Load as per Designation', value: user.load_as_per_designation != null ? `${user.load_as_per_designation} hrs` : null },
-    { label: 'Permitted Load (PL)',      value: user.pl != null ? `${user.pl} hrs` : null },
+    { label: 'EID',                     value: data.eid || data.id },
+    { label: 'Department',              value: data.dept },
+    { label: 'Designation',             value: data.designation },
+    { label: 'Cohort',                  value: data.cohort },
+    { label: 'Designation Category',    value: data.designation_category ? `${data.designation_category} — ${DESG_LABEL[data.designation_category] || data.designation_category}` : null },
+    { label: 'Assigned Responsibility', value: data.assigned_responsibility },
+    { label: 'Load as per Designation', value: data.load_as_per_designation != null ? `${data.load_as_per_designation} hrs` : null },
+    { label: 'Permitted Load (PL)',      value: data.pl != null ? `${data.pl} hrs` : null },
   ].filter(f => f.value)
 
   if (!fields.length) return null
@@ -111,14 +111,25 @@ function FacultyContent() {
 
   const viewingOld = snapId && snapshots.length > 0 && !snapshots.find(s => s.snapshotId === snapId)?.isActive
 
+  // Profile data: for faculty viewing own page use user, for admin viewing searched faculty use result.faculty
+  const profileData = isFaculty ? user : (result?.faculty || null)
+
+  // Badge text: weeklyLoad always shown; admin also sees extraLoad if any
+  const badgeParts = [
+    `${result?.faculty?.weeklyLoad ?? 0} hrs / week`,
+    result?.faculty?.dept || '—',
+  ]
+  if (isAdmin && result?.faculty?.extraLoad > 0) {
+    badgeParts.push(`+${result.faculty.extraLoad} hrs after P11`)
+  }
+
   return (
     <PortalShell>
       <h2 style={{ margin:'0 0 16px', fontFamily:"'DM Serif Display',serif", color:'var(--text)', fontSize:'1.25rem' }}>
         {isFaculty ? 'My Timetable' : 'Faculty Timetable'}
       </h2>
 
-      {isFaculty && <ProfileCard user={user} />}
-
+      {/* Version dropdown */}
       {snapshots.length > 1 && (
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, flexWrap:'wrap', padding:'10px 14px',
           background:'var(--surface-2)', borderRadius:8, border:'1px solid var(--border)' }}>
@@ -139,6 +150,7 @@ function FacultyContent() {
         </div>
       )}
 
+      {/* Admin search bar */}
       {!isFaculty && (
         <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:20, padding:14,
           background:'var(--surface-2)', borderRadius:10, border:'1px solid var(--border)', alignItems:'center' }}>
@@ -155,14 +167,17 @@ function FacultyContent() {
         </div>
       )}
 
+      {/* Profile card — shown for faculty (own page) or admin (after search result) */}
+      {(isFaculty || (isAdmin && result)) && <ProfileCard data={profileData} />}
+
       {result ? (
         <TimetableGrid
           title={isFaculty ? result.faculty.name : `${result.faculty.name} (${result.faculty.id})`}
-          badge={`${result.faculty.weeklyLoad} hrs / week · ${result.faculty.dept || '—'}`}
+          badge={badgeParts.join(' · ')}
           entries={result.entries}
           mode="ROOM"
           hlTerm={result.faculty.name}
-          showAllHours={false}
+          showAllHours={isAdmin}
           clashes={clashes}
         />
       ) : !busy && !isFaculty && (

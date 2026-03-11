@@ -92,9 +92,6 @@ function LoginForm() {
           </button>
         </form>
 
-        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-3)' }}>
-          First time? Use your EID as both username and password.
-        </p>
       </div>
     </div>
   )

@@ -71,7 +71,7 @@ function FreeFacultyContent() {
             {busy ? 'Checking…' : 'Check Availability'}
           </button>
         </div>
-        <PeriodPicker selected={periods} onChange={setPeriods} max={24} />
+        <PeriodPicker selected={periods} onChange={setPeriods} max={11} />
       </div>
 
       {/* Step 2 */}

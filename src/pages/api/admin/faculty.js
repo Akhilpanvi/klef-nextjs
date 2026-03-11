@@ -40,7 +40,7 @@ export default async function handler(req, res) {
   if (req.method === 'PATCH') {
     const {
       eid, username, is_active, role, resetPassword, permissions,
-      cohort, designation_category, assigned_responsibility,
+      designation, cohort, designation_category, assigned_responsibility,
       load_as_per_designation, pl,
     } = req.body || {}
     if (!eid && !username)
@@ -65,6 +65,7 @@ export default async function handler(req, res) {
       user.mustChangePassword = true
     }
     // Profile fields
+    if (designation !== undefined)             user.designation             = designation || undefined
     if (cohort !== undefined)                  user.cohort                  = cohort || undefined
     if (designation_category !== undefined)    user.designation_category    = designation_category || undefined
     if (assigned_responsibility !== undefined) user.assigned_responsibility = assigned_responsibility || undefined

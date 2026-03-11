@@ -15,12 +15,13 @@ function makeSnapshotId(type) {
   return `${type}_${Date.now()}`
 }
 
-function makeLabel(filename, type) {
+function makeLabel(filename, type, academicYear, semester) {
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
   const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:false })
   const base = filename ? filename.replace(/\.[^.]+$/, '') : type.toUpperCase()
-  return `${base} (${dateStr} ${timeStr})`
+  const ay = academicYear && semester ? ` · AY ${academicYear} ${semester}` : (academicYear ? ` · AY ${academicYear}` : '')
+  return `${base}${ay} (${dateStr} ${timeStr})`
 }
 
 export default async function handler(req, res) {
@@ -41,6 +42,10 @@ export default async function handler(req, res) {
   await connectDB()
 
   const results = {}
+
+  // Academic year / semester metadata (optional, for live uploads)
+  const academicYear = Array.isArray(fields.academicYear) ? fields.academicYear[0] : (fields.academicYear || '')
+  const semester     = Array.isArray(fields.semester)     ? fields.semester[0]     : (fields.semester || '')
 
   // ── BTT Timetable upload (live or master) ─────────────────────────────────
   for (const key of ['timetable', 'master']) {
@@ -85,7 +90,7 @@ export default async function handler(req, res) {
     await TimetableSnapshot.updateMany({ type, isActive: true }, { $set: { isActive: false } })
 
     // Create new snapshot record (active)
-    const label = makeLabel(file.originalFilename || file.newFilename, type)
+    const label = makeLabel(file.originalFilename || file.newFilename, type, academicYear, semester)
     await TimetableSnapshot.create({
       label,
       filename: file.originalFilename || file.newFilename,
@@ -93,6 +98,8 @@ export default async function handler(req, res) {
       snapshotId,
       rowCount: inserted,
       isActive: true,
+      academicYear: academicYear || undefined,
+      semester:     semester     || undefined,
     })
 
     results[key] = { success: true, inserted, dataset: snapshotId, label }
