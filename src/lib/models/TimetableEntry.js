@@ -18,7 +18,7 @@ const schema = new mongoose.Schema(
     // ── SOURCE ─────────────────────────────────────────────────────────────
     source_file:  { type: String },          // original DEPT column value (filename)
     reg:          { type: String, index: true }, // R22, R23, R24, R25
-    dataset:      { type: String, enum: ['live', 'master'], default: 'live', index: true },
+    dataset:      { type: String, default: 'live', index: true }, // snapshotId or 'live'/'master' (legacy)
 
     // ── SLOT ───────────────────────────────────────────────────────────────
     umatdayid:    { type: Number, required: true, min: 1, max: 6, index: true },

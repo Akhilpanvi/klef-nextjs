@@ -1,6 +1,9 @@
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
+import { getActiveDataset } from '@/lib/activeDataset'
+
+const MAX_HOUR = 11  // Faculty timetable only shows periods 1-11
 
 export default async function handler(req, res) {
   if (req.method !== 'GET')
@@ -9,12 +12,15 @@ export default async function handler(req, res) {
   if (!user) return
 
   await connectDB()
-  const { q, list } = req.query
+  const { q, list, snap } = req.query
+
+  // Use requested snapshot or fall back to active
+  const dataset = snap || await getActiveDataset('live')
 
   // /api/timetable/faculty?list=1  → all faculty for autocomplete
   if (list) {
     const faculty = await TimetableEntry.aggregate([
-      { $match: { dataset: 'live', emp_id: { $ne: null } } },
+      { $match: { dataset, emp_id: { $ne: null }, umat_hourno: { $lte: MAX_HOUR } } },
       { $group: {
           _id: '$emp_id',
           name:  { $first: '$faculty_name' },
@@ -29,7 +35,8 @@ export default async function handler(req, res) {
   if (!q) return res.status(400).json({ success: false, message: 'q param required' })
 
   const filter = {
-    dataset: 'live',
+    dataset,
+    umat_hourno: { $lte: MAX_HOUR },
     $or: [
       { emp_id: q.trim() },
       { faculty_name: { $regex: q.trim(), $options: 'i' } },
@@ -40,8 +47,8 @@ export default async function handler(req, res) {
   if (!entries.length)
     return res.status(404).json({ success: false, message: 'Faculty not found' })
 
-  // Weekly load = hours 1–24 but we count each distinct slot row
-  const weeklyLoad = entries.filter(e => e.umat_hourno >= 1 && e.umat_hourno <= 24).length
+  // Weekly load = only count periods 1–11
+  const weeklyLoad = entries.length
 
   res.json({
     success: true,
@@ -52,5 +59,6 @@ export default async function handler(req, res) {
       weeklyLoad,
     },
     entries,
+    snapshot: dataset,
   })
 }

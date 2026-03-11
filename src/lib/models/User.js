@@ -15,8 +15,13 @@ const schema = new mongoose.Schema(
     designation:        { type: String, trim: true },
     mustChangePassword: { type: Boolean, default: false },
     // Granular permissions granted to faculty by admin
-    // e.g. ['view_clash', 'manage_data']
     permissions:        { type: [String], default: [] },
+    // Faculty profile fields (set by admin)
+    cohort:                   { type: String, trim: true },  // e.g. R22, R23
+    designation_category:     { type: String, trim: true },  // R / Ac / Ad
+    assigned_responsibility:  { type: String, trim: true },  // e.g. HOD, Class Advisor
+    load_as_per_designation:  { type: Number },              // e.g. 16, 18, 20
+    pl:                       { type: Number },              // Permitted Load
   },
   { timestamps: true }
 )

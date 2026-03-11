@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
 import RoomMeta from '@/lib/models/RoomMeta'
 import { detectClashes } from '@/lib/clashEngine'
+import { getActiveDataset } from '@/lib/activeDataset'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
@@ -12,9 +13,11 @@ export default async function handler(req, res) {
 
   await connectDB()
 
-  // Use master dataset if uploaded, otherwise live
-  const masterCount = await TimetableEntry.countDocuments({ dataset: 'master' })
-  const dataset = masterCount > 0 ? 'master' : 'live'
+  const masterDataset = await getActiveDataset('master')
+  const liveDataset   = await getActiveDataset('live')
+
+  const masterCount = await TimetableEntry.countDocuments({ dataset: masterDataset })
+  const dataset = masterCount > 0 ? masterDataset : liveDataset
 
   const count = await TimetableEntry.countDocuments({ dataset })
   if (!count)

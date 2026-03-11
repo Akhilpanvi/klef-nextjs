@@ -3,6 +3,9 @@ import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
 import RoomMeta from '@/lib/models/RoomMeta'
 import { detectClashes } from '@/lib/clashEngine'
+import { getActiveDataset } from '@/lib/activeDataset'
+
+const MAX_HOUR = 11
 
 export default async function handler(req, res) {
   if (req.method !== 'GET')
@@ -10,18 +13,15 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res)
   if (!user) return
 
-  const { q } = req.query
+  const { q, snap } = req.query
   if (!q) return res.status(400).json({ success: false, message: 'q param required' })
 
   await connectDB()
+  const dataset = snap || await getActiveDataset('live')
 
-  // Use master dataset if available, else live
-  const masterCount = await TimetableEntry.countDocuments({ dataset: 'master' })
-  const dataset = masterCount > 0 ? 'master' : 'live'
-
-  // Get this faculty's entries
   const myEntries = await TimetableEntry.find({
     dataset,
+    umat_hourno: { $lte: MAX_HOUR },
     $or: [
       { emp_id: q.trim() },
       { faculty_name: { $regex: `^${q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } },
@@ -30,35 +30,28 @@ export default async function handler(req, res) {
 
   if (!myEntries.length) return res.json({ success: true, clashes: [] })
 
-  // Collect unique (day, hour, room) and (day, hour, emp_id) combos
-  const roomKeys = []
   const empId = myEntries[0].emp_id
+  const roomKeys = []
   for (const e of myEntries) {
     if (e.room_no && e.umatdayid && e.umat_hourno)
-      roomKeys.push({ dataset, umatdayid: e.umatdayid, umat_hourno: e.umat_hourno, room_no: e.room_no })
+      roomKeys.push({ umatdayid: e.umatdayid, umat_hourno: e.umat_hourno, room_no: e.room_no })
   }
 
-  // Fetch all entries sharing the same room+day+hour slots
   let relatedEntries = []
   if (roomKeys.length) {
     relatedEntries = await TimetableEntry.find({
       dataset,
-      $or: roomKeys.map(k => ({
-        umatdayid: k.umatdayid,
-        umat_hourno: k.umat_hourno,
-        room_no: k.room_no,
-      })),
+      umat_hourno: { $lte: MAX_HOUR },
+      $or: roomKeys.map(k => ({ umatdayid: k.umatdayid, umat_hourno: k.umat_hourno, room_no: k.room_no })),
     }).lean()
   }
 
-  // Also fetch entries where same emp_id at same day+hour (double-booking)
   const slots = myEntries.map(e => ({ umatdayid: e.umatdayid, umat_hourno: e.umat_hourno }))
   const doubleEntries = empId ? await TimetableEntry.find({
-    dataset, emp_id: empId,
+    dataset, emp_id: empId, umat_hourno: { $lte: MAX_HOUR },
     $or: slots.map(s => ({ umatdayid: s.umatdayid, umat_hourno: s.umat_hourno })),
   }).lean() : []
 
-  // Union of all relevant entries
   const seen = new Set()
   const allEntries = []
   for (const e of [...relatedEntries, ...doubleEntries]) {
@@ -71,15 +64,12 @@ export default async function handler(req, res) {
 
   const allClashes = detectClashes(allEntries, metaMap)
 
-  // Filter to only clashes involving this faculty
   const myName = (myEntries[0].faculty_name || '').toLowerCase()
   const clashes = allClashes.filter(c =>
     (c.faculty1 || '').toLowerCase() === myName ||
     (c.faculty2 || '').toLowerCase() === myName ||
     (empId && allEntries.some(e =>
-      e.emp_id === empId &&
-      e.umatdayid === c.day &&
-      e.umat_hourno === c.hour
+      e.emp_id === empId && e.umatdayid === c.day && e.umat_hourno === c.hour
     ))
   )
 

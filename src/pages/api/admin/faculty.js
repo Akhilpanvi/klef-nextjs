@@ -38,7 +38,11 @@ export default async function handler(req, res) {
 
   // PATCH /api/admin/faculty  — update a faculty user
   if (req.method === 'PATCH') {
-    const { eid, username, is_active, role, resetPassword, permissions } = req.body || {}
+    const {
+      eid, username, is_active, role, resetPassword, permissions,
+      cohort, designation_category, assigned_responsibility,
+      load_as_per_designation, pl,
+    } = req.body || {}
     if (!eid && !username)
       return res.status(400).json({ success: false, message: 'eid or username required' })
 
@@ -60,6 +64,12 @@ export default async function handler(req, res) {
       user.password_hash = resetTo
       user.mustChangePassword = true
     }
+    // Profile fields
+    if (cohort !== undefined)                  user.cohort                  = cohort || undefined
+    if (designation_category !== undefined)    user.designation_category    = designation_category || undefined
+    if (assigned_responsibility !== undefined) user.assigned_responsibility = assigned_responsibility || undefined
+    if (load_as_per_designation !== undefined) user.load_as_per_designation = load_as_per_designation || undefined
+    if (pl !== undefined)                      user.pl                      = pl || undefined
 
     await user.save()
     const updated = user.toJSON()

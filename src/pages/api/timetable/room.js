@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
 import RoomMeta from '@/lib/models/RoomMeta'
+import { getActiveDataset } from '@/lib/activeDataset'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET')
@@ -10,10 +11,11 @@ export default async function handler(req, res) {
   if (!user) return
 
   await connectDB()
-  const { q, list } = req.query
+  const { q, list, snap } = req.query
+  const dataset = snap || await getActiveDataset('live')
 
   if (list) {
-    const rooms  = await TimetableEntry.distinct('room_no', { dataset: 'live' })
+    const rooms  = await TimetableEntry.distinct('room_no', { dataset })
     const metas  = await RoomMeta.find({ room_no: { $in: rooms } }).lean()
     const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
     return res.json({
@@ -30,7 +32,7 @@ export default async function handler(req, res) {
   if (!q) return res.status(400).json({ success: false, message: 'q param required' })
 
   const entries = await TimetableEntry
-    .find({ dataset: 'live', room_no: { $regex: `^${q.trim()}$`, $options: 'i' } })
+    .find({ dataset, room_no: { $regex: `^${q.trim()}$`, $options: 'i' } })
     .lean()
 
   if (!entries.length)
@@ -40,12 +42,7 @@ export default async function handler(req, res) {
 
   res.json({
     success: true,
-    room: {
-      number:   entries[0].room_no,
-      type:     meta?.room_type || '-',
-      capacity: meta?.capacity || '-',
-      block:    meta?.block || '-',
-    },
+    room: { number: entries[0].room_no, type: meta?.room_type||'-', capacity: meta?.capacity||'-', block: meta?.block||'-' },
     entries,
   })
 }

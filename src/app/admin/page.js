@@ -19,6 +19,10 @@ function FacultyPermissionsPanel({ get, patch }) {
   const [saving,     setSaving]     = useState(false)
   const [editPerms,  setEditPerms]  = useState([])
   const [editRole,   setEditRole]   = useState('faculty')
+  const [editProfile, setEditProfile] = useState({
+    cohort: '', designation_category: '', assigned_responsibility: '',
+    load_as_per_designation: '', pl: '',
+  })
 
   const search = useCallback(async () => {
     if (!q.trim()) return
@@ -33,6 +37,13 @@ function FacultyPermissionsPanel({ get, patch }) {
     setSelected(f)
     setEditPerms(f.permissions || [])
     setEditRole(f.role)
+    setEditProfile({
+      cohort:                  f.cohort || '',
+      designation_category:    f.designation_category || '',
+      assigned_responsibility: f.assigned_responsibility || '',
+      load_as_per_designation: f.load_as_per_designation ?? '',
+      pl:                      f.pl ?? '',
+    })
     setResults([])
     setQ('')
   }
@@ -48,15 +59,19 @@ function FacultyPermissionsPanel({ get, patch }) {
       const body = {
         permissions: editPerms,
         role: editRole,
+        cohort:                  editProfile.cohort || undefined,
+        designation_category:    editProfile.designation_category || undefined,
+        assigned_responsibility: editProfile.assigned_responsibility || undefined,
+        load_as_per_designation: editProfile.load_as_per_designation !== '' ? Number(editProfile.load_as_per_designation) : undefined,
+        pl:                      editProfile.pl !== '' ? Number(editProfile.pl) : undefined,
       }
-      // use eid for faculty, username for admin-only accounts
       if (selected.eid) body.eid = selected.eid
       else body.username = selected.username
 
       const d = await patch('/api/admin/faculty', body)
       if (!d.success) throw new Error(d.message)
       toast.success(`Updated ${selected.display_name || selected.username}`)
-      setSelected({ ...selected, permissions: editPerms, role: editRole })
+      setSelected({ ...selected, permissions: editPerms, role: editRole, ...editProfile })
     } catch (err) {
       toast.error(err.message)
     } finally { setSaving(false) }
@@ -167,6 +182,32 @@ function FacultyPermissionsPanel({ get, patch }) {
             </div>
           </div>
 
+          {/* Profile fields */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 8 }}>PROFILE</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {[
+                { key: 'cohort',                  label: 'Cohort',                  placeholder: 'e.g. R22' },
+                { key: 'designation_category',    label: 'Designation Category',    placeholder: 'R / Ac / Ad' },
+                { key: 'assigned_responsibility', label: 'Assigned Responsibility', placeholder: 'e.g. HOD, Advisor' },
+                { key: 'load_as_per_designation', label: 'Load (hrs)',              placeholder: 'e.g. 16', type: 'number' },
+                { key: 'pl',                      label: 'Permitted Load (PL)',      placeholder: 'e.g. 18', type: 'number' },
+              ].map(f => (
+                <div key={f.key}>
+                  <label style={{ fontSize: 11, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                  <input
+                    className="input"
+                    type={f.type || 'text'}
+                    placeholder={f.placeholder}
+                    value={editProfile[f.key]}
+                    onChange={e => setEditProfile(p => ({ ...p, [f.key]: e.target.value }))}
+                    style={{ fontSize: 13, padding: '6px 10px' }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="btn btn-primary" onClick={save} disabled={saving}>
               {saving ? 'Saving…' : 'Save Changes'}
@@ -192,6 +233,7 @@ function AdminContent() {
   const [busy,        setBusy]        = useState(false)
   const [facultyBusy, setFacultyBusy] = useState(false)
   const [log,         setLog]         = useState([])
+  const [versions,    setVersions]    = useState([])
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
@@ -202,7 +244,24 @@ function AdminContent() {
     const d = await get('/api/upload/status')
     if (d.success) setStatus(d.status)
   }
-  useEffect(() => { if (user && isAdmin) fetchStatus() }, [user, isAdmin])
+  const fetchVersions = async () => {
+    const d = await get('/api/upload/versions')
+    if (d.success) setVersions(d.snapshots || [])
+  }
+  useEffect(() => { if (user && isAdmin) { fetchStatus(); fetchVersions() } }, [user, isAdmin])
+
+  const activateVersion = async (snapshotId) => {
+    const d = await patch('/api/upload/versions', { snapshotId })
+    if (d.success) { toast.success(d.message); fetchVersions() }
+    else toast.error(d.message)
+  }
+
+  const deleteVersion = async (snapshotId, label) => {
+    if (!confirm(`Delete "${label}"? This will permanently remove all its timetable entries.`)) return
+    const d = await del(`/api/upload/versions?snapshotId=${encodeURIComponent(snapshotId)}`)
+    if (d.success) { toast.success(d.message); fetchVersions(); fetchStatus() }
+    else toast.error(d.message)
+  }
 
   const setFile = (key) => (e) => setFiles(f => ({ ...f, [key]: e.target.files[0] || null }))
 
@@ -413,6 +472,60 @@ function AdminContent() {
               {facultyBusy ? 'Uploading…' : 'Upload Faculty'}
             </button>
           </div>
+        </div>
+
+        {/* Version History */}
+        <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+            <h3 style={{ margin:0, fontSize:'1rem', fontWeight:700 }}>📅 Timetable Version History</h3>
+            <button className="btn btn-ghost" onClick={fetchVersions} style={{ fontSize:12, padding:'4px 10px' }}>
+              <RefreshCw size={13} /> Refresh
+            </button>
+          </div>
+          {versions.filter(v => v.type === 'live').length === 0 ? (
+            <p style={{ color:'var(--text-3)', fontSize:13 }}>No timetable versions uploaded yet.</p>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {versions.filter(v => v.type === 'live').map(v => (
+                <div key={v.snapshotId} style={{
+                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                  background:'var(--surface-2)', borderRadius:8,
+                  border:`1px solid ${v.isActive ? 'var(--brand)' : 'var(--border)'}`,
+                  flexWrap:'wrap',
+                }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontWeight:600, fontSize:13, display:'flex', alignItems:'center', gap:8 }}>
+                      {v.label}
+                      {v.isActive && (
+                        <span style={{ fontSize:11, background:'#16a34a', color:'#fff', padding:'2px 8px', borderRadius:99, fontWeight:700 }}>
+                          ACTIVE
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>
+                      {v.rowCount?.toLocaleString()} rows · {new Date(v.uploadedAt).toLocaleString()}
+                      {v.filename && ` · ${v.filename}`}
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:6 }}>
+                    {!v.isActive && (
+                      <button className="btn btn-primary" style={{ fontSize:12, padding:'5px 12px' }}
+                        onClick={() => activateVersion(v.snapshotId)}>
+                        <CheckCircle size={13} /> Set Active
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-danger" style={{ fontSize:12, padding:'5px 10px', opacity: v.isActive ? 0.4 : 1 }}
+                      disabled={v.isActive}
+                      title={v.isActive ? 'Cannot delete active version' : 'Delete this version'}
+                      onClick={() => deleteVersion(v.snapshotId, v.label)}>
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Danger zone */}

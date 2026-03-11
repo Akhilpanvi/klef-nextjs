@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
+import TimetableSnapshot from '@/lib/models/TimetableSnapshot'
 import RoomMeta from '@/lib/models/RoomMeta'
 import { parseBTTBuffer, parseRoomBuffer } from '@/lib/csvParser'
 import formidable from 'formidable'
@@ -10,6 +11,18 @@ export const config = {
   api: { bodyParser: false },
 }
 
+function makeSnapshotId(type) {
+  return `${type}_${Date.now()}`
+}
+
+function makeLabel(filename, type) {
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+  const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:false })
+  const base = filename ? filename.replace(/\.[^.]+$/, '') : type.toUpperCase()
+  return `${base} (${dateStr} ${timeStr})`
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST')
     return res.status(405).json({ success: false, message: 'Method not allowed' })
@@ -17,9 +30,7 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res, 'admin')
   if (!user) return
 
-  // Parse multipart form
   const form = formidable({ maxFileSize: 100 * 1024 * 1024, keepExtensions: true })
-
   let fields, files
   try {
     ;[fields, files] = await form.parse(req)
@@ -37,12 +48,16 @@ export default async function handler(req, res) {
     if (!fileArr?.length) continue
 
     const file    = fileArr[0]
-    const dataset = key === 'master' ? 'master' : 'live'
+    const type    = key === 'master' ? 'master' : 'live'
     const buf     = fs.readFileSync(file.filepath)
+
+    // For master: still replace (only one master needed)
+    // For live: keep history — create a new snapshot
+    const snapshotId = type === 'master' ? 'master' : makeSnapshotId(type)
 
     let docs
     try {
-      docs = parseBTTBuffer(buf, dataset)
+      docs = parseBTTBuffer(buf, snapshotId)
     } catch (err) {
       results[key] = { error: 'Parse failed: ' + err.message }
       continue
@@ -53,8 +68,12 @@ export default async function handler(req, res) {
       continue
     }
 
-    // Clear existing dataset, then bulk insert in chunks
-    await TimetableEntry.deleteMany({ dataset })
+    if (type === 'master') {
+      // Master: replace existing
+      await TimetableEntry.deleteMany({ dataset: 'master' })
+    }
+    // Live: don't delete old snapshots — history is preserved
+
     const CHUNK = 1000
     let inserted = 0
     for (let i = 0; i < docs.length; i += CHUNK) {
@@ -62,7 +81,21 @@ export default async function handler(req, res) {
       inserted += Math.min(CHUNK, docs.length - i)
     }
 
-    results[key] = { success: true, inserted, dataset }
+    // Deactivate previous active snapshot of same type
+    await TimetableSnapshot.updateMany({ type, isActive: true }, { $set: { isActive: false } })
+
+    // Create new snapshot record (active)
+    const label = makeLabel(file.originalFilename || file.newFilename, type)
+    await TimetableSnapshot.create({
+      label,
+      filename: file.originalFilename || file.newFilename,
+      type,
+      snapshotId,
+      rowCount: inserted,
+      isActive: true,
+    })
+
+    results[key] = { success: true, inserted, dataset: snapshotId, label }
   }
 
   // ── Room metadata upload ──────────────────────────────────────────────────
@@ -80,11 +113,7 @@ export default async function handler(req, res) {
         },
       }))
       const result = await RoomMeta.bulkWrite(ops)
-      results.rooms = {
-        success: true,
-        upserted: result.upsertedCount,
-        modified: result.modifiedCount,
-      }
+      results.rooms = { success: true, upserted: result.upsertedCount, modified: result.modifiedCount }
     } else {
       results.rooms = { error: 'No valid rows in room file' }
     }
