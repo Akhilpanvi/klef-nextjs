@@ -16,8 +16,6 @@ function ChangePasswordForm() {
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
-    // If user already has no mustChangePassword and visits this page directly, redirect
-    if (!loading && user && !user.mustChangePassword) router.replace('/faculty')
   }, [user, loading])
 
   const submit = async (e) => {
@@ -59,7 +57,7 @@ function ChangePasswordForm() {
             Set New Password
           </h1>
           <p style={{ color: 'var(--text-3)', fontSize: 13, margin: 0 }}>
-            This is your first login. Please set a secure password.
+            {user?.mustChangePassword ? 'First login — please set a secure password.' : 'Change your account password.'}
           </p>
         </div>
 

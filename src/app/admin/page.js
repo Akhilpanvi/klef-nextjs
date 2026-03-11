@@ -266,13 +266,41 @@ function AdminContent() {
     }
   }
 
+  const [tab, setTab] = useState('permissions')
+
   if (loading || !user || !isAdmin) return null
 
   return (
     <PortalShell>
-      <h2 style={{ margin:'0 0 6px', fontFamily:"'DM Serif Display',serif", fontSize:'1.25rem' }}>Admin Dashboard</h2>
-      <p style={{ color:'var(--text-3)', fontSize:13, margin:'0 0 24px' }}>Upload CSV files to update the portal database.</p>
+      <h2 style={{ margin:'0 0 16px', fontFamily:"'DM Serif Display',serif", fontSize:'1.25rem' }}>Admin Dashboard</h2>
 
+      {/* Tabs */}
+      <div style={{ display:'flex', gap:4, marginBottom:24, borderBottom:'2px solid var(--border)', paddingBottom:0 }}>
+        {[
+          { key:'permissions', label:'👥 Faculty Permissions' },
+          { key:'data',        label:'📤 Data Management' },
+        ].map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} style={{
+            background:'none', border:'none', cursor:'pointer', padding:'8px 18px',
+            fontWeight:700, fontSize:14, fontFamily:'inherit',
+            color: tab === t.key ? 'var(--brand)' : 'var(--text-3)',
+            borderBottom: tab === t.key ? '3px solid var(--brand)' : '3px solid transparent',
+            marginBottom:-2, transition:'all .15s',
+          }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Faculty Permissions tab ── */}
+      {tab === 'permissions' && (
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+          <FacultyPermissionsPanel get={get} patch={patch} />
+        </div>
+      )}
+
+      {/* ── Data Management tab ── */}
+      {tab === 'data' && (<>
       {/* Status Cards */}
       {status && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:12, marginBottom:24 }}>
@@ -298,9 +326,6 @@ function AdminContent() {
       )}
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-
-        {/* Faculty Permissions */}
-        <FacultyPermissionsPanel get={get} patch={patch} />
 
         {/* Upload panel */}
         <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
@@ -421,6 +446,7 @@ function AdminContent() {
           )}
         </div>
       </div>
+      </>)}
     </PortalShell>
   )
 }

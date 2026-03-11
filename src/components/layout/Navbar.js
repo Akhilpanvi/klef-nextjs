@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../AuthContext'
-import { Menu, X, Sun, Moon, Lock, FolderOpen } from 'lucide-react'
+import { Menu, X, Sun, Moon, Lock, FolderOpen, KeyRound } from 'lucide-react'
 
 const ALL_TABS = [
   { label: 'Faculty',       path: '/faculty' },
@@ -77,6 +77,9 @@ export default function Navbar({ onManageData }) {
               <FolderOpen size={17} />
             </button>
           )}
+          <button onClick={() => router.push('/change-password')} title="Change Password" style={iconBtnStyle}>
+            <KeyRound size={16} />
+          </button>
           <button onClick={toggleTheme} title="Toggle theme" style={iconBtnStyle}>
             {dark ? <Sun size={17} /> : <Moon size={17} />}
           </button>

@@ -15,6 +15,7 @@ function FacultyContent() {
   const [query,    setQuery]    = useState('')
   const [allFac,   setAllFac]   = useState([])
   const [result,   setResult]   = useState(null)
+  const [clashes,  setClashes]  = useState([])
   const [busy,     setBusy]     = useState(false)
 
   useEffect(() => {
@@ -46,10 +47,15 @@ function FacultyContent() {
     const term = (typeof q === 'object' ? q.value : q).trim()
     if (!term) return toast.error('Enter a faculty name or ID')
     setBusy(true)
+    setClashes([])
     try {
       const d = await get(`/api/timetable/faculty?q=${encodeURIComponent(term)}`)
       if (!d.success) throw new Error(d.message)
       setResult(d)
+      // Fetch clashes for this faculty (non-blocking)
+      get(`/api/timetable/faculty-clashes?q=${encodeURIComponent(term)}`)
+        .then(c => { if (c.success) setClashes(c.clashes || []) })
+        .catch(() => {})
     } catch (err) {
       toast.error(err.message)
       setResult(null)
@@ -89,6 +95,7 @@ function FacultyContent() {
           mode="ROOM"
           hlTerm={result.faculty.name}
           showAllHours={isAdmin}
+          clashes={clashes}
         />
       ) : !busy && !isFaculty && (
         <EmptyState icon="👤" text="Search for a faculty member to view their weekly schedule." />
