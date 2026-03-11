@@ -4,12 +4,14 @@ import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck } from 'lucide-react'
+import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink } from 'lucide-react'
 
 const ALL_PERMISSIONS = [
   { key: 'view_clash',  label: 'View Clash Detection' },
   { key: 'manage_data', label: 'Manage Data (Upload/Clear)' },
 ]
+
+const DESG_LABEL = { R: 'Research', Ac: 'Academic', Ad: 'Administrative' }
 
 function FacultyPermissionsPanel({ get, patch }) {
   const [q,          setQ]          = useState('')
@@ -218,7 +220,44 @@ function FacultyPermissionsPanel({ get, patch }) {
             <button className="btn btn-ghost" onClick={resetPwd} style={{ fontSize: 13 }}>
               🔑 Reset Password
             </button>
+            {(selected.eid || selected.username) && (
+              <a
+                href={`/faculty?q=${encodeURIComponent(selected.eid || selected.username)}`}
+                target="_blank" rel="noreferrer"
+                className="btn btn-ghost"
+                style={{ fontSize: 13, textDecoration: 'none' }}
+              >
+                <ExternalLink size={13} /> View Timetable
+              </a>
+            )}
           </div>
+
+          {/* Profile preview — shows what will appear on the timetable profile card */}
+          {(editProfile.designation || editProfile.cohort || editProfile.designation_category ||
+            editProfile.assigned_responsibility || editProfile.load_as_per_designation || editProfile.pl) && (
+            <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--surface)', borderRadius: 8,
+              border: '1px dashed var(--border)' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>
+                Profile card preview
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '6px 16px' }}>
+                {[
+                  { label: 'Designation',             value: editProfile.designation },
+                  { label: 'Cohort',                  value: editProfile.cohort },
+                  { label: 'Designation Category',    value: editProfile.designation_category
+                    ? `${editProfile.designation_category} — ${DESG_LABEL[editProfile.designation_category] || editProfile.designation_category}` : '' },
+                  { label: 'Assigned Responsibility', value: editProfile.assigned_responsibility },
+                  { label: 'Load as per Designation', value: editProfile.load_as_per_designation ? `${editProfile.load_as_per_designation} hrs` : '' },
+                  { label: 'Permitted Load (PL)',      value: editProfile.pl ? `${editProfile.pl} hrs` : '' },
+                ].filter(f => f.value).map(f => (
+                  <div key={f.label}>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{f.label}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginTop: 1 }}>{f.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

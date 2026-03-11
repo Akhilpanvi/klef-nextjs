@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
 import TimetableGrid from '@/components/timetable/TimetableGrid'
 import SearchInput from '@/components/ui/SearchInput'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 const DESG_LABEL = { R: 'Research', Ac: 'Academic', Ad: 'Administrative' }
@@ -39,6 +39,7 @@ function ProfileCard({ data }) {
 function FacultyContent() {
   const { user, loading, isAdmin, isFaculty } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { get } = useApi()
 
   const [query,     setQuery]     = useState('')
@@ -71,6 +72,9 @@ function FacultyContent() {
   useEffect(() => {
     if (!user) return
     if (isFaculty && user.eid) { search(user.eid); return }
+    // Auto-search if ?q= param is present (e.g. from admin "View Timetable" link)
+    const qParam = searchParams?.get('q')
+    if (qParam) { setQuery(qParam); search(qParam); }
     get('/api/timetable/faculty?list=1')
       .then(d => d.success && setAllFac(d.faculty || []))
       .catch(() => {})
@@ -198,5 +202,11 @@ function FacultyContent() {
 }
 
 export default function FacultyPage() {
-  return <AuthProvider><FacultyContent /></AuthProvider>
+  return (
+    <AuthProvider>
+      <Suspense fallback={null}>
+        <FacultyContent />
+      </Suspense>
+    </AuthProvider>
+  )
 }
