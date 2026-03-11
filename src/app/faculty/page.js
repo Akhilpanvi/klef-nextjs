@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 function FacultyContent() {
-  const { user, loading, isAdmin } = useAuth()
+  const { user, loading, isAdmin, isFaculty } = useAuth()
   const router = useRouter()
   const { get } = useApi()
 
@@ -19,10 +19,17 @@ function FacultyContent() {
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
+    // Faculty: check mustChangePassword
+    if (!loading && user?.mustChangePassword) router.replace('/change-password')
   }, [user, loading])
 
   useEffect(() => {
     if (!user) return
+    // Faculty role: auto-load their own timetable
+    if (isFaculty && user.eid) {
+      search(user.eid)
+      return
+    }
     get('/api/timetable/faculty?list=1')
       .then(d => d.success && setAllFac(d.faculty || []))
       .catch(() => {})
@@ -54,33 +61,36 @@ function FacultyContent() {
   return (
     <PortalShell>
       <h2 style={{ margin:'0 0 16px', fontFamily:"'DM Serif Display',serif", color:'var(--text)', fontSize:'1.25rem' }}>
-        Faculty Timetable
+        {isFaculty ? 'My Timetable' : 'Faculty Timetable'}
       </h2>
 
-      <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:20, padding:14,
-        background:'var(--surface-2)', borderRadius:10, border:'1px solid var(--border)', alignItems:'center' }}>
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          onSelect={s => { setQuery(s.label + ' (' + s.value + ')'); search(s.value) }}
-          suggestions={suggestions}
-          placeholder="Search by name or employee ID…"
-        />
-        <button className="btn btn-primary" onClick={() => search()} disabled={busy}>
-          {busy ? 'Searching…' : 'Search'}
-        </button>
-      </div>
+      {/* Search bar: only for admin/viewer */}
+      {!isFaculty && (
+        <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:20, padding:14,
+          background:'var(--surface-2)', borderRadius:10, border:'1px solid var(--border)', alignItems:'center' }}>
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            onSelect={s => { setQuery(s.label + ' (' + s.value + ')'); search(s.value) }}
+            suggestions={suggestions}
+            placeholder="Search by name or employee ID…"
+          />
+          <button className="btn btn-primary" onClick={() => search()} disabled={busy}>
+            {busy ? 'Searching…' : 'Search'}
+          </button>
+        </div>
+      )}
 
       {result ? (
         <TimetableGrid
-          title={`${result.faculty.name} (${result.faculty.id})`}
+          title={isFaculty ? `${result.faculty.name}` : `${result.faculty.name} (${result.faculty.id})`}
           badge={`${result.faculty.weeklyLoad} hrs / week · ${result.faculty.dept || '—'}`}
           entries={result.entries}
           mode="ROOM"
           hlTerm={result.faculty.name}
           showAllHours={isAdmin}
         />
-      ) : !busy && (
+      ) : !busy && !isFaculty && (
         <EmptyState icon="👤" text="Search for a faculty member to view their weekly schedule." />
       )}
     </PortalShell>

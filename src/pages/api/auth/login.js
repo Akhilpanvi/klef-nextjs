@@ -12,25 +12,29 @@ export default async function handler(req, res) {
 
   await connectDB()
 
-  // Special viewer shortcut: username="viewer", password=APP_PASSWORD
-  if (username === 'viewer' && password === process.env.APP_PASSWORD) {
-    let viewer = await User.findOne({ username: 'viewer' })
-    if (!viewer) {
-      viewer = new User({ username: 'viewer', password_hash: password, role: 'viewer', display_name: 'Viewer' })
-      await viewer.save()
-    }
-    viewer.last_login = new Date()
-    await viewer.save({ validateBeforeSave: false })
-    return res.json({ success: true, token: signToken(viewer._id), user: viewer })
-  }
+  // 1. Try faculty login: EID as username (stored in eid field, username = eid string)
+  // 2. Try admin/viewer login: username field match
 
-  const user = await User.findOne({ username: username.toLowerCase().trim() })
+  let user = await User.findOne({
+    $or: [
+      { username: username.toLowerCase().trim() },
+      { eid: username.trim(), role: 'faculty' },
+    ]
+  })
+
   if (!user || !(await user.comparePassword(password)))
     return res.status(401).json({ success: false, message: 'Invalid credentials' })
+
   if (!user.is_active)
     return res.status(401).json({ success: false, message: 'Account inactive' })
 
   user.last_login = new Date()
   await user.save({ validateBeforeSave: false })
-  res.json({ success: true, token: signToken(user._id), user })
+
+  res.json({
+    success: true,
+    token: signToken(user._id),
+    user,
+    mustChangePassword: user.mustChangePassword === true,
+  })
 }

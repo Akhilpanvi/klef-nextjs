@@ -7,7 +7,8 @@
     "build": "NODE_OPTIONS=--tls-min-v1.2 next build",
     "start": "NODE_OPTIONS=--tls-min-v1.2 next start",
     "lint": "next lint",
-    "seed": "NODE_OPTIONS=--tls-min-v1.2 node scripts/seed.mjs"
+    "seed": "NODE_OPTIONS=--tls-min-v1.2 node scripts/seed.mjs",
+    "seed:faculty": "NODE_OPTIONS=--tls-min-v1.2 node scripts/seed-faculty.mjs"
   },
   "dependencies": {
     "next": "14.2.5",

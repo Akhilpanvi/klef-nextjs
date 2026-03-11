@@ -3,12 +3,17 @@ import bcrypt from 'bcryptjs'
 
 const schema = new mongoose.Schema(
   {
-    username:      { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password_hash: { type: String, required: true },
-    role:          { type: String, enum: ['viewer', 'admin'], default: 'viewer' },
-    display_name:  { type: String, trim: true },
-    last_login:    { type: Date, default: null },
-    is_active:     { type: Boolean, default: true },
+    username:           { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password_hash:      { type: String, required: true },
+    role:               { type: String, enum: ['viewer', 'admin', 'faculty'], default: 'viewer' },
+    display_name:       { type: String, trim: true },
+    last_login:         { type: Date, default: null },
+    is_active:          { type: Boolean, default: true },
+    // Faculty-specific
+    eid:                { type: String, trim: true, sparse: true, index: true },
+    dept:               { type: String, trim: true },
+    designation:        { type: String, trim: true },
+    mustChangePassword: { type: Boolean, default: false },
   },
   { timestamps: true }
 )

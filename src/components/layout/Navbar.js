@@ -4,17 +4,18 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../AuthContext'
 import { Menu, X, Sun, Moon, Lock, FolderOpen } from 'lucide-react'
 
-const TABS = [
+const ALL_TABS = [
   { label: 'Faculty',       path: '/faculty' },
   { label: 'Rooms',         path: '/rooms' },
   { label: 'Courses',       path: '/courses' },
   { label: 'Free Faculty',  path: '/free-faculty' },
   { label: 'Free Rooms',    path: 'https://rooms.kluniversity.me', external: true },
-  { label: '⚠ Clashes',    path: '/clash', bold: true },
+  { label: '⚠ Clashes',    path: '/clash', bold: true, adminOnly: true },
 ]
 
 export default function Navbar({ onManageData }) {
-  const { logout, isAdmin } = useAuth()
+  const { logout, isAdmin, isFaculty } = useAuth()
+  const TABS = ALL_TABS.filter(t => !t.adminOnly || isAdmin)
   const router   = useRouter()
   const pathname = usePathname()
   const [open, setOpen]   = useState(false)

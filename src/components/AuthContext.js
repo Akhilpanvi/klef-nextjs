@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
     if (!d.success) throw new Error(d.message || 'Login failed')
     localStorage.setItem('klef_token', d.token)
     setUser(d.user)
-    return d.user
+    return d   // full response so caller can check mustChangePassword
   }, [])
 
   const logout = useCallback(() => {
@@ -36,8 +36,20 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
+  const refreshUser = useCallback(async () => {
+    const t = localStorage.getItem('klef_token')
+    if (!t) return
+    const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${t}` } })
+    const d = await r.json()
+    if (d.success) setUser(d.user)
+  }, [])
+
   return (
-    <AuthCtx.Provider value={{ user, loading, login, logout, isAdmin: user?.role === 'admin' }}>
+    <AuthCtx.Provider value={{
+      user, loading, login, logout, refreshUser,
+      isAdmin:   user?.role === 'admin',
+      isFaculty: user?.role === 'faculty',
+    }}>
       {children}
     </AuthCtx.Provider>
   )
