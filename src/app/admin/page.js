@@ -453,7 +453,7 @@ function AdminContent() {
               </div>
               <p style={{ margin:'0 0 8px', fontSize:12, color:'var(--text-3)' }}>{hint}</p>
               <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <label style={{ flex:1 }}>
+                <div style={{ flex:1 }}>
                   <input type="file" accept=".csv,.CSV" onChange={setFile(key)} style={{ display:'none' }} id={`file-${key}`} />
                   <div
                     onClick={() => document.getElementById(`file-${key}`).click()}
@@ -466,7 +466,7 @@ function AdminContent() {
                     }}>
                     {files[key] ? `✓ ${files[key].name}` : 'Click to choose CSV file…'}
                   </div>
-                </label>
+                </div>
                 {files[key] && (
                   <button className="btn btn-ghost" style={{ padding:'9px 12px' }}
                     onClick={() => setFiles(f => ({ ...f, [key]: null }))}>
@@ -513,7 +513,7 @@ function AdminContent() {
             Creates new faculty accounts and updates existing ones in MongoDB. New accounts use EID as initial password.
           </p>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <label style={{ flex:1 }}>
+            <div style={{ flex:1 }}>
               <input type="file" accept=".csv,.CSV" onChange={e => setFacultyFile(e.target.files[0] || null)} style={{ display:'none' }} id="file-faculty" />
               <div
                 onClick={() => document.getElementById('file-faculty').click()}
@@ -526,7 +526,7 @@ function AdminContent() {
                 }}>
                 {facultyFile ? `✓ ${facultyFile.name}` : 'Click to choose KLEF-FD.csv…'}
               </div>
-            </label>
+            </div>
             {facultyFile && (
               <button className="btn btn-ghost" style={{ padding:'9px 12px' }} onClick={() => setFacultyFile(null)}>✕</button>
             )}
