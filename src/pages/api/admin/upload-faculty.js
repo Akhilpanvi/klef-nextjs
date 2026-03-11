@@ -29,6 +29,12 @@ function parseCSV(text) {
   })
 }
 
+function num(val) {
+  const n = Number(val)
+  return (!val || val === '0' || isNaN(n)) ? undefined : n
+}
+function str(val) { return val || undefined }
+
 export default async function handler(req, res) {
   if (req.method !== 'POST')
     return res.status(405).json({ success: false, message: 'Method not allowed' })
@@ -61,17 +67,28 @@ export default async function handler(req, res) {
 
     if (!eid || eid === '0' || !name || isNaN(Number(eid))) { skipped++; continue }
 
-    const dept        = (row['Dept'] || '').trim()
-    const designation = (row['Desigination'] || '').trim()
-    const username    = eid.toLowerCase()
+    const dept                  = str(row['Dept'])
+    const designation           = str(row['Desigination'])
+    const cohort                = str(row['Cohort']) === '0' ? undefined : str(row['Cohort'])
+    const designation_category  = str(row['Category (R/Ac/Ad)'])
+    const assigned_responsibility = str(row['Assigned responsibility'])
+    const load_as_per_designation = num(row['Load As Per Desigination'])
+    const pl                    = num(row['PL'])
+    const username              = eid.toLowerCase()
 
     const existing = await User.findOne({ $or: [{ username }, { eid }] })
 
     if (existing) {
       existing.display_name = name
-      existing.dept         = dept || existing.dept
-      existing.designation  = designation || existing.designation
-      existing.eid          = eid
+      if (dept)                    existing.dept                    = dept
+      if (designation)             existing.designation             = designation
+      if (cohort !== undefined)    existing.cohort                  = cohort
+      // Always update profile fields from CSV (overwrite with CSV data)
+      existing.designation_category    = designation_category
+      existing.assigned_responsibility  = assigned_responsibility
+      existing.load_as_per_designation  = load_as_per_designation
+      existing.pl                       = pl
+      existing.eid                      = eid
       await existing.save()
       updated++
     } else {
@@ -84,6 +101,11 @@ export default async function handler(req, res) {
         eid,
         dept,
         designation,
+        cohort,
+        designation_category,
+        assigned_responsibility,
+        load_as_per_designation,
+        pl,
         mustChangePassword: true,
         is_active:          true,
       })
