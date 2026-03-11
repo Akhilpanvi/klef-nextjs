@@ -73,7 +73,7 @@ export default function Navbar({ onManageData }) {
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isAdmin && (
-            <button onClick={onManageData} title="Manage Data" style={iconBtnStyle}>
+            <button onClick={() => router.push('/admin')} title="Admin Dashboard" style={iconBtnStyle}>
               <FolderOpen size={17} />
             </button>
           )}
