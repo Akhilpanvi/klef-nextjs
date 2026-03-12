@@ -37,7 +37,7 @@ function ProfileCard({ data }) {
 }
 
 function FacultyContent() {
-  const { user, loading, isAdmin, isFaculty } = useAuth()
+  const { user, loading, isAdmin, isFaculty, hasPermission } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { get } = useApi()
@@ -71,13 +71,17 @@ function FacultyContent() {
 
   useEffect(() => {
     if (!user) return
-    if (isFaculty && user.eid) { search(user.eid); return }
+    // Always auto-load own timetable for faculty
+    if (isFaculty && user.eid) search(user.eid)
     // Auto-search if ?q= param is present (e.g. from admin "View Timetable" link)
     const qParam = searchParams?.get('q')
-    if (qParam) { setQuery(qParam); search(qParam); }
-    get('/api/timetable/faculty?list=1')
-      .then(d => d.success && setAllFac(d.faculty || []))
-      .catch(() => {})
+    if (qParam && !isFaculty) { setQuery(qParam); search(qParam); }
+    // Load faculty list for search autocomplete (admin or permitted faculty)
+    if (!isFaculty || hasPermission('view_all_timetables')) {
+      get('/api/timetable/faculty?list=1')
+        .then(d => d.success && setAllFac(d.faculty || []))
+        .catch(() => {})
+    }
   }, [user])
 
   useEffect(() => {
@@ -112,6 +116,8 @@ function FacultyContent() {
   }
 
   if (loading || !user) return null
+
+  const canSearchOthers = isAdmin || hasPermission('view_all_timetables')
 
   const viewingOld = snapId && snapshots.length > 0 && !snapshots.find(s => s.snapshotId === snapId)?.isActive
 
@@ -161,8 +167,8 @@ function FacultyContent() {
         </div>
       )}
 
-      {/* Admin search bar */}
-      {!isFaculty && (
+      {/* Search bar — shown for admin and faculty with view_all_timetables */}
+      {canSearchOthers && (
         <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:20, padding:14,
           background:'var(--surface-2)', borderRadius:10, border:'1px solid var(--border)', alignItems:'center' }}>
           <SearchInput
@@ -178,8 +184,8 @@ function FacultyContent() {
         </div>
       )}
 
-      {/* Profile card — shown for faculty (own page) or admin (after search result) */}
-      {(isFaculty || (isAdmin && result)) && <ProfileCard data={profileData} />}
+      {/* Profile card — shown for faculty (own page) or anyone after a search result */}
+      {(isFaculty || (canSearchOthers && result)) && <ProfileCard data={profileData} />}
 
       {result ? (
         <TimetableGrid
@@ -188,10 +194,10 @@ function FacultyContent() {
           entries={result.entries}
           mode="ROOM"
           hlTerm={result.faculty.name}
-          showAllHours={isAdmin}
+          showAllHours={canSearchOthers}
           clashes={clashes}
         />
-      ) : !busy && !isFaculty && (
+      ) : !busy && canSearchOthers && !isFaculty && (
         <div style={{ textAlign:'center', padding:'60px 20px', color:'var(--text-3)' }}>
           <div style={{ fontSize:'3rem', marginBottom:12 }}>👤</div>
           <p style={{ margin:0, fontSize:15 }}>Search for a faculty member to view their weekly schedule.</p>

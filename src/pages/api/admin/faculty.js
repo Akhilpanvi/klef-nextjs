@@ -3,8 +3,9 @@ import { connectDB } from '@/lib/mongodb'
 import User from '@/lib/models/User'
 
 export const PERMISSIONS = [
-  { key: 'view_clash',   label: 'View Clash Detection' },
-  { key: 'manage_data',  label: 'Manage Data (Upload/Clear)' },
+  { key: 'view_clash',           label: 'View Clash Detection' },
+  { key: 'manage_data',          label: 'Manage Data (Upload/Clear)' },
+  { key: 'view_all_timetables',  label: 'View All Faculty Timetables' },
 ]
 
 export default async function handler(req, res) {
@@ -75,6 +76,37 @@ export default async function handler(req, res) {
     await user.save()
     const updated = user.toJSON()
     return res.json({ success: true, user: updated })
+  }
+
+  // POST /api/admin/faculty  — create a new faculty account
+  if (req.method === 'POST') {
+    const {
+      username, password, display_name, eid, dept, role,
+      designation, cohort, designation_category, assigned_responsibility,
+      load_as_per_designation, pl,
+    } = req.body || {}
+    if (!username) return res.status(400).json({ success: false, message: 'username is required' })
+
+    const exists = await User.findOne({ username: username.toLowerCase().trim() })
+    if (exists) return res.status(409).json({ success: false, message: 'Username already taken' })
+
+    const newUser = new User({
+      username:                username.toLowerCase().trim(),
+      password_hash:           password || eid || username,
+      role:                    ['faculty', 'admin'].includes(role) ? role : 'faculty',
+      display_name:            display_name || undefined,
+      eid:                     eid || undefined,
+      dept:                    dept || undefined,
+      designation:             designation || undefined,
+      cohort:                  cohort || undefined,
+      designation_category:    designation_category || undefined,
+      assigned_responsibility: assigned_responsibility || undefined,
+      load_as_per_designation: load_as_per_designation ? Number(load_as_per_designation) : undefined,
+      pl:                      pl ? Number(pl) : undefined,
+      mustChangePassword:      true,
+    })
+    await newUser.save()
+    return res.json({ success: true, user: newUser.toJSON() })
   }
 
   res.status(405).json({ success: false, message: 'Method not allowed' })

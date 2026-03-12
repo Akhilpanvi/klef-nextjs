@@ -4,15 +4,130 @@ import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink } from 'lucide-react'
+import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink, UserPlus } from 'lucide-react'
 
 const ALL_PERMISSIONS = [
-  { key: 'view_clash',  label: 'View Clash Detection' },
-  { key: 'manage_data', label: 'Manage Data (Upload/Clear)' },
+  { key: 'view_clash',          label: 'View Clash Detection' },
+  { key: 'manage_data',         label: 'Manage Data (Upload/Clear)' },
+  { key: 'view_all_timetables', label: 'View All Faculty Timetables' },
 ]
 
 const DESG_LABEL = { R: 'Research', Ac: 'Academic', Ad: 'Administrative' }
+const UPLOAD_PASSWORD = 'Klefupload'
 
+function askUploadPassword() {
+  const pwd = window.prompt('Enter upload password to continue:')
+  if (pwd === null) return false           // cancelled
+  if (pwd !== UPLOAD_PASSWORD) {
+    toast.error('Incorrect password.')
+    return false
+  }
+  return true
+}
+
+// ── Create Faculty Panel ──────────────────────────────────────────────────────
+function CreateFacultyPanel({ post }) {
+  const [form, setForm] = useState({
+    username: '', display_name: '', eid: '', dept: '', designation: '',
+    cohort: '', designation_category: '', assigned_responsibility: '',
+    load_as_per_designation: '', pl: '', role: 'faculty',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const submit = async () => {
+    if (!form.username.trim()) return toast.error('Username is required')
+    setSaving(true)
+    try {
+      const body = { ...form }
+      if (!body.display_name) delete body.display_name
+      if (!body.eid) delete body.eid
+      if (!body.dept) delete body.dept
+      if (!body.designation) delete body.designation
+      if (!body.cohort) delete body.cohort
+      if (!body.designation_category) delete body.designation_category
+      if (!body.assigned_responsibility) delete body.assigned_responsibility
+      if (body.load_as_per_designation) body.load_as_per_designation = Number(body.load_as_per_designation)
+      else delete body.load_as_per_designation
+      if (body.pl) body.pl = Number(body.pl)
+      else delete body.pl
+
+      const d = await post('/api/admin/faculty', body)
+      if (!d.success) throw new Error(d.message)
+      toast.success(`Faculty "${d.user.display_name || d.user.username}" created! Default password: ${d.user.eid || d.user.username}`)
+      setForm({ username: '', display_name: '', eid: '', dept: '', designation: '',
+        cohort: '', designation_category: '', assigned_responsibility: '',
+        load_as_per_designation: '', pl: '', role: 'faculty' })
+    } catch (err) {
+      toast.error(err.message)
+    } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="card" style={{ padding: 22, gridColumn: 'span 2' }}>
+      <h3 style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700 }}>
+        <UserPlus size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+        Create Faculty Profile
+      </h3>
+      <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-3)' }}>
+        Create a faculty account directly. The initial password will be set to the EID (or username if no EID). The faculty member must change it on first login.
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        {[
+          { key: 'username',    label: 'Username *',         placeholder: 'e.g. eid1234 or john.doe' },
+          { key: 'display_name',label: 'Display Name',       placeholder: 'Full name' },
+          { key: 'eid',         label: 'EID',                placeholder: 'e.g. 1234' },
+          { key: 'dept',        label: 'Department',         placeholder: 'e.g. CSE' },
+          { key: 'designation', label: 'Designation',        placeholder: 'e.g. Assistant Professor' },
+          { key: 'cohort',      label: 'Cohort',             placeholder: 'e.g. R22' },
+          { key: 'designation_category',    label: 'Category',     placeholder: 'R / Ac / Ad' },
+          { key: 'assigned_responsibility', label: 'Responsibility', placeholder: 'e.g. HOD, Advisor' },
+          { key: 'load_as_per_designation', label: 'Load (hrs)',    placeholder: 'e.g. 16', type: 'number' },
+          { key: 'pl',          label: 'Permitted Load (PL)', placeholder: 'e.g. 18', type: 'number' },
+        ].map(f => (
+          <div key={f.key}>
+            <label style={{ fontSize: 11, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>{f.label}</label>
+            <input
+              className="input"
+              type={f.type || 'text'}
+              placeholder={f.placeholder}
+              value={form[f.key]}
+              onChange={set(f.key)}
+              style={{ fontSize: 13, padding: '6px 10px' }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Role */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontSize: 11, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>ROLE</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['faculty', 'admin'].map(r => (
+            <button key={r} onClick={() => setForm(f => ({ ...f, role: r }))} style={{
+              padding: '6px 16px', borderRadius: 6, border: '2px solid',
+              borderColor: form.role === r ? 'var(--brand)' : 'var(--border)',
+              background: form.role === r ? 'var(--brand-light)' : 'var(--surface)',
+              color: form.role === r ? 'var(--brand)' : 'var(--text)',
+              fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            }}>
+              {r === 'admin' ? '⭐ Admin' : '👤 Faculty'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button className="btn btn-primary" onClick={submit} disabled={saving}>
+        <UserPlus size={15} />
+        {saving ? 'Creating…' : 'Create Faculty Account'}
+      </button>
+    </div>
+  )
+}
+
+// ── Faculty Permissions Panel ─────────────────────────────────────────────────
 function FacultyPermissionsPanel({ get, patch }) {
   const [q,          setQ]          = useState('')
   const [results,    setResults]    = useState([])
@@ -165,7 +280,7 @@ function FacultyPermissionsPanel({ get, patch }) {
             </div>
           </div>
 
-          {/* Permissions (only relevant for faculty role) */}
+          {/* Permissions */}
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>
               PERMISSIONS {editRole === 'admin' && <span style={{ color: '#16a34a', fontWeight: 400 }}>(Admin has all permissions)</span>}
@@ -232,7 +347,7 @@ function FacultyPermissionsPanel({ get, patch }) {
             )}
           </div>
 
-          {/* Profile preview — shows what will appear on the timetable profile card */}
+          {/* Profile preview */}
           {(editProfile.designation || editProfile.cohort || editProfile.designation_category ||
             editProfile.assigned_responsibility || editProfile.load_as_per_designation || editProfile.pl) && (
             <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--surface)', borderRadius: 8,
@@ -265,9 +380,11 @@ function FacultyPermissionsPanel({ get, patch }) {
 }
 
 function AdminContent() {
-  const { user, loading, isAdmin } = useAuth()
+  const { user, loading, isAdmin, hasPermission } = useAuth()
   const router = useRouter()
-  const { get, del, patch, postForm } = useApi()
+  const { get, del, patch, post, postForm } = useApi()
+
+  const canManageData = isAdmin || hasPermission('manage_data')
 
   const [status,      setStatus]      = useState(null)
   const [files,       setFiles]       = useState({ timetable: null, rooms: null, master: null })
@@ -281,7 +398,7 @@ function AdminContent() {
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
-    if (!loading && user && !isAdmin) router.replace('/faculty')
+    if (!loading && user && !isAdmin && !hasPermission('manage_data')) router.replace('/faculty')
   }, [user, loading, isAdmin])
 
   const fetchStatus = async () => {
@@ -292,7 +409,7 @@ function AdminContent() {
     const d = await get('/api/upload/versions')
     if (d.success) setVersions(d.snapshots || [])
   }
-  useEffect(() => { if (user && isAdmin) { fetchStatus(); fetchVersions() } }, [user, isAdmin])
+  useEffect(() => { if (user && canManageData) { fetchStatus(); fetchVersions() } }, [user])
 
   const activateVersion = async (snapshotId) => {
     const d = await patch('/api/upload/versions', { snapshotId })
@@ -312,6 +429,7 @@ function AdminContent() {
   const upload = async () => {
     if (!files.timetable && !files.rooms && !files.master)
       return toast.error('Select at least one file')
+    if (!askUploadPassword()) return
     setBusy(true)
     const newLog = []
     try {
@@ -332,10 +450,10 @@ function AdminContent() {
         } else {
           const cnt = r.inserted ?? (r.upserted + r.modified)
           newLog.push({ ok: true, msg: `${key}: ${cnt.toLocaleString()} rows loaded into "${r.dataset || 'rooms'}"` })
-          toast.success(`${key} loaded`)
         }
       }
 
+      toast.success('Upload Successful.')
       setFiles({ timetable: null, rooms: null, master: null })
       await fetchStatus()
     } catch (err) {
@@ -356,13 +474,14 @@ function AdminContent() {
 
   const uploadFaculty = async () => {
     if (!facultyFile) return toast.error('Select a faculty CSV file')
+    if (!askUploadPassword()) return
     setFacultyBusy(true)
     try {
       const fd = new FormData()
       fd.append('faculty', facultyFile)
       const d = await postForm('/api/admin/upload-faculty', fd)
       if (!d.success) throw new Error(d.message)
-      toast.success(`Done! Created: ${d.created}, Updated: ${d.updated}, Skipped: ${d.skipped}`)
+      toast.success(`Upload Successful. Created: ${d.created}, Updated: ${d.updated}, Skipped: ${d.skipped}`)
       setFacultyFile(null)
     } catch (err) {
       toast.error(err.message)
@@ -371,9 +490,10 @@ function AdminContent() {
     }
   }
 
-  const [tab, setTab] = useState('permissions')
+  // Default tab: admins start on permissions, manage_data-only users go straight to data
+  const [tab, setTab] = useState(isAdmin ? 'permissions' : 'data')
 
-  if (loading || !user || !isAdmin) return null
+  if (loading || !user || (!isAdmin && !hasPermission('manage_data'))) return null
 
   return (
     <PortalShell>
@@ -382,9 +502,10 @@ function AdminContent() {
       {/* Tabs */}
       <div style={{ display:'flex', gap:4, marginBottom:24, borderBottom:'2px solid var(--border)', paddingBottom:0 }}>
         {[
-          { key:'permissions', label:'👥 Faculty Permissions' },
-          { key:'data',        label:'📤 Data Management' },
-        ].map(t => (
+          isAdmin && { key:'permissions', label:'👥 Faculty Permissions' },
+          isAdmin && { key:'create',      label:'➕ Create Faculty' },
+          canManageData && { key:'data',  label:'📤 Data Management' },
+        ].filter(Boolean).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             background:'none', border:'none', cursor:'pointer', padding:'8px 18px',
             fontWeight:700, fontSize:14, fontFamily:'inherit',
@@ -398,14 +519,21 @@ function AdminContent() {
       </div>
 
       {/* ── Faculty Permissions tab ── */}
-      {tab === 'permissions' && (
+      {tab === 'permissions' && isAdmin && (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
           <FacultyPermissionsPanel get={get} patch={patch} />
         </div>
       )}
 
+      {/* ── Create Faculty tab ── */}
+      {tab === 'create' && isAdmin && (
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+          <CreateFacultyPanel post={post} />
+        </div>
+      )}
+
       {/* ── Data Management tab ── */}
-      {tab === 'data' && (<>
+      {tab === 'data' && canManageData && (<>
       {/* Status Cards */}
       {status && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:12, marginBottom:24 }}>
@@ -477,7 +605,7 @@ function AdminContent() {
             </div>
           ))}
 
-          {/* Academic year + semester tag for live BTT upload */}
+          {/* Academic year + semester */}
           <div style={{ display:'flex', gap:10, marginTop:4, marginBottom:4, flexWrap:'wrap', padding:'10px 14px',
             background:'var(--surface-2)', borderRadius:8, border:'1px solid var(--border)', alignItems:'center' }}>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--text-2)', whiteSpace:'nowrap' }}>📘 AY / Semester:</span>
@@ -559,9 +687,7 @@ function AdminContent() {
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontWeight:600, fontSize:13, display:'flex', alignItems:'center', gap:8 }}>
                       {v.label}
-                      {v.isActive && (
-                        <span className="badge badge-active">ACTIVE</span>
-                      )}
+                      {v.isActive && <span className="badge badge-active">ACTIVE</span>}
                     </div>
                     <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>
                       {v.rowCount?.toLocaleString()} rows · {new Date(v.uploadedAt).toLocaleString()}
