@@ -72,7 +72,7 @@ export default function Navbar({ onManageData }) {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          {isAdmin && (
+          {(isAdmin || hasPermission('manage_data')) && (
             <button onClick={() => router.push('/admin')} title="Admin Dashboard" style={actionBtnStyle}>
               <LayoutDashboard size={15} />
               <span className="hide-mobile" style={labelStyle}>Admin</span>

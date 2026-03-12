@@ -92,6 +92,16 @@ function LoginForm() {
           </button>
         </form>
 
+        <div style={{
+          marginTop: 20, padding: '10px 14px', borderRadius: 8,
+          background: 'var(--surface-2)', border: '1px solid var(--border)',
+          fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6,
+        }}>
+          <strong style={{ color: 'var(--text-2)' }}>First time?</strong>
+          {' '}Your username is your Employee ID and your initial password is also your Employee ID.
+          You will be asked to set a new password after logging in.
+        </div>
+
       </div>
     </div>
   )
