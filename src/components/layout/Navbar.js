@@ -9,7 +9,7 @@ const ALL_TABS = [
   { label: 'Rooms',         path: '/rooms' },
   { label: 'Courses',       path: '/courses' },
   { label: 'Free Faculty',  path: '/free-faculty' },
-  { label: 'Free Rooms',    path: 'https://rooms.kluniversity.me', external: true },
+  { label: 'Free Rooms',    path: '/free-rooms' },
   { label: '⚠ Clashes',    path: '/clash', bold: true, perm: 'view_clash' },
 ]
 
