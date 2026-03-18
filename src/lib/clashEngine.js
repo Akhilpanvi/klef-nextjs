@@ -73,18 +73,38 @@ export function detectClashes(entries, metaMap = {}) {
       if (/lab/i.test(roomType)) continue
 
       const ces = byCourse.get(courses[0])
-      const emps = [...new Set(ces.map(e => (e.emp_id || '').trim()))]
-      if (emps.length >= 2) {
+
+      // Group by SRC-D (role key).
+      // Co-teaching with DIFFERENT SRC-D values (e.g. one "-MA-", one "-C-") is valid — no clash.
+      // Only flag if two different faculty share the EXACT SAME SRC-D string.
+      const byRole = new Map()
+      for (const e of ces) {
+        const roleKey = (e.src_d || e.main_sectionno || '').trim()
+        if (!byRole.has(roleKey)) byRole.set(roleKey, [])
+        byRole.get(roleKey).push(e)
+      }
+
+      let conflictRole = null
+      for (const [, roleEntries] of byRole) {
+        const uniqueEmps = [...new Set(roleEntries.map(e => (e.emp_id || '').trim()))]
+        if (uniqueEmps.length >= 2) { conflictRole = roleEntries; break }
+      }
+
+      if (conflictRole) {
+        const fac1 = conflictRole[0].faculty_name || '-'
+        const fac2 = conflictRole.find(e => e.emp_id !== conflictRole[0].emp_id)?.faculty_name || '-'
+        const roleLabel = conflictRole[0].src_d || conflictRole[0].main_sectionno || '-'
+        const uniqueEmps = [...new Set(conflictRole.map(e => (e.emp_id || '').trim()))]
         clashes.push({
           type: 'Dual Faculty',
           severity: 'warn',
           day: +day, hour: +hour, room, roomType,
-          courseCode1: courses[0], courseName1: ces[0].course_name || '-',
-          courseCode2: courses[0], courseName2: ces[0].course_name || '-',
-          section: ces.map(e => e.main_sectionno || '-').join(', '),
-          faculty1: ces[0].faculty_name || '-',
-          faculty2: ces[1].faculty_name || '-',
-          desc: `Subject "${courses[0]}" in ${room} (${roomType}) has ${emps.length} faculty on ${DAY_SHORT[+day]} P${hour}.`,
+          courseCode1: courses[0], courseName1: conflictRole[0].course_name || '-',
+          courseCode2: courses[0], courseName2: conflictRole[0].course_name || '-',
+          section: conflictRole.map(e => e.main_sectionno || '-').join(', '),
+          faculty1: fac1,
+          faculty2: fac2,
+          desc: `Subject "${courses[0]}" in ${room} (${roomType}) has ${uniqueEmps.length} faculty for the same role (${roleLabel}) on ${DAY_SHORT[+day]} P${hour}.`,
         })
       }
     } else {
