@@ -74,12 +74,14 @@ export function detectClashes(entries, metaMap = {}) {
 
       const ces = byCourse.get(courses[0])
 
-      // Group by SRC-D (role key).
+      // Group by SRC-D (role key) — only entries that HAVE a src_d value.
       // Co-teaching with DIFFERENT SRC-D values (e.g. one "-MA-", one "-C-") is valid — no clash.
       // Only flag if two different faculty share the EXACT SAME SRC-D string.
+      // Entries without src_d are skipped: we cannot determine their role.
       const byRole = new Map()
       for (const e of ces) {
-        const roleKey = (e.src_d || e.main_sectionno || '').trim()
+        const roleKey = (e.src_d || '').trim()
+        if (!roleKey) continue   // no SRC-D → role unknown → skip
         if (!byRole.has(roleKey)) byRole.set(roleKey, [])
         byRole.get(roleKey).push(e)
       }
