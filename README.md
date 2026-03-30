@@ -89,13 +89,13 @@ Required columns (others are stored but not critical):
 | `DEPT ALLOTED TO` | e.g. R24-CSE-1 |
 
 ### Roomwise Timetable CSV (`Roomwise-TT-xx.xx.xxxx.csv`)
-Used by the Free Rooms finder. Headers are case-insensitive.
+Used by the Free Rooms finder. All headers are matched case-insensitively (`Roomno` or `roomno`, `Mon1` or `mon1`, etc.).
 | Column | Description |
 |---|---|
-| `Roomno` | Room identifier |
+| `Roomno` | Room identifier — also accepts `room no`, `room_no`, `roomnumber` |
 | `Mon1`–`Mon24` | Period slots for Monday |
 | `Tue1`–`Tue24` | Period slots for Tuesday |
-| … | (Wed, Thu, Fri, Sat) |
+| … | Wed, Thu, Fri, Sat, Sun (up to `Sun24`) |
 
 Only non-empty, non-dash slots are stored (sparse format). Old data is replaced on each upload.
 
@@ -110,7 +110,7 @@ Maps ERP Room IDs to base room numbers. Sections (A/B/C/D/MA) are grouped under 
 | `description` | Room type (CLASSROOM, LAB, etc.) |
 | `block` | Block name (e.g. FED Block) |
 
-ERP IDs appear as `#1146` badges next to room numbers across all Room Availability views and Excel exports.
+All sections (MA, A, B, C, D) are shown as individual badges next to the room number (e.g. `MA:96 A:97 B:98 C:99 D:100`) across all Room Availability views and Excel exports. Duplicate column headers in the CSV are handled automatically; blank-assoc rows are ignored.
 
 ### Faculty Profile CSV (`KLEF-FD.csv`)
 Imports faculty profile fields (designation, department, email, etc.) matched by Employee ID.
