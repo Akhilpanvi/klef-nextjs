@@ -12,6 +12,26 @@ const DAY_KEYS = ['Mon','Tue','Wed','Thu','Fri','Sat']
 
 const getPctColor = p => p < 40 ? '#10b981' : p < 75 ? '#f59e0b' : '#ef4444'
 
+// Renders small ERP ID badges for each section (MA, A, B, C, D…)
+const ASSOC_ORDER = ['MA','A','B','C','D']
+function ErpBadges({ sections = [] }) {
+  if (!sections.length) return null
+  const sorted = [...sections].sort((a,b) => {
+    const ai = ASSOC_ORDER.indexOf(a.assoc.toUpperCase())
+    const bi = ASSOC_ORDER.indexOf(b.assoc.toUpperCase())
+    return (ai===-1?99:ai) - (bi===-1?99:bi)
+  })
+  return (
+    <span style={{display:'inline-flex',flexWrap:'wrap',gap:3,marginLeft:6,verticalAlign:'middle'}}>
+      {sorted.map(s=>(
+        <span key={s.assoc} style={{fontSize:10,fontWeight:500,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:3,padding:'1px 4px',whiteSpace:'nowrap'}}>
+          {s.assoc}:{s.erp_id}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 function UtilBar({ label, value, max, pct }) {
   return (
     <div style={{ marginBottom:10 }}>
@@ -71,7 +91,7 @@ function FindFreeRoomsTab({ onAnalyze }) {
 
   const download = () => {
     if (!filtered.length) return toast.error('Nothing to export')
-    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room No':r.number,'ERP ID':r.erp_id??'—','Block':r.block||'?','Type':r.type||'?','Capacity':r.capacity||'?','Dept':r.dept||'—'})))
+    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room No':r.number,'ERP Sections':r.erp_sections?.map(s=>`${s.assoc}:${s.erp_id}`).join(' | ')||'—','Block':r.block||'?','Type':r.type||'?','Capacity':r.capacity||'?','Dept':r.dept||'—'})))
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Free_Rooms')
     XLSX.writeFile(wb,`free-rooms-${DAYS[+day-1]}-P${periods.join('')}.xlsx`)
   }
@@ -115,7 +135,7 @@ function FindFreeRoomsTab({ onAnalyze }) {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10}}>
             {filtered.map(r=>(
               <div key={r.number} className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:4}}>
-                <div style={{fontWeight:700,fontSize:15}}>{r.number}{r.erp_id!=null&&<span style={{marginLeft:6,fontSize:11,fontWeight:400,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'1px 5px'}}>#{r.erp_id}</span>}</div>
+                <div style={{fontWeight:700,fontSize:15}}>{r.number}<ErpBadges sections={r.erp_sections}/></div>
                 <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'}</div>
                 <div style={{fontSize:11,color:'var(--text-3)'}}>Block {r.block}</div>
                 <button className="btn btn-primary" style={{marginTop:6,padding:'4px 10px',fontSize:12,width:'100%'}} onClick={()=>onAnalyze(r.number)}>Analyze</button>
@@ -169,7 +189,7 @@ function AllRoomsTab({ onAnalyze }) {
 
   const exportExcel = () => {
     if(!filtered.length) return toast.error('No data')
-    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room':r.number,'ERP ID':r.erp_id??'—','Block':r.block,'Type':r.type,'Cap':r.capacity,'Mon%':r.dayStats?.Mon,'Tue%':r.dayStats?.Tue,'Wed%':r.dayStats?.Wed,'Thu%':r.dayStats?.Thu,'Fri%':r.dayStats?.Fri,'Sat%':r.dayStats?.Sat,'Weekly%':r.weeklyPct})))
+    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room':r.number,'ERP Sections':r.erp_sections?.map(s=>`${s.assoc}:${s.erp_id}`).join(' | ')||'—','Block':r.block,'Type':r.type,'Cap':r.capacity,'Mon%':r.dayStats?.Mon,'Tue%':r.dayStats?.Tue,'Wed%':r.dayStats?.Wed,'Thu%':r.dayStats?.Thu,'Fri%':r.dayStats?.Fri,'Sat%':r.dayStats?.Sat,'Weekly%':r.weeklyPct})))
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Room Stats')
     XLSX.writeFile(wb,'KLEF_Room_Stats.xlsx')
   }
@@ -221,7 +241,7 @@ function AllRoomsTab({ onAnalyze }) {
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:12}}>
           {filtered.map(r=>(
             <div key={r.number} className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:6}}>
-              <div style={{fontWeight:700,fontSize:15}}>{r.number}{r.erp_id!=null&&<span style={{marginLeft:6,fontSize:11,fontWeight:400,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'1px 5px'}}>#{r.erp_id}</span>}</div>
+              <div style={{fontWeight:700,fontSize:15}}>{r.number}<ErpBadges sections={r.erp_sections}/></div>
               <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'} · Block {r.block}</div>
               <div style={{width:'100%',marginTop:4}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text-3)',marginBottom:3}}>
@@ -249,7 +269,7 @@ function AllRoomsTab({ onAnalyze }) {
               {filtered.map(r=>(
                 <tr key={r.number} style={{borderBottom:'1px solid var(--border)'}}>
                   <td style={{padding:'10px 12px',fontWeight:700}}>{r.number}</td>
-                  <td style={{padding:'10px 12px',fontSize:13,color:'var(--text-3)'}}>{r.erp_id??'—'}</td>
+                  <td style={{padding:'10px 12px',fontSize:13}}><ErpBadges sections={r.erp_sections}/></td>
                   <td style={{padding:'10px 12px',fontSize:13}}>{r.block}</td>
                   <td style={{padding:'10px 12px',fontSize:13}}>{r.type}</td>
                   <td style={{padding:'10px 12px',fontSize:13}}>{r.capacity||'?'}</td>
@@ -281,7 +301,7 @@ function AllRoomsTab({ onAnalyze }) {
                 // Use hourStats which has per-hour counts across days
                 return (
                   <tr key={r.number} style={{borderBottom:'1px solid var(--border)'}}>
-                    <td style={{padding:'8px 12px',fontWeight:700,fontSize:13}}>{r.number}{r.erp_id!=null&&<span style={{marginLeft:5,fontSize:10,fontWeight:400,color:'var(--text-3)'}}>#{r.erp_id}</span>}<br/><span style={{fontSize:11,color:'var(--text-3)',fontWeight:400}}>{r.dept}</span></td>
+                    <td style={{padding:'8px 12px',fontWeight:700,fontSize:13}}>{r.number}<ErpBadges sections={r.erp_sections}/><br/><span style={{fontSize:11,color:'var(--text-3)',fontWeight:400}}>{r.dept}</span></td>
                     <td style={{padding:'8px 12px',fontSize:13}}>{r.capacity||'?'}</td>
                     {Array.from({length:11},(_,i)=>i+1).map(p=>{
                       const h = r.hourStats?.[p]
@@ -357,7 +377,7 @@ function AnalyticsTab({ initialRoom, onClear }) {
         <div>
           <h3 style={{fontSize:'1.3rem',fontWeight:800,color:'var(--brand)',marginBottom:16}}>
             Analytics for <span style={{color:'var(--text)'}}>{data.room}</span>
-            {data.erp_id!=null&&<span style={{fontSize:13,fontWeight:600,color:'var(--text-3)',marginLeft:8,background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'2px 7px'}}>ERP #{data.erp_id}</span>}
+            <ErpBadges sections={data.erp_sections}/>
             <span style={{fontSize:13,color:'var(--text-3)',fontWeight:400,marginLeft:10}}>(Capacity: {data.capacity||'?'})</span>
           </h3>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>

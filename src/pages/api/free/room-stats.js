@@ -59,8 +59,8 @@ export default async function handler(req, res) {
   const metas   = await RoomMeta.find({}).lean()
   const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
 
-  const erpDocs = await ErpRoomData.find({}, 'room_no erp_id').lean()
-  const erpMap  = Object.fromEntries(erpDocs.map(e => [e.room_no, e.erp_id]))
+  const erpDocs = await ErpRoomData.find({}, 'room_no sections').lean()
+  const erpMap  = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
 
   const stats = []
   for (const [base, sectionsSet] of Object.entries(roomSections)) {
@@ -88,8 +88,8 @@ export default async function handler(req, res) {
     const weeklyPct = Math.round((totalBusy / TOTAL_SLOTS) * 100)
 
     stats.push({
-      number:    base,
-      erp_id:    erpMap[base] ?? null,
+      number:       base,
+      erp_sections: erpMap[base] ?? [],
       type:      meta?.room_type  || '?',
       capacity:  meta?.capacity   || null,
       block:     meta?.block      || base.match(/^[A-Za-z]+/)?.[0]?.toUpperCase() || '?',

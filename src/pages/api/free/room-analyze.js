@@ -59,12 +59,12 @@ export default async function handler(req, res) {
   const weeklyPct = Math.round((totalBusy / TOTAL_SLOTS) * 100)
 
   const meta   = await RoomMeta.findOne({ room_no: roomName }).lean()
-  const erpDoc = await ErpRoomData.findOne({ room_no: roomName }, 'erp_id').lean()
+  const erpDoc = await ErpRoomData.findOne({ room_no: roomName }, 'sections').lean()
 
   res.json({
     success: true,
-    room:       roomName,
-    erp_id:     erpDoc?.erp_id ?? null,
+    room:         roomName,
+    erp_sections: erpDoc?.sections ?? [],
     capacity:   meta?.capacity || null,
     weeklyPct,
     totalBusy,

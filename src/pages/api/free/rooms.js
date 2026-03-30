@@ -50,8 +50,8 @@ export default async function handler(req, res) {
   const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
 
   // ERP room IDs
-  const erpDocs  = await ErpRoomData.find({}, 'room_no erp_id').lean()
-  const erpMap   = Object.fromEntries(erpDocs.map(e => [e.room_no, e.erp_id]))
+  const erpDocs  = await ErpRoomData.find({}, 'room_no sections').lean()
+  const erpMap   = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
 
   const free = []
   for (const [base, sections] of Object.entries(roomSections)) {
@@ -61,8 +61,8 @@ export default async function handler(req, res) {
 
     const meta = metaMap[base]
     free.push({
-      number:   base,
-      erp_id:   erpMap[base] ?? null,
+      number:      base,
+      erp_sections: erpMap[base] ?? [],
       type:     meta?.room_type  || '?',
       capacity: meta?.capacity   || null,
       block:    meta?.block      || base.match(/^[A-Za-z]+/)?.[0]?.toUpperCase() || '?',
