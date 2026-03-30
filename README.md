@@ -110,7 +110,7 @@ Maps ERP Room IDs to base room numbers. Sections (A/B/C/D/MA) are grouped under 
 | `description` | Room type (CLASSROOM, LAB, etc.) |
 | `block` | Block name (e.g. FED Block) |
 
-All sections (MA, A, B, C, D) are shown as individual badges next to the room number (e.g. `MA:96 A:97 B:98 C:99 D:100`) across all Room Availability views and Excel exports. Duplicate column headers in the CSV are handled automatically; blank-assoc rows are ignored.
+All sections (MA, A, B, C, D) are shown as individual badges below the room number (e.g. `MA:96 A:97 B:98 C:99 D:100`) across all Room Availability views and Excel exports. Sections are sorted MA-first. Duplicate column headers in the CSV are handled automatically; blank-assoc rows and duplicate entries are ignored.
 
 ### Faculty Profile CSV (`KLEF-FD.csv`)
 Imports faculty profile fields (designation, department, email, etc.) matched by Employee ID.
