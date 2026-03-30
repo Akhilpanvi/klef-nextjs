@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 
-const DAY_PREFIXES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const DAY_PREFIXES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 /**
  * parseRoomwiseBuffer
@@ -19,8 +19,13 @@ export function parseRoomwiseBuffer(buf, snapshotId) {
 
   const docs = []
 
-  for (const row of rows) {
-    const room_no = row['Roomno']?.toString().trim()
+  for (const rawRow of rows) {
+    // Normalize all keys to lowercase for case-insensitive header matching
+    const row = Object.fromEntries(
+      Object.entries(rawRow).map(([k, v]) => [k.toLowerCase(), v])
+    )
+
+    const room_no = row['roomno']?.toString().trim()
     if (!room_no) continue
 
     for (let dayIdx = 0; dayIdx < DAY_PREFIXES.length; dayIdx++) {

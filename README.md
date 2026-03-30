@@ -7,8 +7,8 @@ Full-stack rewrite of the KLEF portal as a Next.js 14 application.
 - **Backend**: Next.js API Routes (no separate server needed)
 - **Database**: MongoDB via Mongoose
 - **Auth**: JWT (jsonwebtoken + bcryptjs)
-- **CSV parsing**: PapaParse (handles BOM, encoding, large files)
-- **Excel export**: SheetJS (xlsx)
+- **CSV/Excel parsing**: SheetJS (xlsx) — handles CSV, XLSX, BOM, large files
+- **Notifications**: react-hot-toast
 
 ---
 
@@ -42,20 +42,24 @@ npm run dev
 
 ---
 
-## Authentication
+## Authentication & Roles
 
-| Login | Password (default) | Role | Access |
-|---|---|---|---|
-| `viewer` | `Klef2026` | viewer | All read features |
-| `admin`  | `Klvzacse2` | admin  | Upload data, clear DB, admin page |
+| Role | Access |
+|---|---|
+| `admin` | Full access — upload, clear DB, manage all faculty, admin page |
+| `manage_data` | Upload/clear timetable data; create/manage permitted faculty |
+| `view_all_timetables` | Read-only access to all faculty timetables |
+| `viewer` | Standard read features |
 
-Passwords are set in `.env.local`. Change them before deploying.
+Passwords are hashed and stored in MongoDB. Default credentials are set via `.env.local`.
+
+First-time login shows a hint to change password via `/change-password`.
 
 ---
 
 ## File Upload Format
 
-The portal accepts the **exact same CSV files** used originally.
+The portal accepts the same CSV/XLSX files used in the KLEF ERP system. **Headers are matched case-insensitively.**
 
 ### BTT Timetable CSV (`BTT-XXXXXX.csv`)
 Required columns (others are stored but not critical):
@@ -84,15 +88,32 @@ Required columns (others are stored but not critical):
 | `ALLOTED TO` | COE/COR/CRT/FED/MHS |
 | `DEPT ALLOTED TO` | e.g. R24-CSE-1 |
 
+### Roomwise Timetable CSV (`Roomwise-TT-xx.xx.xxxx.csv`)
+Used by the Free Rooms finder. Headers are case-insensitive.
+| Column | Description |
+|---|---|
+| `Roomno` | Room identifier |
+| `Mon1`–`Mon24` | Period slots for Monday |
+| `Tue1`–`Tue24` | Period slots for Tuesday |
+| … | (Wed, Thu, Fri, Sat) |
+
+Only non-empty, non-dash slots are stored (sparse format). Old data is replaced on each upload.
+
+### Faculty Profile CSV (`KLEF-FD.csv`)
+Imports faculty profile fields (designation, department, email, etc.) matched by Employee ID.
+
 ---
 
 ## MongoDB Collections
 
-| Collection | Documents | Purpose |
-|---|---|---|
-| `timetableentries` | ~12,000/upload | All BTT rows, tagged `dataset: live\|master` |
-| `roommetas` | ~1,000 | Room metadata from ERP-RD |
-| `users` | few | Portal users with hashed passwords |
+| Collection | Purpose |
+|---|---|
+| `timetableentries` | All BTT rows, tagged by snapshot dataset |
+| `timetablesnapshots` | Metadata per BTT upload (label, row count, active flag) |
+| `roommetas` | Room metadata from ERP-RD |
+| `roomwiseentries` | Sparse slot entries from Roomwise-TT (for free room analysis) |
+| `roomwisesnapshots` | Metadata per Roomwise-TT upload |
+| `users` | Portal users with hashed passwords and roles |
 
 ### Key Indexes
 ```
@@ -103,6 +124,10 @@ timetableentries:
   { dataset, room_no, umatdayid, umat_hourno }   ← room timetable
   { dataset, course_code, year }                 ← course timetable
   { dataset, umatdayid, umat_hourno }            ← free-slot queries
+
+roomwiseentries:
+  { dataset, day, hour }                         ← free room queries
+  { dataset, room_no, day }                      ← room-day slot lookup
 ```
 
 ---
@@ -129,18 +154,24 @@ All routes under `/api/`:
 |---|---|---|
 | GET | `/api/free/faculty` | `day=<1-6>&periods=1,2,3` |
 | GET | `/api/free/rooms` | `day=<1-6>&periods=1,2,3` |
+| GET | `/api/free/room-stats` | Room occupancy statistics |
+| GET | `/api/free/room-analyze` | Detailed room analysis |
 
 ### Clash (Bearer required)
 | Method | Route | Description |
 |---|---|---|
 | POST | `/api/clash/run` | Runs full clash detection |
 
-### Data Management (admin Bearer required)
+### Data Management (admin / manage_data Bearer required)
 | Method | Route | Description |
 |---|---|---|
 | POST | `/api/upload` | Multipart: fields `timetable`, `rooms`, `master` |
 | GET | `/api/upload/status` | Returns row counts |
 | DELETE | `/api/upload/status?dataset=live\|master\|all` | Clear data |
+| GET/POST | `/api/admin/roomwise` | Get status / upload Roomwise-TT |
+| DELETE | `/api/admin/roomwise` | Clear Roomwise TT data |
+| POST | `/api/admin/upload-faculty` | Upload KLEF-FD faculty profile CSV |
+| GET/POST | `/api/admin/faculty` | List / create faculty users |
 
 ---
 
@@ -152,9 +183,10 @@ All routes under `/api/`:
 | `/rooms` | Room timetable search |
 | `/courses` | Course timetable (filter by year + batch) |
 | `/free-faculty` | Find free faculty by day + periods |
-| `/free-rooms` | Find free rooms by day + periods |
+| `/free-rooms` | Find free rooms by day + periods, with stats and analytics |
 | `/clash` | Run and filter clash detection |
-| `/admin` | Admin dashboard — upload, status, clear (admin only) |
+| `/admin` | Admin dashboard — upload, status, clear, manage faculty |
+| `/change-password` | Change own password |
 | `/login` | Login screen |
 
 ---
@@ -168,6 +200,7 @@ JWT_SECRET=<long random string — use openssl rand -base64 48>
 JWT_EXPIRES_IN=7d
 APP_PASSWORD=Klef2026
 ADMIN_PASSWORD=Klvzacse2
+UPLOAD_PASSWORD=<password gate for data uploads>
 ```
 
 ### Build & Start
@@ -183,11 +216,8 @@ Use a standard Node 18 Alpine image, copy project, `npm ci --production`, `npm r
 
 ## Clash Detection Logic
 
-Identical to the original app:
-
 1. **Room Overlap** (SEVERE) — Two different courses in the same room at the same time
-2. **Dual Faculty** (WARNING) — Same course, same room, same time, but assigned to 2+ different faculty (skipped for LAB rooms where multi-faculty is normal)
+2. **Dual Faculty** (WARNING) — Same course, same room, same time, assigned to 2+ different faculty; uses SRC-D role grouping; skipped when source dataset is absent
 3. **Faculty Double-Booked** (INFO) — Same faculty in 2+ different non-additional sections simultaneously
 
 `associative_sectionno` values A/B/C/D/MA mark "additional faculty" rows and are excluded from clash detection.
-# klef-nextjs
