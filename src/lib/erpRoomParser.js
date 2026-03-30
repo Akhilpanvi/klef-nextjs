@@ -50,13 +50,23 @@ export function parseErpRoomBuffer(buf) {
       groups[roomName] = { room_no: roomName, description, block, sections: [] }
     }
 
-    if (!isNaN(erpId)) {
+    // Only add sections that have a valid assoc label (skip empty/duplicate rows)
+    if (!isNaN(erpId) && assoc) {
       groups[roomName].sections.push({ assoc, erp_id: erpId })
     }
   }
 
   const docs = []
   for (const g of Object.values(groups)) {
+    // Deduplicate sections by assoc label (keep first occurrence)
+    const seen = new Set()
+    g.sections = g.sections.filter(s => {
+      const key = s.assoc.toUpperCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+
     // Pick MA as the primary ERP ID; fall back to first section
     const maSection = g.sections.find(s => s.assoc.toUpperCase() === 'MA')
     g.erp_id = maSection ? maSection.erp_id : (g.sections[0]?.erp_id ?? null)
