@@ -15,15 +15,22 @@ const getPctColor = p => p < 40 ? '#10b981' : p < 75 ? '#f59e0b' : '#ef4444'
 // Renders small ERP ID badges for each section (MA, A, B, C, D…)
 const ASSOC_ORDER = ['MA','A','B','C','D']
 function ErpBadges({ sections = [] }) {
-  if (!sections.length) return null
-  const sorted = [...sections].sort((a,b) => {
+  // Filter out blank assoc, deduplicate by assoc label, then sort
+  const seen = new Set()
+  const clean = sections.filter(s => {
+    const k = (s.assoc||'').toString().trim().toUpperCase()
+    if (!k || seen.has(k)) return false
+    seen.add(k)
+    return true
+  }).sort((a,b) => {
     const ai = ASSOC_ORDER.indexOf(a.assoc.toUpperCase())
     const bi = ASSOC_ORDER.indexOf(b.assoc.toUpperCase())
     return (ai===-1?99:ai) - (bi===-1?99:bi)
   })
+  if (!clean.length) return null
   return (
     <span style={{display:'inline-flex',flexWrap:'wrap',gap:3,marginLeft:6,verticalAlign:'middle'}}>
-      {sorted.map(s=>(
+      {clean.map(s=>(
         <span key={s.assoc} style={{fontSize:10,fontWeight:500,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:3,padding:'1px 4px',whiteSpace:'nowrap'}}>
           {s.assoc}:{s.erp_id}
         </span>
