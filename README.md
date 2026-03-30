@@ -99,6 +99,19 @@ Used by the Free Rooms finder. Headers are case-insensitive.
 
 Only non-empty, non-dash slots are stored (sparse format). Old data is replaced on each upload.
 
+### ERP Room Data CSV (`ERP-ROOMDATA.csv`)
+Maps ERP Room IDs to base room numbers. Sections (A/B/C/D/MA) are grouped under their base room — the MA section's ID is used as the primary ERP ID. Headers are case-insensitive.
+| Column | Description |
+|---|---|
+| `ROOM -MA` | Full room identifier with section (e.g. A301-A) |
+| `ROOM ID` | Numeric ERP room ID |
+| `ROOM NAME` | Base room name (e.g. A301) |
+| `Assoc` | Section suffix: A / B / C / D / MA |
+| `description` | Room type (CLASSROOM, LAB, etc.) |
+| `block` | Block name (e.g. FED Block) |
+
+ERP IDs appear as `#1146` badges next to room numbers across all Room Availability views and Excel exports.
+
 ### Faculty Profile CSV (`KLEF-FD.csv`)
 Imports faculty profile fields (designation, department, email, etc.) matched by Employee ID.
 
@@ -110,9 +123,10 @@ Imports faculty profile fields (designation, department, email, etc.) matched by
 |---|---|
 | `timetableentries` | All BTT rows, tagged by snapshot dataset |
 | `timetablesnapshots` | Metadata per BTT upload (label, row count, active flag) |
-| `roommetas` | Room metadata from ERP-RD |
+| `roommetas` | Room metadata from ERP-RD (capacity, block, type) |
 | `roomwiseentries` | Sparse slot entries from Roomwise-TT (for free room analysis) |
 | `roomwisesnapshots` | Metadata per Roomwise-TT upload |
+| `erproomdata` | ERP Room IDs grouped by base room name (from ERP-ROOMDATA CSV) |
 | `users` | System users with hashed passwords and roles |
 
 ### Key Indexes
@@ -170,6 +184,8 @@ All routes under `/api/`:
 | DELETE | `/api/upload/status?dataset=live\|master\|all` | Clear data |
 | GET/POST | `/api/admin/roomwise` | Get status / upload Roomwise-TT |
 | DELETE | `/api/admin/roomwise` | Clear Roomwise TT data |
+| GET/POST | `/api/admin/erproom` | Get status / upload ERP Room Data CSV |
+| DELETE | `/api/admin/erproom` | Clear ERP Room Data |
 | POST | `/api/admin/upload-faculty` | Upload KLEF-FD faculty profile CSV |
 | GET/POST | `/api/admin/faculty` | List / create faculty users |
 
