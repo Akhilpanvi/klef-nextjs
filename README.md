@@ -1,6 +1,6 @@
-# KLEF Timetable Portal — Next.js + MongoDB
+# KLEF Timetable System — Next.js + MongoDB
 
-Full-stack rewrite of the KLEF portal as a Next.js 14 application.
+Full-stack rewrite of the KLEF timetable system as a Next.js 14 application.
 
 ## Stack
 - **Frontend**: Next.js 14 App Router + React 18
@@ -59,7 +59,7 @@ First-time login shows a hint to change password via `/change-password`.
 
 ## File Upload Format
 
-The portal accepts the same CSV/XLSX files used in the KLEF ERP system. **Headers are matched case-insensitively.**
+The system accepts the same CSV/XLSX files used in the KLEF ERP system. **Headers are matched case-insensitively.**
 
 ### BTT Timetable CSV (`BTT-XXXXXX.csv`)
 Required columns (others are stored but not critical):
@@ -113,7 +113,7 @@ Imports faculty profile fields (designation, department, email, etc.) matched by
 | `roommetas` | Room metadata from ERP-RD |
 | `roomwiseentries` | Sparse slot entries from Roomwise-TT (for free room analysis) |
 | `roomwisesnapshots` | Metadata per Roomwise-TT upload |
-| `users` | Portal users with hashed passwords and roles |
+| `users` | System users with hashed passwords and roles |
 
 ### Key Indexes
 ```
@@ -195,7 +195,7 @@ All routes under `/api/`:
 
 ### Environment Variables (`.env.local`)
 ```env
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/klef_portal
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/klef_tt
 JWT_SECRET=<long random string — use openssl rand -base64 48>
 JWT_EXPIRES_IN=7d
 APP_PASSWORD=Klef2026
