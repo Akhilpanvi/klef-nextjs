@@ -195,7 +195,7 @@ All routes under `/api/`:
 
 ### Environment Variables (`.env.local`)
 ```env
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/klef_tt
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/klef_portal
 JWT_SECRET=<long random string — use openssl rand -base64 48>
 JWT_EXPIRES_IN=7d
 APP_PASSWORD=Klef2026
