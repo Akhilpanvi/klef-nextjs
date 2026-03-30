@@ -29,7 +29,7 @@ function ErpBadges({ sections = [] }) {
   })
   if (!clean.length) return null
   return (
-    <span style={{display:'inline-flex',flexWrap:'wrap',gap:3,marginLeft:6,verticalAlign:'middle'}}>
+    <span style={{display:'flex',flexWrap:'wrap',gap:3,marginTop:4}}>
       {clean.map(s=>(
         <span key={s.assoc} style={{fontSize:10,fontWeight:500,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:3,padding:'1px 4px',whiteSpace:'nowrap'}}>
           {s.assoc}:{s.erp_id}
@@ -142,7 +142,8 @@ function FindFreeRoomsTab({ onAnalyze }) {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10}}>
             {filtered.map(r=>(
               <div key={r.number} className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:4}}>
-                <div style={{fontWeight:700,fontSize:15}}>{r.number}<ErpBadges sections={r.erp_sections}/></div>
+                <div style={{fontWeight:700,fontSize:15}}>{r.number}</div>
+                <ErpBadges sections={r.erp_sections}/>
                 <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'}</div>
                 <div style={{fontSize:11,color:'var(--text-3)'}}>Block {r.block}</div>
                 <button className="btn btn-primary" style={{marginTop:6,padding:'4px 10px',fontSize:12,width:'100%'}} onClick={()=>onAnalyze(r.number)}>Analyze</button>
@@ -248,7 +249,8 @@ function AllRoomsTab({ onAnalyze }) {
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:12}}>
           {filtered.map(r=>(
             <div key={r.number} className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:6}}>
-              <div style={{fontWeight:700,fontSize:15}}>{r.number}<ErpBadges sections={r.erp_sections}/></div>
+              <div style={{fontWeight:700,fontSize:15}}>{r.number}</div>
+              <ErpBadges sections={r.erp_sections}/>
               <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'} · Block {r.block}</div>
               <div style={{width:'100%',marginTop:4}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text-3)',marginBottom:3}}>
@@ -308,7 +310,7 @@ function AllRoomsTab({ onAnalyze }) {
                 // Use hourStats which has per-hour counts across days
                 return (
                   <tr key={r.number} style={{borderBottom:'1px solid var(--border)'}}>
-                    <td style={{padding:'8px 12px',fontWeight:700,fontSize:13}}>{r.number}<ErpBadges sections={r.erp_sections}/><br/><span style={{fontSize:11,color:'var(--text-3)',fontWeight:400}}>{r.dept}</span></td>
+                    <td style={{padding:'8px 12px',fontWeight:700,fontSize:13}}>{r.number}<br/><ErpBadges sections={r.erp_sections}/><span style={{fontSize:11,color:'var(--text-3)',fontWeight:400}}>{r.dept}</span></td>
                     <td style={{padding:'8px 12px',fontSize:13}}>{r.capacity||'?'}</td>
                     {Array.from({length:11},(_,i)=>i+1).map(p=>{
                       const h = r.hourStats?.[p]
@@ -382,11 +384,13 @@ function AnalyticsTab({ initialRoom, onClear }) {
 
       {data && (
         <div>
-          <h3 style={{fontSize:'1.3rem',fontWeight:800,color:'var(--brand)',marginBottom:16}}>
-            Analytics for <span style={{color:'var(--text)'}}>{data.room}</span>
+          <div style={{marginBottom:16}}>
+            <h3 style={{fontSize:'1.3rem',fontWeight:800,color:'var(--brand)',margin:0}}>
+              Analytics for <span style={{color:'var(--text)'}}>{data.room}</span>
+              <span style={{fontSize:13,color:'var(--text-3)',fontWeight:400,marginLeft:10}}>(Capacity: {data.capacity||'?'})</span>
+            </h3>
             <ErpBadges sections={data.erp_sections}/>
-            <span style={{fontSize:13,color:'var(--text-3)',fontWeight:400,marginLeft:10}}>(Capacity: {data.capacity||'?'})</span>
-          </h3>
+          </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
             <div className="result-card" style={{flexDirection:'column',alignItems:'center',padding:24}}>
               <div style={{fontSize:12,fontWeight:700,color:'var(--text-3)',marginBottom:8}}>WEEKLY OVERVIEW</div>
