@@ -71,7 +71,7 @@ function FindFreeRoomsTab({ onAnalyze }) {
 
   const download = () => {
     if (!filtered.length) return toast.error('Nothing to export')
-    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room No':r.number,'Block':r.block||'?','Type':r.type||'?','Capacity':r.capacity||'?','Dept':r.dept||'—'})))
+    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room No':r.number,'ERP ID':r.erp_id??'—','Block':r.block||'?','Type':r.type||'?','Capacity':r.capacity||'?','Dept':r.dept||'—'})))
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Free_Rooms')
     XLSX.writeFile(wb,`free-rooms-${DAYS[+day-1]}-P${periods.join('')}.xlsx`)
   }
@@ -115,7 +115,7 @@ function FindFreeRoomsTab({ onAnalyze }) {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10}}>
             {filtered.map(r=>(
               <div key={r.number} className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:4}}>
-                <div style={{fontWeight:700,fontSize:15}}>{r.number}</div>
+                <div style={{fontWeight:700,fontSize:15}}>{r.number}{r.erp_id!=null&&<span style={{marginLeft:6,fontSize:11,fontWeight:400,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'1px 5px'}}>#{r.erp_id}</span>}</div>
                 <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'}</div>
                 <div style={{fontSize:11,color:'var(--text-3)'}}>Block {r.block}</div>
                 <button className="btn btn-primary" style={{marginTop:6,padding:'4px 10px',fontSize:12,width:'100%'}} onClick={()=>onAnalyze(r.number)}>Analyze</button>
@@ -169,7 +169,7 @@ function AllRoomsTab({ onAnalyze }) {
 
   const exportExcel = () => {
     if(!filtered.length) return toast.error('No data')
-    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room':r.number,'Block':r.block,'Type':r.type,'Cap':r.capacity,'Mon%':r.dayStats?.Mon,'Tue%':r.dayStats?.Tue,'Wed%':r.dayStats?.Wed,'Thu%':r.dayStats?.Thu,'Fri%':r.dayStats?.Fri,'Sat%':r.dayStats?.Sat,'Weekly%':r.weeklyPct})))
+    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room':r.number,'ERP ID':r.erp_id??'—','Block':r.block,'Type':r.type,'Cap':r.capacity,'Mon%':r.dayStats?.Mon,'Tue%':r.dayStats?.Tue,'Wed%':r.dayStats?.Wed,'Thu%':r.dayStats?.Thu,'Fri%':r.dayStats?.Fri,'Sat%':r.dayStats?.Sat,'Weekly%':r.weeklyPct})))
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Room Stats')
     XLSX.writeFile(wb,'KLEF_Room_Stats.xlsx')
   }
@@ -221,7 +221,7 @@ function AllRoomsTab({ onAnalyze }) {
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:12}}>
           {filtered.map(r=>(
             <div key={r.number} className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:6}}>
-              <div style={{fontWeight:700,fontSize:15}}>{r.number}</div>
+              <div style={{fontWeight:700,fontSize:15}}>{r.number}{r.erp_id!=null&&<span style={{marginLeft:6,fontSize:11,fontWeight:400,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'1px 5px'}}>#{r.erp_id}</span>}</div>
               <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'} · Block {r.block}</div>
               <div style={{width:'100%',marginTop:4}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text-3)',marginBottom:3}}>
@@ -241,7 +241,7 @@ function AllRoomsTab({ onAnalyze }) {
         <div style={{overflowX:'auto',borderRadius:8,border:'1px solid var(--border)'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
             <thead><tr style={{background:'var(--surface-2)'}}>
-              {['Room','Block','Type','Cap','Mon','Tue','Wed','Thu','Fri','Sat','Weekly',''].map(h=>(
+              {['Room','ERP ID','Block','Type','Cap','Mon','Tue','Wed','Thu','Fri','Sat','Weekly',''].map(h=>(
                 <th key={h} style={thSt}>{h}</th>
               ))}
             </tr></thead>
@@ -249,6 +249,7 @@ function AllRoomsTab({ onAnalyze }) {
               {filtered.map(r=>(
                 <tr key={r.number} style={{borderBottom:'1px solid var(--border)'}}>
                   <td style={{padding:'10px 12px',fontWeight:700}}>{r.number}</td>
+                  <td style={{padding:'10px 12px',fontSize:13,color:'var(--text-3)'}}>{r.erp_id??'—'}</td>
                   <td style={{padding:'10px 12px',fontSize:13}}>{r.block}</td>
                   <td style={{padding:'10px 12px',fontSize:13}}>{r.type}</td>
                   <td style={{padding:'10px 12px',fontSize:13}}>{r.capacity||'?'}</td>
@@ -280,7 +281,7 @@ function AllRoomsTab({ onAnalyze }) {
                 // Use hourStats which has per-hour counts across days
                 return (
                   <tr key={r.number} style={{borderBottom:'1px solid var(--border)'}}>
-                    <td style={{padding:'8px 12px',fontWeight:700,fontSize:13}}>{r.number}<br/><span style={{fontSize:11,color:'var(--text-3)',fontWeight:400}}>{r.dept}</span></td>
+                    <td style={{padding:'8px 12px',fontWeight:700,fontSize:13}}>{r.number}{r.erp_id!=null&&<span style={{marginLeft:5,fontSize:10,fontWeight:400,color:'var(--text-3)'}}>#{r.erp_id}</span>}<br/><span style={{fontSize:11,color:'var(--text-3)',fontWeight:400}}>{r.dept}</span></td>
                     <td style={{padding:'8px 12px',fontSize:13}}>{r.capacity||'?'}</td>
                     {Array.from({length:11},(_,i)=>i+1).map(p=>{
                       const h = r.hourStats?.[p]
@@ -356,6 +357,7 @@ function AnalyticsTab({ initialRoom, onClear }) {
         <div>
           <h3 style={{fontSize:'1.3rem',fontWeight:800,color:'var(--brand)',marginBottom:16}}>
             Analytics for <span style={{color:'var(--text)'}}>{data.room}</span>
+            {data.erp_id!=null&&<span style={{fontSize:13,fontWeight:600,color:'var(--text-3)',marginLeft:8,background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'2px 7px'}}>ERP #{data.erp_id}</span>}
             <span style={{fontSize:13,color:'var(--text-3)',fontWeight:400,marginLeft:10}}>(Capacity: {data.capacity||'?'})</span>
           </h3>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>

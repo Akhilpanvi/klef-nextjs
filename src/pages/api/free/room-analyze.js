@@ -3,6 +3,7 @@ import { connectDB }     from '@/lib/mongodb'
 import RoomwiseEntry     from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot  from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta          from '@/lib/models/RoomMeta'
+import ErpRoomData       from '@/lib/models/ErpRoomData'
 
 function baseKey(roomNo) { return roomNo.split('-')[0].trim().toUpperCase() }
 
@@ -57,11 +58,13 @@ export default async function handler(req, res) {
   const totalBusy = Object.values(dayCounts).reduce((a,b) => a+b, 0)
   const weeklyPct = Math.round((totalBusy / TOTAL_SLOTS) * 100)
 
-  const meta = await RoomMeta.findOne({ room_no: roomName }).lean()
+  const meta   = await RoomMeta.findOne({ room_no: roomName }).lean()
+  const erpDoc = await ErpRoomData.findOne({ room_no: roomName }, 'erp_id').lean()
 
   res.json({
     success: true,
     room:       roomName,
+    erp_id:     erpDoc?.erp_id ?? null,
     capacity:   meta?.capacity || null,
     weeklyPct,
     totalBusy,

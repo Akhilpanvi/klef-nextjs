@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink, UserPlus } from 'lucide-react'
 import RoomwiseUploadCard from '@/components/admin/RoomwiseUploadCard'
+import ErpRoomUploadCard from '@/components/admin/ErpRoomUploadCard'
 
 const ALL_PERMISSIONS = [
   { key: 'view_clash',          label: 'View Clash Detection' },
@@ -635,6 +636,7 @@ function AdminContent() {
         {/* Roomwise TT Upload */}
         <div style={{ gridColumn:'span 2' }}>
           <RoomwiseUploadCard />
+          <ErpRoomUploadCard />
         </div>
 
         {/* Faculty CSV upload */}

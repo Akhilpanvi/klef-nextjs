@@ -3,6 +3,7 @@ import { connectDB }    from '@/lib/mongodb'
 import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta         from '@/lib/models/RoomMeta'
+import ErpRoomData      from '@/lib/models/ErpRoomData'
 
 function baseKey(roomNo) {
   return roomNo.split('-')[0].trim().toUpperCase()
@@ -48,15 +49,20 @@ export default async function handler(req, res) {
   const metas   = await RoomMeta.find({}).lean()
   const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
 
+  // ERP room IDs
+  const erpDocs  = await ErpRoomData.find({}, 'room_no erp_id').lean()
+  const erpMap   = Object.fromEntries(erpDocs.map(e => [e.room_no, e.erp_id]))
+
   const free = []
   for (const [base, sections] of Object.entries(roomSections)) {
     // Room is free only if ALL sections are free
     const allFree = sections.every(sec => !busySet.has(sec))
     if (!allFree) continue
 
-    const meta = metaMap[base] // may be undefined for rooms without metadata
+    const meta = metaMap[base]
     free.push({
       number:   base,
+      erp_id:   erpMap[base] ?? null,
       type:     meta?.room_type  || '?',
       capacity: meta?.capacity   || null,
       block:    meta?.block      || base.match(/^[A-Za-z]+/)?.[0]?.toUpperCase() || '?',
