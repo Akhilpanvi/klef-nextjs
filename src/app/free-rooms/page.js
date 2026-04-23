@@ -332,14 +332,41 @@ function AllRoomsTab({ onAnalyze }) {
 // ── Tab 4: Room Search (by room number or ERP ID) ────────────────────────────
 function RoomSearchTab() {
   const { get } = useApi()
-  const [query,   setQuery]   = useState('')
-  const [result,  setResult]  = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [query,       setQuery]       = useState('')
+  const [result,      setResult]      = useState(null)
+  const [loading,     setLoading]     = useState(false)
+  const [allRooms,    setAllRooms]    = useState([])
+  const [suggestions, setSuggestions] = useState([])
+  const [showDrop,    setShowDrop]    = useState(false)
+
+  useEffect(() => {
+    get('/api/free/room-list').then(d => { if (d.success) setAllRooms(d.rooms) })
+  }, [])
+
+  const onInput = v => {
+    setQuery(v)
+    if (!v.trim()) { setSuggestions([]); setShowDrop(false); return }
+    const q = v.trim().toLowerCase()
+    const matched = allRooms.filter(r =>
+      r.room.toLowerCase().includes(q) ||
+      (r.erp_id && String(r.erp_id).includes(q)) ||
+      r.erp_ids.some(id => String(id).includes(q))
+    ).slice(0, 10)
+    setSuggestions(matched)
+    setShowDrop(matched.length > 0)
+  }
+
+  const pick = (r) => {
+    setQuery(r.room)
+    setSuggestions([])
+    setShowDrop(false)
+    doSearch(r.room)
+  }
 
   const doSearch = async (q) => {
     const v = (q ?? query).trim()
     if (!v) return toast.error('Enter a room number or ERP ID')
-    setLoading(true); setResult(null)
+    setLoading(true); setResult(null); setShowDrop(false); setSuggestions([])
     try {
       const d = await get(`/api/free/room-lookup?q=${encodeURIComponent(v)}`)
       if (!d.success) throw new Error(d.message)
@@ -350,9 +377,9 @@ function RoomSearchTab() {
 
   const rows = result ? [
     ['Room Number',  result.room],
-    ['Block',        result.block     || '—'],
-    ['Type',         result.type      || '—'],
-    ['Capacity',     result.capacity  ?? '—'],
+    ['Block',        result.block        || '—'],
+    ['Type',         result.type         || '—'],
+    ['Capacity',     result.capacity     ?? '—'],
     ['Alloted To',   result.alloted_to   || '—'],
     ['Dept Alloted', result.dept_alloted || '—'],
     ['Description',  result.description  || '—'],
@@ -360,37 +387,52 @@ function RoomSearchTab() {
 
   return (
     <div>
-      <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:20}}>
-        <input
-          className="input"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && doSearch()}
-          placeholder="Enter Room Number (e.g. C007) or ERP ID (e.g. 12345)"
-          autoComplete="off"
-          style={{flex:1}}
-        />
+      <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:20,position:'relative'}}>
+        <div style={{position:'relative',flex:1}}>
+          <input
+            className="input"
+            value={query}
+            onChange={e => onInput(e.target.value)}
+            onKeyDown={e => { if(e.key==='Enter') doSearch(); if(e.key==='Escape') setShowDrop(false) }}
+            onFocus={() => suggestions.length && setShowDrop(true)}
+            onBlur={() => setTimeout(() => setShowDrop(false), 150)}
+            placeholder="Enter Room Number (e.g. C007) or ERP ID (e.g. 12345)"
+            autoComplete="off"
+          />
+          {showDrop && (
+            <div style={{position:'absolute',top:'105%',left:0,right:0,background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,zIndex:100,boxShadow:'0 4px 16px rgba(0,0,0,.18)',maxHeight:280,overflowY:'auto'}}>
+              {suggestions.map(r => (
+                <div
+                  key={r.room}
+                  onMouseDown={() => pick(r)}
+                  style={{padding:'9px 14px',cursor:'pointer',fontSize:13,borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}
+                >
+                  <span style={{fontWeight:700,color:'var(--text)'}}>{r.room}</span>
+                  {r.erp_id && <span style={{fontSize:11,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:4,padding:'1px 6px'}}>ERP {r.erp_id}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <button className="btn btn-primary" onClick={() => doSearch()} disabled={loading}>
           {loading ? 'Searching…' : 'Search'}
         </button>
       </div>
 
       {result && (
-        <div style={{display:'flex',flexDirection:'column',gap:16}}>
-          <div className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:8,padding:20}}>
-            <div style={{fontWeight:800,fontSize:'1.3rem',color:'var(--brand)'}}>{result.room}</div>
-            <ErpBadges sections={result.erp_sections}/>
-            <table style={{width:'100%',borderCollapse:'collapse',marginTop:8}}>
-              <tbody>
-                {rows.map(([label,value])=>(
-                  <tr key={label} style={{borderBottom:'1px solid var(--border)'}}>
-                    <td style={{padding:'8px 12px',fontSize:13,fontWeight:700,color:'var(--text-3)',width:160,whiteSpace:'nowrap'}}>{label}</td>
-                    <td style={{padding:'8px 12px',fontSize:14,color:'var(--text)'}}>{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:8,padding:20}}>
+          <div style={{fontWeight:800,fontSize:'1.3rem',color:'var(--brand)'}}>{result.room}</div>
+          <ErpBadges sections={result.erp_sections}/>
+          <table style={{width:'100%',borderCollapse:'collapse',marginTop:8}}>
+            <tbody>
+              {rows.map(([label,value])=>(
+                <tr key={label} style={{borderBottom:'1px solid var(--border)'}}>
+                  <td style={{padding:'8px 12px',fontSize:13,fontWeight:700,color:'var(--text-3)',width:160,whiteSpace:'nowrap'}}>{label}</td>
+                  <td style={{padding:'8px 12px',fontSize:14,color:'var(--text)'}}>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
