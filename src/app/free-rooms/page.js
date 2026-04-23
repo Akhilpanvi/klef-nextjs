@@ -329,6 +329,74 @@ function AllRoomsTab({ onAnalyze }) {
   )
 }
 
+// ── Tab 4: Room Search (by room number or ERP ID) ────────────────────────────
+function RoomSearchTab() {
+  const { get } = useApi()
+  const [query,   setQuery]   = useState('')
+  const [result,  setResult]  = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const doSearch = async (q) => {
+    const v = (q ?? query).trim()
+    if (!v) return toast.error('Enter a room number or ERP ID')
+    setLoading(true); setResult(null)
+    try {
+      const d = await get(`/api/free/room-lookup?q=${encodeURIComponent(v)}`)
+      if (!d.success) throw new Error(d.message)
+      setResult(d)
+    } catch (err) { toast.error(err.message) }
+    finally { setLoading(false) }
+  }
+
+  const rows = result ? [
+    ['Room Number',  result.room],
+    ['Block',        result.block     || '—'],
+    ['Type',         result.type      || '—'],
+    ['Capacity',     result.capacity  ?? '—'],
+    ['Alloted To',   result.alloted_to   || '—'],
+    ['Dept Alloted', result.dept_alloted || '—'],
+    ['Description',  result.description  || '—'],
+  ] : []
+
+  return (
+    <div>
+      <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:20}}>
+        <input
+          className="input"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && doSearch()}
+          placeholder="Enter Room Number (e.g. C007) or ERP ID (e.g. 12345)"
+          autoComplete="off"
+          style={{flex:1}}
+        />
+        <button className="btn btn-primary" onClick={() => doSearch()} disabled={loading}>
+          {loading ? 'Searching…' : 'Search'}
+        </button>
+      </div>
+
+      {result && (
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          <div className="result-card" style={{flexDirection:'column',alignItems:'flex-start',gap:8,padding:20}}>
+            <div style={{fontWeight:800,fontSize:'1.3rem',color:'var(--brand)'}}>{result.room}</div>
+            <ErpBadges sections={result.erp_sections}/>
+            <table style={{width:'100%',borderCollapse:'collapse',marginTop:8}}>
+              <tbody>
+                {rows.map(([label,value])=>(
+                  <tr key={label} style={{borderBottom:'1px solid var(--border)'}}>
+                    <td style={{padding:'8px 12px',fontSize:13,fontWeight:700,color:'var(--text-3)',width:160,whiteSpace:'nowrap'}}>{label}</td>
+                    <td style={{padding:'8px 12px',fontSize:14,color:'var(--text)'}}>{value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Tab 3: Analytics Search ───────────────────────────────────────────────────
 function AnalyticsTab({ initialRoom, onClear }) {
   const { get } = useApi()
@@ -442,7 +510,7 @@ function FreeRoomsContent() {
       <h2 style={{margin:'0 0 16px',fontFamily:"'DM Serif Display',serif",fontSize:'1.25rem'}}>Room Availability</h2>
 
       <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'2px solid var(--border)'}}>
-        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'}].map(t=>(
+        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
             padding:'8px 18px',fontSize:13,fontWeight:700,border:'none',background:'none',cursor:'pointer',
             borderBottom:tab===t.id?'2px solid var(--brand)':'2px solid transparent',
@@ -454,6 +522,7 @@ function FreeRoomsContent() {
       {tab==='find'      && <FindFreeRoomsTab onAnalyze={goAnalyze}/>}
       {tab==='stats'     && <AllRoomsTab onAnalyze={goAnalyze}/>}
       {tab==='analytics' && <AnalyticsTab initialRoom={analyzeRoom} onClear={()=>setAnalyzeRoom(null)}/>}
+      {tab==='lookup'    && <RoomSearchTab/>}
     </PortalShell>
   )
 }
