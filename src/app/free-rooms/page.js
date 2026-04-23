@@ -31,7 +31,7 @@ function ErpBadges({ sections = [] }) {
   return (
     <span style={{display:'flex',flexWrap:'wrap',gap:3,marginTop:4}}>
       {clean.map(s=>(
-        <span key={s.assoc} style={{fontSize:10,fontWeight:500,color:'var(--text-3)',background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:3,padding:'1px 4px',whiteSpace:'nowrap'}}>
+        <span key={s.assoc} style={{fontSize:10,fontWeight:600,color:'var(--text)',background:'var(--surface-2)',border:'1px solid var(--text-3)',borderRadius:3,padding:'1px 4px',whiteSpace:'nowrap'}}>
           {s.assoc}:{s.erp_id}
         </span>
       ))}
