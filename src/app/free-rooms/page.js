@@ -485,9 +485,7 @@ function BoxTTTab() {
     const fd = new FormData(); fd.append('boxtt', file)
     setUploading(true)
     try {
-      const tok = localStorage.getItem('token')
-      const r   = await fetch('/api/admin/boxtt', { method:'POST', headers:{ Authorization:`Bearer ${tok}` }, body: fd })
-      const d   = await r.json()
+      const d = await postForm('/api/admin/boxtt', fd)
       if (!d.success) throw new Error(d.message)
       toast.success(d.message)
       setFile(null)
