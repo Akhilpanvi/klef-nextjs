@@ -460,8 +460,9 @@ function BoxTTTab() {
   const [suggestions, setSuggestions] = useState([])
   const [showDrop,    setShowDrop]    = useState(false)
   const [schedule,    setSchedule]    = useState(null)
-  const [searching,   setSearching]   = useState(false)
+  const [searching,    setSearching]    = useState(false)
   const [searchedRoom, setSearchedRoom] = useState('')
+  const [downloading,  setDownloading]  = useState(false)
 
   const loadSnap = async () => {
     setSnapLoading(true)
@@ -504,6 +505,53 @@ function BoxTTTab() {
       setSnap(null); setAllRooms([]); setSchedule(null); setSearchedRoom(''); setQuery('')
     } catch (err) { toast.error(err.message) }
     finally { setDeleting(false) }
+  }
+
+  const doDownload = async () => {
+    setDownloading(true)
+    try {
+      const d = await get('/api/free/boxtt-export')
+      if (!d.success) throw new Error(d.message)
+
+      // Build pivoted structure: room → { 'mon1': label, 'tue3': label, ... }
+      const DAY_SHORT = ['mon','tue','wed','thu','fri','sat']
+      const roomMap   = {}
+      for (const e of d.entries) {
+        const dk  = DAY_SHORT[e.day - 1]
+        if (!dk) continue
+        const col = `${dk}${e.hour}`
+        if (!roomMap[e.room_no]) roomMap[e.room_no] = {}
+        roomMap[e.room_no][col] = e.label
+      }
+
+      // Headers: Room No, mon1..mon11, tue1..tue11, ..., sat1..sat11
+      const headers = ['Room No']
+      const colKeys = []
+      for (const dk of DAY_SHORT) {
+        for (let p = 1; p <= MAX_PERIOD; p++) {
+          const k = `${dk}${p}`
+          headers.push(k)
+          colKeys.push(k)
+        }
+      }
+
+      const sheetRows = Object.keys(roomMap)
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+        .map(room => {
+          const row = { 'Room No': room }
+          for (const k of colKeys) row[k] = roomMap[room][k] || '-'
+          return row
+        })
+
+      const ws = XLSX.utils.json_to_sheet(sheetRows, { header: headers })
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'All_Rooms_Timetable')
+
+      const safeName = (d.label || 'BoxTT').replace(/[/\\:*?"<>|]/g, '_')
+      XLSX.writeFile(wb, `${safeName}.xlsx`)
+      toast.success('Downloaded!')
+    } catch (err) { toast.error(err.message) }
+    finally { setDownloading(false) }
   }
 
   const onInput = v => {
@@ -612,6 +660,9 @@ function BoxTTTab() {
             </div>
             <button className="btn btn-primary" onClick={() => doSearch()} disabled={searching}>
               {searching ? 'Searching…' : 'View Schedule'}
+            </button>
+            <button className="btn btn-success" onClick={doDownload} disabled={downloading} style={{whiteSpace:'nowrap'}}>
+              {downloading ? 'Downloading…' : '📥 Download All'}
             </button>
           </div>
 
