@@ -439,6 +439,240 @@ function RoomSearchTab() {
   )
 }
 
+// ── Tab 5: Box TT to Room TT Converter ───────────────────────────────────────
+const BOX_DAY_KEYS  = ['Mon','Tue','Wed','Thu','Fri','Sat']
+const BOX_DAY_NAMES = { Mon:'Monday', Tue:'Tuesday', Wed:'Wednesday', Thu:'Thursday', Fri:'Friday', Sat:'Saturday' }
+const MAX_PERIOD    = 11
+
+function BoxTTTab() {
+  const { user, loading: authLoading } = useAuth()
+  const { get, post, del } = useApi()
+  const isAdmin = user?.role === 'admin'
+
+  const [snap,        setSnap]        = useState(null)
+  const [snapLoading, setSnapLoading] = useState(true)
+  const [uploading,   setUploading]   = useState(false)
+  const [deleting,    setDeleting]    = useState(false)
+  const [file,        setFile]        = useState(null)
+
+  const [allRooms,    setAllRooms]    = useState([])
+  const [query,       setQuery]       = useState('')
+  const [suggestions, setSuggestions] = useState([])
+  const [showDrop,    setShowDrop]    = useState(false)
+  const [schedule,    setSchedule]    = useState(null)
+  const [searching,   setSearching]   = useState(false)
+  const [searchedRoom, setSearchedRoom] = useState('')
+
+  const loadSnap = async () => {
+    setSnapLoading(true)
+    try {
+      const d = await get('/api/admin/boxtt')
+      setSnap(d.active ? d : null)
+      if (d.active) {
+        const rd = await get('/api/free/boxtt-rooms')
+        if (rd.success) setAllRooms(rd.rooms || [])
+      } else {
+        setAllRooms([])
+      }
+    } catch { setSnap(null) }
+    finally { setSnapLoading(false) }
+  }
+
+  useEffect(() => { if (!authLoading) loadSnap() }, [authLoading])
+
+  const doUpload = async () => {
+    if (!file) return toast.error('Select a CSV/Excel file first')
+    const fd = new FormData(); fd.append('boxtt', file)
+    setUploading(true)
+    try {
+      const tok = localStorage.getItem('token')
+      const r   = await fetch('/api/admin/boxtt', { method:'POST', headers:{ Authorization:`Bearer ${tok}` }, body: fd })
+      const d   = await r.json()
+      if (!d.success) throw new Error(d.message)
+      toast.success(d.message)
+      setFile(null)
+      await loadSnap()
+    } catch (err) { toast.error(err.message) }
+    finally { setUploading(false) }
+  }
+
+  const doDelete = async () => {
+    if (!confirm('Delete the Box TT data? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      const d = await del('/api/admin/boxtt')
+      if (!d.success) throw new Error(d.message)
+      toast.success('Box TT cleared')
+      setSnap(null); setAllRooms([]); setSchedule(null); setSearchedRoom(''); setQuery('')
+    } catch (err) { toast.error(err.message) }
+    finally { setDeleting(false) }
+  }
+
+  const onInput = v => {
+    setQuery(v)
+    if (!v.trim()) { setSuggestions([]); setShowDrop(false); return }
+    const q = v.trim().toUpperCase()
+    const matched = allRooms.filter(r => r.includes(q)).slice(0, 10)
+    setSuggestions(matched)
+    setShowDrop(matched.length > 0)
+  }
+
+  const pick = r => {
+    setQuery(r); setSuggestions([]); setShowDrop(false)
+    doSearch(r)
+  }
+
+  const doSearch = async (q) => {
+    const room = (q ?? query).trim().toUpperCase()
+    if (!room) return toast.error('Enter a room number')
+    setSearching(true); setSchedule(null)
+    try {
+      const d = await get(`/api/free/boxtt-search?room=${encodeURIComponent(room)}`)
+      if (!d.success) throw new Error(d.message)
+      setSchedule(d.schedule)
+      setSearchedRoom(d.room)
+    } catch (err) { toast.error(err.message) }
+    finally { setSearching(false) }
+  }
+
+  const activeDays = schedule ? BOX_DAY_KEYS.filter(d => schedule[d] && Object.keys(schedule[d]).length > 0) : []
+
+  if (authLoading || snapLoading)
+    return <div style={{padding:20,color:'var(--text-2)'}}>Loading…</div>
+
+  return (
+    <div>
+      {/* ── Admin: Upload / Status panel ───────────────────────────────── */}
+      {isAdmin && (
+        <div style={{background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:10,padding:16,marginBottom:20}}>
+          <p style={{...lSt,marginBottom:10}}>ADMIN — Manage Box TT Data</p>
+
+          {snap ? (
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              <div style={{fontSize:13,color:'var(--text)'}}>
+                <span style={{fontWeight:700}}>Active: </span>{snap.label}
+              </div>
+              <div style={{fontSize:12,color:'var(--text-3)'}}>
+                {snap.rowCount} slot entries · Uploaded by <strong>{snap.uploadedByName || 'admin'}</strong>
+                {snap.uploadedAt && <> · {new Date(snap.uploadedAt).toLocaleString('en-IN')}</>}
+              </div>
+              <div style={{display:'flex',gap:8,marginTop:4,flexWrap:'wrap'}}>
+                <label style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                  <input type="file" accept=".csv,.xlsx,.xls" onChange={e=>setFile(e.target.files?.[0]||null)} style={{fontSize:12}}/>
+                  <button className="btn btn-primary" onClick={doUpload} disabled={uploading||!file} style={{fontSize:12,padding:'5px 12px'}}>
+                    {uploading ? 'Uploading…' : 'Replace'}
+                  </button>
+                </label>
+                <button className="btn btn-danger" onClick={doDelete} disabled={deleting} style={{fontSize:12,padding:'5px 12px'}}>
+                  {deleting ? 'Clearing…' : 'Delete Data'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+              <input type="file" accept=".csv,.xlsx,.xls" onChange={e=>setFile(e.target.files?.[0]||null)} style={{fontSize:13}}/>
+              <button className="btn btn-primary" onClick={doUpload} disabled={uploading||!file} style={{fontSize:13,padding:'6px 14px'}}>
+                {uploading ? 'Uploading…' : 'Upload Box TT'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── No data banner (non-admin) ──────────────────────────────────── */}
+      {!snap && !isAdmin && (
+        <div style={{padding:16,background:'var(--surface-2)',borderRadius:10,border:'1px solid var(--border)',color:'var(--text-2)',fontSize:14,marginBottom:16}}>
+          ⚠️ No Box TT data uploaded yet. Ask an admin to upload the Box TT CSV.
+        </div>
+      )}
+
+      {/* ── Search section ──────────────────────────────────────────────── */}
+      {snap && (
+        <>
+          <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:20,position:'relative'}}>
+            <div style={{position:'relative',flex:1}}>
+              <input
+                className="input"
+                value={query}
+                onChange={e => onInput(e.target.value)}
+                onKeyDown={e => { if(e.key==='Enter') doSearch(); if(e.key==='Escape') setShowDrop(false) }}
+                onFocus={() => suggestions.length && setShowDrop(true)}
+                onBlur={() => setTimeout(() => setShowDrop(false), 150)}
+                placeholder="Enter Room Number (e.g. C007)"
+                autoComplete="off"
+              />
+              {showDrop && (
+                <div style={{position:'absolute',top:'105%',left:0,right:0,background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,zIndex:100,boxShadow:'0 4px 16px rgba(0,0,0,.18)',maxHeight:260,overflowY:'auto'}}>
+                  {suggestions.map(r => (
+                    <div key={r} onMouseDown={() => pick(r)}
+                      style={{padding:'9px 14px',cursor:'pointer',fontSize:13,borderBottom:'1px solid var(--border)',fontWeight:700,color:'var(--text)'}}>
+                      {r}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button className="btn btn-primary" onClick={() => doSearch()} disabled={searching}>
+              {searching ? 'Searching…' : 'View Schedule'}
+            </button>
+          </div>
+
+          {/* ── Timetable grid ─────────────────────────────────────────── */}
+          {schedule && (
+            <div>
+              <div style={{fontWeight:800,fontSize:'1.2rem',color:'var(--brand)',marginBottom:12}}>
+                Weekly Schedule — <span style={{color:'var(--text)'}}>{searchedRoom}</span>
+              </div>
+              <div style={{overflowX:'auto',borderRadius:8,border:'1px solid var(--border)'}}>
+                <table style={{width:'100%',borderCollapse:'collapse',minWidth:600}}>
+                  <thead>
+                    <tr style={{background:'var(--surface-2)'}}>
+                      <th style={thSt}>Day</th>
+                      {Array.from({length:MAX_PERIOD},(_,i)=>i+1).map(p => (
+                        <th key={p} style={thSt}>P{p}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {BOX_DAY_KEYS.map(dk => {
+                      const dayData = schedule[dk] || {}
+                      const hasAny  = Object.keys(dayData).length > 0
+                      return (
+                        <tr key={dk} style={{borderBottom:'1px solid var(--border)',opacity:hasAny?1:0.45}}>
+                          <td style={{padding:'8px 12px',fontWeight:700,fontSize:13,whiteSpace:'nowrap',color:'var(--text-2)'}}>{BOX_DAY_NAMES[dk]}</td>
+                          {Array.from({length:MAX_PERIOD},(_,i)=>i+1).map(p => {
+                            const cell = dayData[p]
+                            return (
+                              <td key={p} style={{
+                                padding:'6px 8px',
+                                fontSize:11,
+                                textAlign:'center',
+                                verticalAlign:'middle',
+                                background: cell ? 'var(--surface-2)' : 'transparent',
+                                color: cell ? 'var(--text)' : 'var(--text-3)',
+                                fontWeight: cell ? 600 : 400,
+                                border:'1px solid var(--border)',
+                                minWidth:80,
+                                lineHeight:1.3,
+                              }}>
+                                {cell || '—'}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Tab 3: Analytics Search ───────────────────────────────────────────────────
 function AnalyticsTab({ initialRoom, onClear }) {
   const { get } = useApi()
@@ -551,8 +785,8 @@ function FreeRoomsContent() {
     <PortalShell>
       <h2 style={{margin:'0 0 16px',fontFamily:"'DM Serif Display',serif",fontSize:'1.25rem'}}>Room Availability</h2>
 
-      <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'2px solid var(--border)'}}>
-        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'}].map(t=>(
+      <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'2px solid var(--border)',flexWrap:'wrap'}}>
+        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
             padding:'8px 18px',fontSize:13,fontWeight:700,border:'none',background:'none',cursor:'pointer',
             borderBottom:tab===t.id?'2px solid var(--brand)':'2px solid transparent',
@@ -565,6 +799,7 @@ function FreeRoomsContent() {
       {tab==='stats'     && <AllRoomsTab onAnalyze={goAnalyze}/>}
       {tab==='analytics' && <AnalyticsTab initialRoom={analyzeRoom} onClear={()=>setAnalyzeRoom(null)}/>}
       {tab==='lookup'    && <RoomSearchTab/>}
+      {tab==='boxtt'     && <BoxTTTab/>}
     </PortalShell>
   )
 }
