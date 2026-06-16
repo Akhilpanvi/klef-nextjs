@@ -12,6 +12,13 @@ import Papa from 'papaparse'
  *
  * Returns an array of objects ready for MongoDB bulk insert.
  */
+// Columns the parser reads \u2014 used for header validation
+const EXPECTED_COLS = [
+  'umatdayid', 'umat_hourno',
+  'EMP ID', 'F-Name', 'F-Dept',
+  'ROOM NO', 'C-Name', 'DEPT',
+]
+
 export function parseBTTBuffer(buffer, dataset = 'live') {
   const text = buffer.toString('utf-8').replace(/^\uFEFF/, '') // strip BOM
 
@@ -20,6 +27,16 @@ export function parseBTTBuffer(buffer, dataset = 'live') {
     skipEmptyLines: true,
     transformHeader: h => h.trim(),
   })
+
+  const warnings = []
+
+  // Validate headers before processing rows
+  const headers = data.length > 0 ? Object.keys(data[0]) : []
+  const missingCols = EXPECTED_COLS.filter(c => !headers.includes(c))
+  if (missingCols.length) {
+    warnings.push(`Missing expected columns: ${missingCols.join(', ')}`)
+    warnings.push(`Columns found in file: ${headers.join(', ')}`)
+  }
 
   const docs = []
 
@@ -76,7 +93,17 @@ export function parseBTTBuffer(buffer, dataset = 'live') {
     })
   }
 
-  return docs
+  // Post-parse data quality checks
+  if (docs.length > 0) {
+    const nullEmpId = docs.filter(d => !d.emp_id).length
+    const nullRoom  = docs.filter(d => !d.room_no).length
+    const nullName  = docs.filter(d => !d.faculty_name).length
+    if (nullEmpId === docs.length)  warnings.push(`All ${docs.length} rows have empty EMP ID \u2014 "EMP ID" column may be named differently in this file`)
+    if (nullRoom  === docs.length)  warnings.push(`All ${docs.length} rows have empty ROOM NO \u2014 "ROOM NO" column may be named differently`)
+    if (nullName  === docs.length)  warnings.push(`All ${docs.length} rows have empty F-Name \u2014 "F-Name" column may be named differently`)
+  }
+
+  return { docs, warnings, headers, firstRow: data[0] || {} }
 }
 
 /**

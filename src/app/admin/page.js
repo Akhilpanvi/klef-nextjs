@@ -4,7 +4,8 @@ import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink, UserPlus } from 'lucide-react'
+import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink, UserPlus, ChevronDown, ChevronUp } from 'lucide-react'
+import ColMappingPreview from '@/components/ui/ColMappingPreview'
 import RoomwiseUploadCard from '@/components/admin/RoomwiseUploadCard'
 import ErpRoomUploadCard from '@/components/admin/ErpRoomUploadCard'
 
@@ -394,8 +395,9 @@ function AdminContent() {
   const [busy,        setBusy]        = useState(false)
   const [facultyBusy, setFacultyBusy] = useState(false)
   const [log,         setLog]         = useState([])
-  const [versions,    setVersions]    = useState([])
-  const [uploadAY,    setUploadAY]    = useState('')
+  const [versions,       setVersions]       = useState([])
+  const [expandedVersion, setExpandedVersion] = useState(null)
+  const [uploadAY,       setUploadAY]       = useState('')
   const [uploadSem,   setUploadSem]   = useState('')
 
   useEffect(() => {
@@ -685,41 +687,66 @@ function AdminContent() {
             <p style={{ color:'var(--text-3)', fontSize:13 }}>No timetable versions uploaded yet.</p>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {versions.filter(v => v.type === 'live').map(v => (
-                <div key={v.snapshotId} style={{
-                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
-                  background:'var(--surface-2)', borderRadius:8,
-                  border:`1px solid ${v.isActive ? 'var(--brand)' : 'var(--border)'}`,
-                  flexWrap:'wrap',
-                }}>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontWeight:600, fontSize:13, display:'flex', alignItems:'center', gap:8 }}>
-                      {v.label}
-                      {v.isActive && <span className="badge badge-active">ACTIVE</span>}
+              {versions.filter(v => v.type === 'live').map(v => {
+                const isExpanded = expandedVersion === v.snapshotId
+                const hasColData = v.detectedColumns?.length > 0
+                return (
+                  <div key={v.snapshotId} style={{
+                    background:'var(--surface-2)', borderRadius:8,
+                    border:`1px solid ${v.isActive ? 'var(--brand)' : 'var(--border)'}`,
+                    overflow:'hidden',
+                  }}>
+                    {/* Card header row */}
+                    <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', flexWrap:'wrap' }}>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontWeight:600, fontSize:13, display:'flex', alignItems:'center', gap:8 }}>
+                          {v.label}
+                          {v.isActive && <span className="badge badge-active">ACTIVE</span>}
+                        </div>
+                        <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>
+                          {v.rowCount?.toLocaleString()} rows · {new Date(v.uploadedAt).toLocaleString()}
+                          {v.academicYear && <span className="badge badge-blue" style={{ marginLeft:6 }}>AY {v.academicYear}{v.semester ? ` ${v.semester}` : ''}</span>}
+                          {v.filename && ` · ${v.filename}`}
+                        </div>
+                      </div>
+                      <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                        {hasColData && (
+                          <button
+                            className="btn btn-ghost" style={{ fontSize:12, padding:'5px 10px' }}
+                            title="View column mapping"
+                            onClick={() => setExpandedVersion(isExpanded ? null : v.snapshotId)}>
+                            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                            Columns
+                          </button>
+                        )}
+                        {!v.isActive && (
+                          <button className="btn btn-primary" style={{ fontSize:12, padding:'5px 12px' }}
+                            onClick={() => activateVersion(v.snapshotId)}>
+                            <CheckCircle size={13} /> Set Active
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-danger" style={{ fontSize:12, padding:'5px 10px', opacity: v.isActive ? 0.4 : 1 }}
+                          disabled={v.isActive}
+                          title={v.isActive ? 'Cannot delete active version' : 'Delete this version'}
+                          onClick={() => deleteVersion(v.snapshotId, v.label)}>
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ fontSize:11, color:'var(--text-3)', marginTop:2 }}>
-                      {v.rowCount?.toLocaleString()} rows · {new Date(v.uploadedAt).toLocaleString()}
-                      {v.academicYear && <span className="badge badge-blue" style={{ marginLeft:6 }}>AY {v.academicYear}{v.semester ? ` ${v.semester}` : ''}</span>}
-                      {v.filename && ` · ${v.filename}`}
-                    </div>
-                  </div>
-                  <div style={{ display:'flex', gap:6 }}>
-                    {!v.isActive && (
-                      <button className="btn btn-primary" style={{ fontSize:12, padding:'5px 12px' }}
-                        onClick={() => activateVersion(v.snapshotId)}>
-                        <CheckCircle size={13} /> Set Active
-                      </button>
+
+                    {/* Expandable column mapping */}
+                    {isExpanded && hasColData && (
+                      <div style={{ borderTop:'1px solid var(--border)', padding:'0 14px 14px' }}>
+                        <ColMappingPreview
+                          preview={{ headers: v.detectedColumns, firstRow: v.sampleRow || {} }}
+                          defaultExpanded={true}
+                        />
+                      </div>
                     )}
-                    <button
-                      className="btn btn-danger" style={{ fontSize:12, padding:'5px 10px', opacity: v.isActive ? 0.4 : 1 }}
-                      disabled={v.isActive}
-                      title={v.isActive ? 'Cannot delete active version' : 'Delete this version'}
-                      onClick={() => deleteVersion(v.snapshotId, v.label)}>
-                      <Trash2 size={13} />
-                    </button>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

@@ -60,16 +60,16 @@ export default async function handler(req, res) {
     // For live: keep history — create a new snapshot
     const snapshotId = type === 'master' ? 'master' : makeSnapshotId(type)
 
-    let docs
+    let docs, warnings, headers, firstRow
     try {
-      docs = parseBTTBuffer(buf, snapshotId)
+      ;({ docs, warnings, headers, firstRow } = parseBTTBuffer(buf, snapshotId))
     } catch (err) {
       results[key] = { error: 'Parse failed: ' + err.message }
       continue
     }
 
     if (!docs.length) {
-      results[key] = { error: 'No valid rows found in file' }
+      results[key] = { error: 'No valid rows found in file', warnings }
       continue
     }
 
@@ -98,11 +98,13 @@ export default async function handler(req, res) {
       snapshotId,
       rowCount: inserted,
       isActive: true,
-      academicYear: academicYear || undefined,
-      semester:     semester     || undefined,
+      academicYear:     academicYear || undefined,
+      semester:         semester     || undefined,
+      detectedColumns:  headers,
+      sampleRow:        firstRow,
     })
 
-    results[key] = { success: true, inserted, dataset: snapshotId, label }
+    results[key] = { success: true, inserted, dataset: snapshotId, label, warnings }
   }
 
   // ── Room metadata upload ──────────────────────────────────────────────────

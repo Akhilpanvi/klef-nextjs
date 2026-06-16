@@ -10,11 +10,13 @@ const schema = new mongoose.Schema({
   filename:     { type: String },                    // original CSV filename
   type:         { type: String, enum: ['live', 'master'], required: true },
   snapshotId:   { type: String, required: true, unique: true }, // e.g. "live_1705312800000"
-  rowCount:     { type: Number, default: 0 },
-  isActive:     { type: Boolean, default: false },
-  academicYear: { type: String },  // e.g. "2025-2026"
-  semester:     { type: String },  // "Even" or "Odd"
-  uploadedAt:   { type: Date, default: Date.now },
+  rowCount:         { type: Number, default: 0 },
+  isActive:         { type: Boolean, default: false },
+  academicYear:     { type: String },
+  semester:         { type: String },
+  detectedColumns:  { type: [String], default: undefined },
+  sampleRow:        { type: mongoose.Schema.Types.Mixed, default: undefined },
+  uploadedAt:       { type: Date, default: Date.now },
 }, { timestamps: false })
 
 schema.index({ type: 1, isActive: 1 })
