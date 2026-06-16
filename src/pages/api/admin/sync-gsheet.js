@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
 import TimetableSnapshot from '@/lib/models/TimetableSnapshot'
 import GSheetConfig from '@/lib/models/GSheetConfig'
-import { parseBTTBuffer } from '@/lib/csvParser'
+import { parseGSheetRows } from '@/lib/csvParser'
 import { google } from 'googleapis'
 
 function makeSnapshotId() { return `live_${Date.now()}` }
@@ -61,21 +61,10 @@ export default async function handler(req, res) {
   if (rows.length < 2)
     return res.status(400).json({ success: false, message: 'Sheet appears empty or has no data rows.' })
 
-  // Convert rows (array of arrays) → CSV string → parse with existing BTT parser
-  const csvText = rows.map(row =>
-    row.map(cell => {
-      const s = String(cell ?? '')
-      // Quote cells that contain commas, quotes, or newlines
-      return s.includes(',') || s.includes('"') || s.includes('\n')
-        ? `"${s.replace(/"/g, '""')}"`
-        : s
-    }).join(',')
-  ).join('\n')
-
   const snapshotId = makeSnapshotId()
   let docs, warnings, headers, firstRow
   try {
-    ;({ docs, warnings, headers, firstRow } = parseBTTBuffer(Buffer.from(csvText, 'utf-8'), snapshotId))
+    ;({ docs, warnings, headers, firstRow } = parseGSheetRows(rows, snapshotId))
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Parse failed: ' + err.message })
   }

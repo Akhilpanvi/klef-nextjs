@@ -107,6 +107,88 @@ export function parseBTTBuffer(buffer, dataset = 'live') {
 }
 
 /**
+ * parseGSheetRows(rows, dataset)
+ * ──────────────────────────────
+ * Parses rows from the Google Sheet (array-of-arrays format where first row = headers).
+ * Column mapping for the KL University Google Sheet format which differs from BTT CSV:
+ *   uni_id           → emp_id
+ *   umat_classroomno → room_no  (classroom code like "C019")
+ *   FACULTY COHORT   → faculty_cohort
+ *   associative_sectionno → associative_sectionno (same)
+ * Returns { docs, warnings, headers, firstRow } — same shape as parseBTTBuffer.
+ */
+export function parseGSheetRows(rows, dataset = 'live') {
+  const warnings = []
+  if (!rows.length) return { docs: [], warnings: ['Sheet is empty'], headers: [], firstRow: {} }
+
+  const headers = rows[0].map(h => (h || '').trim())
+  const firstRow = {}
+  if (rows[1]) headers.forEach((h, i) => { firstRow[h] = rows[1][i] || '' })
+
+  // Validate critical columns
+  const REQUIRED = ['umatdayid', 'umat_hourno', 'uni_id', 'DEPT', 'main_sectionno']
+  const missing = REQUIRED.filter(c => !headers.includes(c))
+  if (missing.length) warnings.push(`Missing expected columns: ${missing.join(', ')}`)
+
+  const idx = {}
+  headers.forEach((h, i) => { idx[h] = i })
+  const col = (row, name) => (row[idx[name]] || '').toString().trim()
+
+  const docs = []
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]
+    if (!row || row.every(c => !c)) continue
+
+    const day  = parseInt(col(row, 'umatdayid'))
+    const hour = parseInt(col(row, 'umat_hourno'))
+    if (isNaN(day) || day < 1 || day > 6) continue
+    if (isNaN(hour) || hour < 1) continue
+
+    const rawDept = col(row, 'DEPT')
+    docs.push({
+      source_file:  rawDept || null,
+      reg:          col(row, 'REG') || null,
+      dataset,
+      umatdayid:    day,
+      umat_hourno:  hour,
+      course_code:  col(row, 'Course code') || null,
+      course_name:  null,
+      year:         null,
+      cocssiid:     parseInt(col(row, 'cocssiid')) || null,
+      coursedeliverycomponent: parseInt(col(row, 'coursedeliverycomponent')) || null,
+      offered_by_deptid: parseInt(col(row, 'offerred_by_deptid')) || null,
+      offered_to_deptid: parseInt(col(row, 'offered_to_deptid')) || null,
+      main_sectionno:        col(row, 'main_sectionno') || null,
+      associative_sectionno: col(row, 'associative_sectionno') || null,
+      faculty_seq:  parseInt(col(row, 'faculty_seq')) || null,
+      sec_count:    null,
+      emp_id:       col(row, 'uni_id') || null,
+      faculty_name: null,
+      faculty_dept: normaliseDept(rawDept) || null,
+      faculty_cohort: col(row, 'FACULTY COHORT') || col(row, 'COHORT') || null,
+      room_no:          col(row, 'ROOM NO') || col(row, 'umat_classroomno') || null,
+      umat_classroomno: parseInt(col(row, 'umat_classroomno')) || null,
+      room_con:         col(row, 'CON') || col(row, 'ROOM CON') || null,
+      r_type:           null,
+      r_cap:            null,
+      r_diff:           null,
+      src_d:            null,
+      umat_academic_year_id: parseInt(col(row, 'umat_academic_year_id')) || null,
+      umat_semester_id:      parseInt(col(row, 'umat_semester_id')) || null,
+      fctt: null,
+      rctt: null,
+    })
+  }
+
+  if (docs.length > 0) {
+    const nullEmpId = docs.filter(d => !d.emp_id).length
+    if (nullEmpId === docs.length) warnings.push(`All ${docs.length} rows have empty Employee ID (uni_id column)`)
+  }
+
+  return { docs, warnings, headers, firstRow }
+}
+
+/**
  * parseRoomBuffer(buffer)
  * ────────────────────────
  * Parses KLEF-ERP-RD.csv
