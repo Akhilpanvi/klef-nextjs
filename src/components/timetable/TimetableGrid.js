@@ -109,7 +109,7 @@ export default function TimetableGrid({ title, badge, entries, mode, hlTerm, sho
                           <div key={i} className="class-card">
                             <div className="class-card-top">
                               <span>{COMP[c.coursedeliverycomponent] || 'L'}</span>
-                              <span>Sec {c.main_sectionno}</span>
+                              <span>Sec {c.main_sectionno}{c.associative_sectionno ? `-${c.associative_sectionno}` : ''}</span>
                             </div>
                             <div style={{ fontWeight:700, color:'var(--brand)', fontSize:11, lineHeight:1.3 }}
                               dangerouslySetInnerHTML={{ __html: mainHtml }} />
@@ -119,6 +119,23 @@ export default function TimetableGrid({ title, badge, entries, mode, hlTerm, sho
                                 overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:110 }}
                                 title={c.course_name}>
                                 {c.course_name}
+                              </div>
+                            )}
+                            {c.associates?.length > 0 && (
+                              <div style={{ marginTop:4, borderTop:'1px dashed var(--border)', paddingTop:3, display:'flex', flexDirection:'column', gap:2 }}>
+                                {c.associates.map((a, ai) => (
+                                  <div key={ai} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10 }}>
+                                    <span style={{ fontWeight:700, color:'var(--text-3)',
+                                      background:'var(--surface-3,var(--surface-2))',
+                                      padding:'0 4px', borderRadius:3, flexShrink:0 }}>
+                                      {a.label || `S${a.seq}`}
+                                    </span>
+                                    <span style={{ color:'var(--text-2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
+                                      title={a.name || a.empId}>
+                                      {a.name || a.empId || '—'}
+                                    </span>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>

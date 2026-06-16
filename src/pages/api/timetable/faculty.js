@@ -54,6 +54,35 @@ export default async function handler(req, res) {
   // Extra load = periods beyond 11
   const extraLoad  = entries.filter(e => e.umat_hourno >  MAX_HOUR).length
 
+  // Fetch all other faculty sharing the same slots (for MA/A/B/C display)
+  const slotConditions = entries.map(e => ({
+    umatdayid:      e.umatdayid,
+    umat_hourno:    e.umat_hourno,
+    main_sectionno: e.main_sectionno,
+    course_code:    e.course_code,
+  }))
+  const allSlotEntries = await TimetableEntry.find({ dataset, $or: slotConditions })
+    .select('umatdayid umat_hourno main_sectionno course_code emp_id faculty_name associative_sectionno faculty_seq')
+    .lean()
+
+  // Build a map: "day|hour|sec|course" → sorted list of associates
+  const slotMap = {}
+  for (const e of allSlotEntries) {
+    const key = `${e.umatdayid}|${e.umat_hourno}|${e.main_sectionno}|${e.course_code}`
+    if (!slotMap[key]) slotMap[key] = []
+    slotMap[key].push({ empId: e.emp_id, name: e.faculty_name, label: e.associative_sectionno, seq: e.faculty_seq })
+  }
+
+  // Attach associates (all other faculty in the same slot) to each entry
+  const enrichedEntries = entries.map(e => {
+    const key = `${e.umatdayid}|${e.umat_hourno}|${e.main_sectionno}|${e.course_code}`
+    const all = slotMap[key] || []
+    const associates = all
+      .filter(a => a.empId !== e.emp_id)
+      .sort((a, b) => (a.seq || 99) - (b.seq || 99))
+    return { ...e, associates }
+  })
+
   // Lookup User profile for rich profile card display
   const profile = empId
     ? await User.findOne({ eid: empId }).select('designation cohort designation_category assigned_responsibility load_as_per_designation pl').lean()
@@ -67,7 +96,6 @@ export default async function handler(req, res) {
       dept: entries[0].faculty_dept,
       weeklyLoad,
       extraLoad,
-      // profile fields (may be null if user not found)
       designation:             profile?.designation,
       cohort:                  profile?.cohort,
       designation_category:    profile?.designation_category,
@@ -75,7 +103,7 @@ export default async function handler(req, res) {
       load_as_per_designation: profile?.load_as_per_designation,
       pl:                      profile?.pl,
     },
-    entries,
+    entries: enrichedEntries,
     snapshot: dataset,
   })
 }
