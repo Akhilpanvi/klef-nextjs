@@ -395,10 +395,17 @@ function AdminContent() {
   const [busy,        setBusy]        = useState(false)
   const [facultyBusy, setFacultyBusy] = useState(false)
   const [log,         setLog]         = useState([])
-  const [versions,       setVersions]       = useState([])
+  const [versions,        setVersions]        = useState([])
   const [expandedVersion, setExpandedVersion] = useState(null)
-  const [uploadAY,       setUploadAY]       = useState('')
-  const [uploadSem,   setUploadSem]   = useState('')
+  const [uploadAY,        setUploadAY]        = useState('')
+  const [uploadSem,       setUploadSem]       = useState('')
+
+  // Google Sheets sync state
+  const [gsheetConfig,    setGsheetConfig]    = useState({ spreadsheetId:'', sheetName:'Sheet1', academicYear:'', semester:'' })
+  const [gsheetMeta,      setGsheetMeta]      = useState(null)   // lastSyncedAt, lastSyncRows
+  const [gsheetSyncing,   setGsheetSyncing]   = useState(false)
+  const [gsheetSaving,    setGsheetSaving]    = useState(false)
+  const [gsheetResult,    setGsheetResult]    = useState(null)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
@@ -413,7 +420,20 @@ function AdminContent() {
     const d = await get('/api/upload/versions')
     if (d.success) setVersions(d.snapshots || [])
   }
-  useEffect(() => { if (user && canManageData) { fetchStatus(); fetchVersions() } }, [user])
+  const fetchGsheetConfig = async () => {
+    const d = await get('/api/admin/gsheet-config')
+    if (d.success && d.config) {
+      setGsheetConfig({
+        spreadsheetId: d.config.spreadsheetId || '',
+        sheetName:     d.config.sheetName || 'Sheet1',
+        academicYear:  d.config.academicYear || '',
+        semester:      d.config.semester || '',
+      })
+      if (d.config.lastSyncedAt) setGsheetMeta({ lastSyncedAt: d.config.lastSyncedAt, lastSyncRows: d.config.lastSyncRows, lastSyncLabel: d.config.lastSyncLabel })
+    }
+  }
+
+  useEffect(() => { if (user && canManageData) { fetchStatus(); fetchVersions(); fetchGsheetConfig() } }, [user])
 
   const activateVersion = async (snapshotId) => {
     const d = await patch('/api/upload/versions', { snapshotId })
@@ -426,6 +446,34 @@ function AdminContent() {
     const d = await del(`/api/upload/versions?snapshotId=${encodeURIComponent(snapshotId)}`)
     if (d.success) { toast.success(d.message); fetchVersions(); fetchStatus() }
     else toast.error(d.message)
+  }
+
+  const saveGsheetConfig = async () => {
+    setGsheetSaving(true)
+    try {
+      const d = await patch('/api/admin/gsheet-config', gsheetConfig)
+      if (d.success) toast.success('Google Sheet settings saved')
+      else toast.error(d.message)
+    } catch { toast.error('Failed to save settings') }
+    finally { setGsheetSaving(false) }
+  }
+
+  const syncGsheet = async () => {
+    if (!gsheetConfig.spreadsheetId.trim()) return toast.error('Enter a Spreadsheet ID first')
+    setGsheetSyncing(true)
+    setGsheetResult(null)
+    try {
+      await patch('/api/admin/gsheet-config', gsheetConfig)
+      const d = await post('/api/admin/sync-gsheet', {})
+      if (!d.success) throw new Error(d.message)
+      setGsheetResult(d)
+      toast.success(`Synced ${d.inserted} rows from Google Sheets`)
+      fetchVersions()
+      fetchStatus()
+      fetchGsheetConfig()
+    } catch (err) {
+      toast.error(err.message || 'Sync failed')
+    } finally { setGsheetSyncing(false) }
   }
 
   const setFile = (key) => (e) => setFiles(f => ({ ...f, [key]: e.target.files[0] || null }))
@@ -631,6 +679,93 @@ function AdminContent() {
             </button>
             <button className="btn btn-ghost" onClick={fetchStatus}>
               <RefreshCw size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* Google Sheets Sync */}
+        <div className="card" style={{ padding:22, gridColumn:'span 2', border:'1px solid #34a853' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+            <span style={{ fontSize:20 }}>📊</span>
+            <h3 style={{ margin:0, fontSize:'1rem', fontWeight:700, color:'#34a853' }}>Sync Live Timetable from Google Sheets</h3>
+          </div>
+          <p style={{ margin:'0 0 16px', fontSize:13, color:'var(--text-3)' }}>
+            Pull the latest timetable directly from your Google Sheet. This replaces the active live snapshot.
+            CSV upload above still works as an alternative.
+          </p>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+            <div style={{ gridColumn:'span 2' }}>
+              <label style={{ fontSize:12, fontWeight:700, color:'var(--text-2)', display:'block', marginBottom:4 }}>
+                Spreadsheet ID <span style={{ color:'var(--text-3)', fontWeight:400 }}>(from the Google Sheet URL)</span>
+              </label>
+              <input
+                className="input" style={{ width:'100%', fontSize:13, fontFamily:'monospace' }}
+                placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+                value={gsheetConfig.spreadsheetId}
+                onChange={e => setGsheetConfig(c => ({ ...c, spreadsheetId: e.target.value.trim() }))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:700, color:'var(--text-2)', display:'block', marginBottom:4 }}>Sheet / Tab Name</label>
+              <input
+                className="input" style={{ width:'100%', fontSize:13 }}
+                placeholder="Sheet1"
+                value={gsheetConfig.sheetName}
+                onChange={e => setGsheetConfig(c => ({ ...c, sheetName: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:700, color:'var(--text-2)', display:'block', marginBottom:4 }}>Academic Year</label>
+              <input
+                className="input" style={{ width:'100%', fontSize:13 }}
+                placeholder="e.g. 2026-2027"
+                value={gsheetConfig.academicYear}
+                onChange={e => setGsheetConfig(c => ({ ...c, academicYear: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:700, color:'var(--text-2)', display:'block', marginBottom:4 }}>Semester</label>
+              <select className="input" style={{ width:'100%', fontSize:13 }} value={gsheetConfig.semester}
+                onChange={e => setGsheetConfig(c => ({ ...c, semester: e.target.value }))}>
+                <option value="">Select…</option>
+                <option value="Odd">Odd</option>
+                <option value="Even">Even</option>
+              </select>
+            </div>
+          </div>
+
+          {gsheetMeta?.lastSyncedAt && (
+            <div style={{ fontSize:12, color:'var(--text-3)', marginBottom:10, padding:'6px 10px',
+              background:'var(--surface-2)', borderRadius:6, border:'1px solid var(--border)' }}>
+              Last synced: <strong>{new Date(gsheetMeta.lastSyncedAt).toLocaleString()}</strong>
+              {gsheetMeta.lastSyncRows != null && <> · <strong>{gsheetMeta.lastSyncRows.toLocaleString()} rows</strong></>}
+            </div>
+          )}
+
+          {gsheetResult && (
+            <div style={{ marginBottom:10, padding:'10px 14px', borderRadius:8, fontSize:13,
+              border:`1.5px solid ${gsheetResult.warnings?.length ? '#f59e0b' : '#16a34a'}`,
+              background: gsheetResult.warnings?.length ? '#fffbeb' : '#f0fdf4',
+              color: gsheetResult.warnings?.length ? '#92400e' : '#15803d' }}>
+              <div style={{ fontWeight:700 }}>✓ {gsheetResult.inserted} rows synced — {gsheetResult.label}</div>
+              {gsheetResult.warnings?.length > 0 && (
+                <ul style={{ margin:'6px 0 0', paddingLeft:18 }}>
+                  {gsheetResult.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+            <button
+              className="btn btn-primary" style={{ background:'#34a853', borderColor:'#34a853', flex:1 }}
+              onClick={syncGsheet} disabled={gsheetSyncing || !gsheetConfig.spreadsheetId.trim()}>
+              <RefreshCw size={15} style={{ ...(gsheetSyncing && { animation:'spin 1s linear infinite' }) }} />
+              {gsheetSyncing ? 'Syncing from Google Sheets…' : 'Sync Now (Refresh Live Timetable)'}
+            </button>
+            <button className="btn btn-ghost" onClick={saveGsheetConfig} disabled={gsheetSaving}>
+              {gsheetSaving ? 'Saving…' : 'Save Settings'}
             </button>
           </div>
         </div>
