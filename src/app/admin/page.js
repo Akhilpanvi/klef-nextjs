@@ -710,15 +710,13 @@ function AdminContent() {
                         </div>
                       </div>
                       <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                        {hasColData && (
-                          <button
-                            className="btn btn-ghost" style={{ fontSize:12, padding:'5px 10px' }}
-                            title="View column mapping"
-                            onClick={() => setExpandedVersion(isExpanded ? null : v.snapshotId)}>
-                            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                            Columns
-                          </button>
-                        )}
+                        <button
+                          className="btn btn-ghost" style={{ fontSize:12, padding:'5px 10px' }}
+                          title="View column mapping"
+                          onClick={() => setExpandedVersion(isExpanded ? null : v.snapshotId)}>
+                          {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                          Columns
+                        </button>
                         {!v.isActive && (
                           <button className="btn btn-primary" style={{ fontSize:12, padding:'5px 12px' }}
                             onClick={() => activateVersion(v.snapshotId)}>
@@ -736,12 +734,18 @@ function AdminContent() {
                     </div>
 
                     {/* Expandable column mapping */}
-                    {isExpanded && hasColData && (
-                      <div style={{ borderTop:'1px solid var(--border)', padding:'0 14px 14px' }}>
-                        <ColMappingPreview
-                          preview={{ headers: v.detectedColumns, firstRow: v.sampleRow || {} }}
-                          defaultExpanded={true}
-                        />
+                    {isExpanded && (
+                      <div style={{ borderTop:'1px solid var(--border)', padding:'12px 14px' }}>
+                        {hasColData
+                          ? <ColMappingPreview
+                              preview={{ headers: v.detectedColumns, firstRow: v.sampleRow || {} }}
+                              defaultExpanded={true}
+                            />
+                          : <p style={{ margin:0, fontSize:12, color:'var(--text-3)', fontStyle:'italic' }}>
+                              No column data stored — this snapshot was uploaded before the column tracking feature was added.
+                              Re-upload the CSV to see the full mapping.
+                            </p>
+                        }
                       </div>
                     )}
                   </div>
