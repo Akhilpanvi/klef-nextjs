@@ -7,7 +7,7 @@ import SearchInput from '@/components/ui/SearchInput'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
-const YEARS = [{ v:'1', l:'Year 1' },{ v:'2', l:'Year 2' },{ v:'3', l:'Year 3' },{ v:'4', l:'Year 4' }]
+const YEARS = [{ v:'', l:'All Years' },{ v:'1', l:'Year 1' },{ v:'2', l:'Year 2' },{ v:'3', l:'Year 3' },{ v:'4', l:'Year 4' }]
 const REGS  = [{ v:'', l:'All Batches' },{ v:'R25P', l:'R25P' },{ v:'R25', l:'R25' },{ v:'R24', l:'R24' },{ v:'R23', l:'R23' },{ v:'R22', l:'R22' }]
 
 function CoursesContent() {
@@ -15,7 +15,7 @@ function CoursesContent() {
   const router = useRouter()
   const { get } = useApi()
 
-  const [year,   setYear]   = useState('2')
+  const [year,   setYear]   = useState('')
   const [reg,    setReg]    = useState('')
   const [query,  setQuery]  = useState('')
   const [all,    setAll]    = useState([])
@@ -25,9 +25,9 @@ function CoursesContent() {
   useEffect(() => { if (!loading && !user) router.replace('/login') }, [user, loading])
 
   useEffect(() => {
-    if (!user || !year) return
+    if (!user) return
     setQuery(''); setResult(null)
-    const url = `/api/timetable/course?list=1&year=${year}${reg ? `&reg=${reg}` : ''}`
+    const url = `/api/timetable/course?list=1${year ? `&year=${year}` : ''}${reg ? `&reg=${reg}` : ''}`
     get(url).then(d => d.success && setAll(d.courses || []))
   }, [user, year, reg])
 
@@ -39,7 +39,6 @@ function CoursesContent() {
   const search = async (q = query) => {
     const term = (typeof q === 'object' ? q.value : q).trim()
     if (!term) return toast.error('Enter a course name or code')
-    if (!year)  return toast.error('Select a year first')
     setBusy(true)
     try {
       const url = `/api/timetable/course?q=${encodeURIComponent(term)}&year=${year}${reg ? `&reg=${reg}` : ''}`
@@ -65,8 +64,8 @@ function CoursesContent() {
         <SearchInput value={query} onChange={setQuery}
           onSelect={s => { setQuery(`${s.value} – ${s.label}`); search(s.value) }}
           suggestions={suggestions} placeholder="Search course name or code…"
-          disabled={!year} />
-        <button className="btn btn-primary" onClick={() => search()} disabled={busy || !year}>
+          />
+        <button className="btn btn-primary" onClick={() => search()} disabled={busy}>
           {busy ? 'Searching…' : 'Search'}
         </button>
       </div>

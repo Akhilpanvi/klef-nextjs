@@ -25,10 +25,11 @@ export default async function handler(req, res) {
     return res.json({ success: true, courses: courses.map(c => ({ code: c._id.code, name: c.name, year: c._id.year, reg: c.reg })) })
   }
 
-  if (!q || !year)
-    return res.status(400).json({ success: false, message: 'q and year params required' })
+  if (!q)
+    return res.status(400).json({ success: false, message: 'q param required' })
 
-  const match = { dataset, year: +year }
+  const match = { dataset }
+  if (year) match.year = +year
   if (reg) match.reg = reg
 
   const entries = await TimetableEntry.find({
