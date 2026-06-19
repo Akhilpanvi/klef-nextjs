@@ -133,6 +133,7 @@ export default function TimetableGrid({ title, badge, entries, mode, hlTerm, sho
                                     <span style={{ color:'var(--text-2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
                                       title={a.name || a.empId}>
                                       {a.name || a.empId || '—'}
+                                      {a.empId && <span style={{ color:'var(--text-3)', marginLeft:3 }}>({a.empId})</span>}
                                     </span>
                                   </div>
                                 ))}
