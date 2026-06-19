@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import RoomAllocation from '@/lib/models/RoomAllocation'
+import RoomMeta from '@/lib/models/RoomMeta'
 
 export default async function handler(req, res) {
   const user = await requireAuth(req, res)
@@ -27,6 +28,16 @@ export default async function handler(req, res) {
     }
     const rooms = await RoomAllocation.find(filter).sort({ block: 1, floor: 1, slNo: 1 }).lean()
 
+    // Enrich capacity from RoomMeta (KLEF-ERP-RD data)
+    const roomNos = rooms.map(r => r.roomNo)
+    const metas = await RoomMeta.find({ room_no: { $in: roomNos } }, { room_no: 1, capacity: 1 }).lean()
+    const metaMap = {}
+    metas.forEach(m => { metaMap[m.room_no] = m.capacity })
+    const enriched = rooms.map(r => ({
+      ...r,
+      capacity: metaMap[r.roomNo] ?? r.capacity,
+    }))
+
     // Distinct filter options for dropdowns
     const [blocks, types, wings] = await Promise.all([
       RoomAllocation.distinct('block'),
@@ -34,7 +45,7 @@ export default async function handler(req, res) {
       RoomAllocation.distinct('coeMhs'),
     ])
 
-    return res.json({ success: true, rooms, blocks: blocks.sort(), types: types.sort(), wings: wings.sort() })
+    return res.json({ success: true, rooms: enriched, blocks: blocks.sort(), types: types.sort(), wings: wings.sort() })
   }
 
   // PATCH — toggle status or update notes/fields for a single room
