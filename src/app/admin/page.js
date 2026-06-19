@@ -807,6 +807,10 @@ function AdminContent() {
             {facultyFile && (
               <button className="btn btn-ghost" style={{ padding:'9px 12px' }} onClick={() => setFacultyFile(null)}>✕</button>
             )}
+            <button className="btn btn-ghost" style={{ padding:'9px 12px', fontSize:12 }}
+              onClick={() => window.open('/api/admin/upload-faculty', '_blank')}>
+              ⬇ Sample CSV
+            </button>
             <button className="btn btn-primary" onClick={uploadFaculty} disabled={facultyBusy || !facultyFile}>
               <UploadCloud size={15} />
               {facultyBusy ? 'Uploading…' : 'Upload Faculty'}

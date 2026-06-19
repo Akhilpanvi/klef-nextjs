@@ -9,6 +9,12 @@ export const config = {
   api: { bodyParser: false },
 }
 
+const SAMPLE_CSV = `EID,Faculty Name,Dept,Desigination,Cohort,Category (R/Ac/Ad),Assigned responsibility,Load As Per Desigination,PL
+100001,Dr. A. Sharma,CSE,Professor,R22,R,HoD,18,3
+100002,Dr. B. Reddy,ECE,Associate Professor,R23,Ac,,16,2
+100003,Ms. C. Patel,MECH,Assistant Professor,,Ad,Warden,14,1
+`
+
 function parseCSV(text) {
   const lines = text.replace(/^\uFEFF/, '').split('\n').filter(l => l.trim())
   const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
@@ -36,6 +42,12 @@ function num(val) {
 function str(val) { return val || undefined }
 
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', 'attachment; filename="KLEF-FD-sample.csv"')
+    return res.send(SAMPLE_CSV)
+  }
+
   if (req.method !== 'POST')
     return res.status(405).json({ success: false, message: 'Method not allowed' })
 
