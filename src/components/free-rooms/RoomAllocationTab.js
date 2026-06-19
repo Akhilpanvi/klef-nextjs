@@ -164,7 +164,7 @@ export default function RoomAllocationTab() {
         </div>
         <div style={{ padding:'8px 16px', borderRadius:8, background:'#fef2f2',
           border:'1px solid #ef4444', fontSize:13, color:'#991b1b' }}>
-          ○ Pending: <strong>{total - completedCount}</strong>
+          ○ Free: <strong>{total - completedCount}</strong>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export default function RoomAllocationTab() {
         </select>
         <select className="input" style={{ flex:1, minWidth:100, fontSize:13 }} value={fStatus} onChange={e=>setFStatus(e.target.value)}>
           <option value="">All Status</option>
-          <option value="free">Pending</option>
+          <option value="free">Free</option>
           <option value="completed">Completed</option>
         </select>
         <button className="btn btn-ghost" style={{ fontSize:12 }}
