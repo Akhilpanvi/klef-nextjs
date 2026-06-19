@@ -8,6 +8,7 @@ import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search
 import ColMappingPreview from '@/components/ui/ColMappingPreview'
 import RoomwiseUploadCard from '@/components/admin/RoomwiseUploadCard'
 import ErpRoomUploadCard from '@/components/admin/ErpRoomUploadCard'
+import RoomAllocationUploadCard from '@/components/admin/RoomAllocationUploadCard'
 
 const ALL_PERMISSIONS = [
   { key: 'view_clash',          label: 'View Clash Detection' },
@@ -775,6 +776,9 @@ function AdminContent() {
           <RoomwiseUploadCard />
           <ErpRoomUploadCard />
         </div>
+
+        {/* Room Allocation Upload */}
+        <RoomAllocationUploadCard />
 
         {/* Faculty CSV upload */}
         <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
