@@ -71,59 +71,83 @@ export default async function handler(req, res) {
 
   await connectDB()
 
-  let created = 0, updated = 0, skipped = 0
-
+  // Parse all valid rows first
+  const valid = []
+  let skipped = 0
   for (const row of rows) {
     const eid  = (row['EID'] || '').trim()
     const name = (row['Faculty Name'] || '').trim()
-
     if (!eid || eid === '0' || !name || isNaN(Number(eid))) { skipped++; continue }
+    valid.push({
+      eid,
+      username:                  eid.toLowerCase(),
+      display_name:              name,
+      dept:                      str(row['Dept']),
+      designation:               str(row['Desigination']),
+      cohort:                    str(row['Cohort']) === '0' ? undefined : str(row['Cohort']),
+      designation_category:      str(row['Category (R/Ac/Ad)']),
+      assigned_responsibility:   str(row['Assigned responsibility']),
+      load_as_per_designation:   num(row['Load As Per Desigination']),
+      pl:                        num(row['PL']),
+    })
+  }
 
-    const dept                  = str(row['Dept'])
-    const designation           = str(row['Desigination'])
-    const cohort                = str(row['Cohort']) === '0' ? undefined : str(row['Cohort'])
-    const designation_category  = str(row['Category (R/Ac/Ad)'])
-    const assigned_responsibility = str(row['Assigned responsibility'])
-    const load_as_per_designation = num(row['Load As Per Desigination'])
-    const pl                    = num(row['PL'])
-    const username              = eid.toLowerCase()
+  // Batch-fetch all existing users by eid in one query
+  const allEids = valid.map(r => r.eid)
+  const existing = await User.find({ eid: { $in: allEids } }).lean()
+  const existingMap = {}
+  existing.forEach(u => { existingMap[u.eid] = u })
 
-    const existing = await User.findOne({ $or: [{ username }, { eid }] })
+  const toCreate = []
+  const updateOps = []
 
-    if (existing) {
-      existing.display_name = name
-      if (dept)                    existing.dept                    = dept
-      if (designation)             existing.designation             = designation
-      if (cohort !== undefined)    existing.cohort                  = cohort
-      // Always update profile fields from CSV (overwrite with CSV data)
-      existing.designation_category    = designation_category
-      existing.assigned_responsibility  = assigned_responsibility
-      existing.load_as_per_designation  = load_as_per_designation
-      existing.pl                       = pl
-      existing.eid                      = eid
-      await existing.save()
-      updated++
-    } else {
-      const password_hash = await bcrypt.hash(eid, 12)
-      await User.create({
-        username,
-        password_hash,
-        role:               'faculty',
-        display_name:       name,
-        eid,
-        dept,
-        designation,
-        cohort,
-        designation_category,
-        assigned_responsibility,
-        load_as_per_designation,
-        pl,
-        mustChangePassword: true,
-        is_active:          true,
+  for (const r of valid) {
+    if (existingMap[r.eid]) {
+      updateOps.push({
+        updateOne: {
+          filter: { eid: r.eid },
+          update: { $set: {
+            display_name:              r.display_name,
+            ...(r.dept         && { dept: r.dept }),
+            ...(r.designation  && { designation: r.designation }),
+            ...(r.cohort !== undefined && { cohort: r.cohort }),
+            designation_category:      r.designation_category,
+            assigned_responsibility:   r.assigned_responsibility,
+            load_as_per_designation:   r.load_as_per_designation,
+            pl:                        r.pl,
+          }},
+        },
       })
-      created++
+    } else {
+      toCreate.push(r)
     }
   }
+
+  // Hash new passwords with cost 8 (temporary passwords — mustChangePassword=true)
+  const newDocs = await Promise.all(toCreate.map(async r => ({
+    username:                  r.username,
+    password_hash:             await bcrypt.hash(r.eid, 8),
+    role:                      'faculty',
+    display_name:              r.display_name,
+    eid:                       r.eid,
+    dept:                      r.dept,
+    designation:               r.designation,
+    cohort:                    r.cohort,
+    designation_category:      r.designation_category,
+    assigned_responsibility:   r.assigned_responsibility,
+    load_as_per_designation:   r.load_as_per_designation,
+    pl:                        r.pl,
+    mustChangePassword:        true,
+    is_active:                 true,
+  })))
+
+  const [bulkRes] = await Promise.all([
+    updateOps.length ? User.bulkWrite(updateOps, { ordered: false }) : Promise.resolve(null),
+    newDocs.length   ? User.insertMany(newDocs, { ordered: false })  : Promise.resolve(null),
+  ])
+
+  const updated = bulkRes?.modifiedCount ?? 0
+  const created = newDocs.length
 
   res.json({ success: true, created, updated, skipped })
 }
