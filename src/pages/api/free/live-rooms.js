@@ -11,9 +11,9 @@ function baseKey(r) {
   return (r || '').split('-')[0].trim().toUpperCase()
 }
 
-// Returns true if the value looks like a raw numeric ERP room ID (e.g. "3952")
-function isNumericId(r) {
-  return /^\d+$/.test((r || '').trim())
+// No letter → raw ERP room ID (1-digit, 4-digit, any length); has letter → readable room name
+function hasNoLetter(r) {
+  return !/[a-zA-Z]/.test((r || '').trim())
 }
 
 export default async function handler(req, res) {
@@ -76,10 +76,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // Resolve a raw value: if it's a numeric ERP ID, return the room name; otherwise return baseKey
+  // If value has no letter → look up ERP ID map; otherwise use as room name directly
   function resolve(raw) {
     const s = (raw || '').trim()
-    if (isNumericId(s) && erpIdToName[s]) return erpIdToName[s]
+    if (hasNoLetter(s) && erpIdToName[s]) return erpIdToName[s]
     return baseKey(s)
   }
 
