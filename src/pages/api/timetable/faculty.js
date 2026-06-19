@@ -29,19 +29,44 @@ export default async function handler(req, res) {
       },
       { $sort: { _id: 1 } },
     ])
+
+    // Fill in names/dept from User accounts for entries where faculty_name is null (GSheet data)
+    const nullIds = faculty.filter(f => !f.name).map(f => f._id)
+    if (nullIds.length) {
+      const users = await User.find({ eid: { $in: nullIds } }, 'eid display_name dept').lean()
+      const userMap = {}
+      users.forEach(u => { if (u.eid) userMap[u.eid] = u })
+      faculty.forEach(f => {
+        if (!f.name && userMap[f._id]) {
+          f.name = userMap[f._id].display_name || null
+          if (!f.dept) f.dept = userMap[f._id].dept || null
+        }
+      })
+    }
+
     return res.json({ success: true, faculty: faculty.map(f => ({ id: f._id, name: f.name, dept: f.dept })) })
   }
 
   if (!q) return res.status(400).json({ success: false, message: 'q param required' })
 
-  // Fetch ALL entries (no hour cap) — frontend decides what to show
-  const filter = {
-    dataset,
-    $or: [
-      { emp_id: q.trim() },
-      { faculty_name: { $regex: q.trim(), $options: 'i' } },
-    ],
+  // If q looks like a name (not a numeric emp_id), also resolve it via User accounts
+  // so searches work on GSheet data where faculty_name is null
+  let extraEmpIds = []
+  if (!/^\d+$/.test(q.trim())) {
+    const matchedUsers = await User.find(
+      { display_name: { $regex: q.trim(), $options: 'i' } },
+      'eid'
+    ).lean()
+    extraEmpIds = matchedUsers.map(u => u.eid).filter(Boolean)
   }
+
+  const orClauses = [
+    { emp_id: q.trim() },
+    { faculty_name: { $regex: q.trim(), $options: 'i' } },
+  ]
+  if (extraEmpIds.length) orClauses.push({ emp_id: { $in: extraEmpIds } })
+
+  const filter = { dataset, $or: orClauses }
 
   const entries = await TimetableEntry.find(filter).lean()
   if (!entries.length)
@@ -65,15 +90,35 @@ export default async function handler(req, res) {
     .select('umatdayid umat_hourno main_sectionno course_code emp_id faculty_name associative_sectionno faculty_seq')
     .lean()
 
+  // Batch-fetch User accounts for all emp_ids that appear in this response
+  const allEmpIds = [...new Set([
+    ...entries.map(e => e.emp_id),
+    ...allSlotEntries.map(e => e.emp_id),
+  ].filter(Boolean))]
+
+  const userDocs = await User.find(
+    { eid: { $in: allEmpIds } },
+    'eid display_name dept designation cohort designation_category assigned_responsibility load_as_per_designation pl'
+  ).lean()
+  const userMap = {}
+  userDocs.forEach(u => { if (u.eid) userMap[u.eid] = u })
+
+  const profile = empId ? userMap[empId] : null
+
   // Build a map: "day|hour|sec|course" → sorted list of associates
   const slotMap = {}
   for (const e of allSlotEntries) {
     const key = `${e.umatdayid}|${e.umat_hourno}|${e.main_sectionno}|${e.course_code}`
     if (!slotMap[key]) slotMap[key] = []
-    slotMap[key].push({ empId: e.emp_id, name: e.faculty_name, label: e.associative_sectionno, seq: e.faculty_seq })
+    slotMap[key].push({
+      empId: e.emp_id,
+      name:  e.faculty_name || userMap[e.emp_id]?.display_name || null,
+      label: e.associative_sectionno,
+      seq:   e.faculty_seq,
+    })
   }
 
-  // Attach associates (all other faculty in the same slot) to each entry
+  // Attach associates to each entry
   const enrichedEntries = entries.map(e => {
     const key = `${e.umatdayid}|${e.umat_hourno}|${e.main_sectionno}|${e.course_code}`
     const all = slotMap[key] || []
@@ -83,17 +128,16 @@ export default async function handler(req, res) {
     return { ...e, associates }
   })
 
-  // Lookup User profile for rich profile card display
-  const profile = empId
-    ? await User.findOne({ eid: empId }).select('designation cohort designation_category assigned_responsibility load_as_per_designation pl').lean()
-    : null
+  // Resolved name/dept: prefer TimetableEntry, fall back to User account
+  const facultyName = entries[0].faculty_name || profile?.display_name || null
+  const facultyDept = entries[0].faculty_dept || profile?.dept || null
 
   res.json({
     success: true,
     faculty: {
       id:   empId,
-      name: entries[0].faculty_name,
-      dept: entries[0].faculty_dept,
+      name: facultyName,
+      dept: facultyDept,
       weeklyLoad,
       extraLoad,
       designation:             profile?.designation,
