@@ -10,13 +10,15 @@ export default async function handler(req, res) {
 
   // GET — list rooms with optional filters
   if (req.method === 'GET') {
-    const { block, floor, type, coeMhs, status, q } = req.query
+    const { block, floor, type, coeMhs, status, q, day } = req.query
     const filter = {}
     if (block)  filter.block  = block
     if (floor !== undefined && floor !== '') filter.floor = Number(floor)
     if (type)   filter.type   = type
     if (coeMhs) filter.coeMhs = coeMhs
     if (status) filter.status = status
+    const VALID_DAYS = ['mon','tue','wed','thu','fri','sat']
+    if (day && VALID_DAYS.includes(day)) filter[day] = { $nin: [null, ''] }
     if (q) {
       const re = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
       filter.$or = [

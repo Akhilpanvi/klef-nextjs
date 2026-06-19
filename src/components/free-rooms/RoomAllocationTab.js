@@ -103,6 +103,7 @@ export default function RoomAllocationTab() {
   const [fType,   setFType]   = useState('')
   const [fWing,   setFWing]   = useState('')
   const [fStatus, setFStatus] = useState('')
+  const [fDay,    setFDay]    = useState('')
 
   const fetchRooms = useCallback(async () => {
     setLoading(true)
@@ -113,6 +114,7 @@ export default function RoomAllocationTab() {
     if (fType)   params.set('type',    fType)
     if (fWing)   params.set('coeMhs',  fWing)
     if (fStatus) params.set('status',  fStatus)
+    if (fDay)    params.set('day',     fDay)
     const d = await get(`/api/room-allocation?${params}`)
     if (d.success) {
       setRooms(d.rooms)
@@ -121,7 +123,7 @@ export default function RoomAllocationTab() {
       setWings(d.wings || [])
     }
     setLoading(false)
-  }, [q, fBlock, fFloor, fType, fWing, fStatus])
+  }, [q, fBlock, fFloor, fType, fWing, fStatus, fDay])
 
   useEffect(() => { fetchRooms() }, [fetchRooms])
 
@@ -192,13 +194,17 @@ export default function RoomAllocationTab() {
           <option value="">All Wings</option>
           {wings.filter(Boolean).map(w => <option key={w} value={w}>{w}</option>)}
         </select>
+        <select className="input" style={{ flex:1, minWidth:90, fontSize:13 }} value={fDay} onChange={e=>setFDay(e.target.value)}>
+          <option value="">All Days</option>
+          {DAY_COLS.map(d => <option key={d} value={d}>{DAY_LABELS[d]}</option>)}
+        </select>
         <select className="input" style={{ flex:1, minWidth:100, fontSize:13 }} value={fStatus} onChange={e=>setFStatus(e.target.value)}>
           <option value="">All Status</option>
           <option value="free">Free</option>
           <option value="completed">Completed</option>
         </select>
         <button className="btn btn-ghost" style={{ fontSize:12 }}
-          onClick={() => { setQ(''); setFBlock(''); setFFloor(''); setFType(''); setFWing(''); setFStatus('') }}>
+          onClick={() => { setQ(''); setFBlock(''); setFFloor(''); setFType(''); setFWing(''); setFStatus(''); setFDay('') }}>
           Clear
         </button>
       </div>
