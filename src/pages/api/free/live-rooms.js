@@ -11,6 +11,11 @@ function baseKey(r) {
   return (r || '').split('-')[0].trim().toUpperCase()
 }
 
+// Returns true if the value looks like a raw numeric ERP room ID (e.g. "3952")
+function isNumericId(r) {
+  return /^\d+$/.test((r || '').trim())
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET')
     return res.status(405).json({ success: false, message: 'Method not allowed' })
@@ -54,35 +59,52 @@ export default async function handler(req, res) {
     umat_hourno: { $in: periodNums },
     room_no:     { $nin: [null, ''] },
   })
-  const busySet = new Set(busyRooms.map(r => baseKey(String(r))))
-
-  // Group by base room (handles section suffixes like C007-A)
-  const roomSections = {}
-  for (const sec of allRooms) {
-    const base = baseKey(String(sec))
-    if (!roomSections[base]) roomSections[base] = []
-    roomSections[base].push(sec)
-  }
-
   // Enrich with RoomMeta + ERP IDs
   const [metas, erpDocs] = await Promise.all([
     RoomMeta.find({}, 'room_no block room_type capacity alloted_to').lean(),
-    ErpRoomData.find({}, 'room_no sections').lean(),
+    ErpRoomData.find({}, 'room_no erp_id sections').lean(),
   ])
   const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
   const erpMap  = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
 
-  const free = []
-  for (const [base, sections] of Object.entries(roomSections)) {
-    if (sections.some(s => busySet.has(baseKey(String(s))))) continue
+  // Reverse map: numeric ERP ID → readable room name (e.g. 3952 → "C019")
+  const erpIdToName = {}
+  for (const e of erpDocs) {
+    if (e.erp_id) erpIdToName[String(e.erp_id)] = e.room_no
+    for (const s of e.sections || []) {
+      if (s.erp_id) erpIdToName[String(s.erp_id)] = e.room_no
+    }
+  }
 
-    const meta = metaMap[base]
+  // Resolve a raw value: if it's a numeric ERP ID, return the room name; otherwise return baseKey
+  function resolve(raw) {
+    const s = (raw || '').trim()
+    if (isNumericId(s) && erpIdToName[s]) return erpIdToName[s]
+    return baseKey(s)
+  }
+
+  // Re-group using resolved names (in case some room_no values were numeric ERP IDs)
+  const resolved = {}
+  for (const sec of allRooms) {
+    const name = resolve(String(sec))
+    if (!resolved[name]) resolved[name] = []
+    resolved[name].push(String(sec))
+  }
+
+  // Rebuild busy set using resolved names
+  const resolvedBusySet = new Set(busyRooms.map(r => resolve(String(r))))
+
+  const free = []
+  for (const [name, rawSecs] of Object.entries(resolved)) {
+    if (rawSecs.some(s => resolvedBusySet.has(resolve(s)))) continue
+
+    const meta = metaMap[name]
     free.push({
-      number:       base,
-      erp_sections: erpMap[base] ?? [],
+      number:       name,
+      erp_sections: erpMap[name] ?? [],
       type:         meta?.room_type || '?',
       capacity:     meta?.capacity  || null,
-      block:        meta?.block     || base.match(/^[A-Za-z]+/)?.[0]?.toUpperCase() || '?',
+      block:        meta?.block     || name.match(/^[A-Za-z]+/)?.[0]?.toUpperCase() || '?',
       dept:         meta?.alloted_to || 'General',
     })
   }
