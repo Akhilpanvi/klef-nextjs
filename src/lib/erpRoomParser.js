@@ -50,9 +50,14 @@ export function parseErpRoomBuffer(buf) {
       groups[roomName] = { room_no: roomName, description, block, sections: [] }
     }
 
-    // Only add sections that have a valid assoc label (skip empty/duplicate rows)
-    if (!isNaN(erpId) && assoc) {
-      groups[roomName].sections.push({ assoc, erp_id: erpId })
+    if (!isNaN(erpId)) {
+      if (assoc) {
+        // Grouped-section row — add as a named section
+        groups[roomName].sections.push({ assoc, erp_id: erpId })
+      } else if (!groups[roomName]._fallbackErpId) {
+        // Flat-table row (no assoc) — keep as fallback primary erp_id
+        groups[roomName]._fallbackErpId = erpId
+      }
     }
   }
 
@@ -67,9 +72,12 @@ export function parseErpRoomBuffer(buf) {
       return true
     })
 
-    // Pick MA as the primary ERP ID; fall back to first section
+    // Pick MA as primary ERP ID; fall back to first section; then flat-table erp_id
     const maSection = g.sections.find(s => s.assoc.toUpperCase() === 'MA')
-    g.erp_id = maSection ? maSection.erp_id : (g.sections[0]?.erp_id ?? null)
+    g.erp_id = maSection
+      ? maSection.erp_id
+      : (g.sections[0]?.erp_id ?? g._fallbackErpId ?? null)
+    delete g._fallbackErpId
     docs.push(g)
   }
 
