@@ -252,7 +252,7 @@ export default function RoomAllocationTab() {
                     </td>
                   ))}
                   <td><TypeBadge type={r.type} /></td>
-                  <td style={{ fontSize:11, color:'var(--text-3)' }}>{r.coeMhs || '—'}</td>
+                  <td style={{ fontSize:11, color:'var(--text)' }}>{r.coeMhs || '—'}</td>
                   <td style={{ fontSize:11, color:'var(--text-3)', maxWidth:120, overflow:'hidden',
                     textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={r.notes}>{r.notes || '—'}</td>
                   <td>
