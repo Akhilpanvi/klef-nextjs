@@ -67,7 +67,7 @@ export default async function handler(req, res) {
   const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
   const erpMap  = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
 
-  // Reverse map: numeric ERP ID → readable room name (e.g. 3952 → "C019")
+  // Reverse map 1: ErpRoomData erp_id/sections → room name (e.g. 3952 → "C019")
   const erpIdToName = {}
   for (const e of erpDocs) {
     if (e.erp_id) erpIdToName[String(e.erp_id)] = e.room_no
@@ -76,10 +76,33 @@ export default async function handler(req, res) {
     }
   }
 
-  // If value has no letter → look up ERP ID map; otherwise use as room name directly
+  // Reverse map 2: umat_classroomno → readable room_no, built from the dataset itself.
+  // Rows that have a letter-containing room_no AND a numeric umat_classroomno teach us
+  // the mapping for rows where room_no is only the numeric umat_classroomno.
+  const classroomMappings = await TimetableEntry.aggregate([
+    {
+      $match: {
+        dataset,
+        umat_classroomno: { $ne: null },
+        room_no: { $nin: [null, ''] },
+      },
+    },
+    // Only keep rows where room_no contains at least one letter (readable name)
+    { $match: { $expr: { $regexMatch: { input: '$room_no', regex: '[a-zA-Z]' } } } },
+    { $group: { _id: '$umat_classroomno', room_no: { $first: '$room_no' } } },
+  ])
+  const classroomMap = {} // umat_classroomno (as string) → readable room name
+  for (const m of classroomMappings) {
+    if (m._id != null) classroomMap[String(m._id)] = m.room_no
+  }
+
+  // If value has no letter → check ERP ID map, then dataset self-map; else use as-is
   function resolve(raw) {
     const s = (raw || '').trim()
-    if (hasNoLetter(s) && erpIdToName[s]) return erpIdToName[s]
+    if (hasNoLetter(s)) {
+      if (erpIdToName[s])  return erpIdToName[s]
+      if (classroomMap[s]) return classroomMap[s]
+    }
     return baseKey(s)
   }
 
