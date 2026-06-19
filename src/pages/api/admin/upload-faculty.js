@@ -9,10 +9,10 @@ export const config = {
   api: { bodyParser: false },
 }
 
-const SAMPLE_CSV = `EID,Faculty Name,Dept,Desigination,Cohort,Category (R/Ac/Ad),Assigned responsibility,Load As Per Desigination,PL
-100001,Dr. A. Sharma,CSE,Professor,R22,R,HoD,18,3
-100002,Dr. B. Reddy,ECE,Associate Professor,R23,Ac,,16,2
-100003,Ms. C. Patel,MECH,Assistant Professor,,Ad,Warden,14,1
+const SAMPLE_CSV = `Emp No,Faculty Name,Designation,Contact Number,Email ID,Cohort,Cohort Name,Designation Load,Permissible Load,Assigned responsibility,DPET
+9122,DR. V S V PRABHAKAR,Professor &HoD,7730007703,prabhakarvsv@kluniversity.in,E02,Cohort E02 : Artificial Intelligence (AI),8,8,HOD,AIDS
+6230,DR. V RAMA KRISHNA SARMA,Associate Professor-Alternate HoD,9398750319,sharmavsv@kluniversity.in,E11,Cohort E11-Data Science & Big Data Analytics (DSBD),12,12,Alt. HOD,AIDS
+3680,DR. I SATISH BABU,Associate Professor-Dy HoD,9985781568,jampanisatishbabu@kluniversity.in,E09,Cohort E09 : Cyber Security & Blockchain Technology (CSBT),14,14,Dy. HOD,AIDS
 `
 
 function parseCSV(text) {
@@ -75,20 +75,25 @@ export default async function handler(req, res) {
   const valid = []
   let skipped = 0
   for (const row of rows) {
-    const eid  = (row['EID'] || '').trim()
+    // Support both old format (EID) and new format (Emp No)
+    const eid  = (row['Emp No'] || row['EID'] || '').trim()
     const name = (row['Faculty Name'] || '').trim()
     if (!eid || eid === '0' || !name || isNaN(Number(eid))) { skipped++; continue }
+    const cohortRaw = str(row['Cohort'])
     valid.push({
       eid,
       username:                  eid.toLowerCase(),
       display_name:              name,
-      dept:                      str(row['Dept']),
-      designation:               str(row['Desigination']),
-      cohort:                    str(row['Cohort']) === '0' ? undefined : str(row['Cohort']),
+      dept:                      str(row['DPET'] || row['Dept']),
+      designation:               str(row['Designation'] || row['Desigination']),
+      phone:                     str(row['Contact Number']),
+      email:                     str(row['Email ID']),
+      cohort:                    cohortRaw === '0' ? undefined : cohortRaw,
+      cohort_name:               str(row['Cohort Name']),
       designation_category:      str(row['Category (R/Ac/Ad)']),
       assigned_responsibility:   str(row['Assigned responsibility']),
-      load_as_per_designation:   num(row['Load As Per Desigination']),
-      pl:                        num(row['PL']),
+      load_as_per_designation:   num(row['Designation Load'] || row['Load As Per Desigination']),
+      pl:                        num(row['Permissible Load'] || row['PL']),
     })
   }
 
@@ -110,7 +115,10 @@ export default async function handler(req, res) {
             display_name:              r.display_name,
             ...(r.dept         && { dept: r.dept }),
             ...(r.designation  && { designation: r.designation }),
+            ...(r.phone        && { phone: r.phone }),
+            ...(r.email        && { email: r.email }),
             ...(r.cohort !== undefined && { cohort: r.cohort }),
+            ...(r.cohort_name  && { cohort_name: r.cohort_name }),
             designation_category:      r.designation_category,
             assigned_responsibility:   r.assigned_responsibility,
             load_as_per_designation:   r.load_as_per_designation,
@@ -132,7 +140,10 @@ export default async function handler(req, res) {
     eid:                       r.eid,
     dept:                      r.dept,
     designation:               r.designation,
+    phone:                     r.phone,
+    email:                     r.email,
     cohort:                    r.cohort,
+    cohort_name:               r.cohort_name,
     designation_category:      r.designation_category,
     assigned_responsibility:   r.assigned_responsibility,
     load_as_per_designation:   r.load_as_per_designation,

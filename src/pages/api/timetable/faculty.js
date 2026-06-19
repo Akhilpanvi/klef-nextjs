@@ -98,7 +98,7 @@ export default async function handler(req, res) {
 
   const userDocs = await User.find(
     { eid: { $in: allEmpIds } },
-    'eid display_name dept designation cohort designation_category assigned_responsibility load_as_per_designation pl'
+    'eid display_name dept designation phone email cohort cohort_name designation_category assigned_responsibility load_as_per_designation pl'
   ).lean()
   const userMap = {}
   userDocs.forEach(u => { if (u.eid) userMap[u.eid] = u })
@@ -141,7 +141,10 @@ export default async function handler(req, res) {
       weeklyLoad,
       extraLoad,
       designation:             profile?.designation,
+      phone:                   profile?.phone,
+      email:                   profile?.email,
       cohort:                  profile?.cohort,
+      cohort_name:             profile?.cohort_name,
       designation_category:    profile?.designation_category,
       assigned_responsibility: profile?.assigned_responsibility,
       load_as_per_designation: profile?.load_as_per_designation,

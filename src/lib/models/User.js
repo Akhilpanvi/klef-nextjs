@@ -16,12 +16,15 @@ const schema = new mongoose.Schema(
     mustChangePassword: { type: Boolean, default: false },
     // Granular permissions granted to faculty by admin
     permissions:        { type: [String], default: [] },
-    // Faculty profile fields (set by admin)
-    cohort:                   { type: String, trim: true },  // e.g. R22, R23
+    // Faculty profile fields (set by admin / FD upload)
+    phone:                    { type: String, trim: true },  // Contact Number
+    email:                    { type: String, trim: true },  // Email ID
+    cohort:                   { type: String, trim: true },  // e.g. E02, E11
+    cohort_name:              { type: String, trim: true },  // e.g. Cohort E02 : AI
     designation_category:     { type: String, trim: true },  // R / Ac / Ad
-    assigned_responsibility:  { type: String, trim: true },  // e.g. HOD, Class Advisor
-    load_as_per_designation:  { type: Number },              // e.g. 16, 18, 20
-    pl:                       { type: Number },              // Permitted Load
+    assigned_responsibility:  { type: String, trim: true },  // e.g. HOD, Dy.HOD
+    load_as_per_designation:  { type: Number },              // Designation Load
+    pl:                       { type: Number },              // Permissible Load
   },
   { timestamps: true }
 )
