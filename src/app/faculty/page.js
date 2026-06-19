@@ -15,7 +15,9 @@ function ProfileCard({ data }) {
     { label: 'EID',                     value: data.eid || data.id },
     { label: 'Department',              value: data.dept },
     { label: 'Designation',             value: data.designation },
-    { label: 'Cohort',                  value: data.cohort },
+    { label: 'Phone',                   value: data.phone },
+    { label: 'Email',                   value: data.email },
+    { label: 'Cohort',                  value: data.cohort_name ? `${data.cohort} — ${data.cohort_name}` : data.cohort },
     { label: 'Designation Category',    value: data.designation_category ? `${data.designation_category} — ${DESG_LABEL[data.designation_category] || data.designation_category}` : null },
     { label: 'Assigned Responsibility', value: data.assigned_responsibility },
     { label: 'Load as per Designation', value: data.load_as_per_designation != null ? `${data.load_as_per_designation} hrs` : null },
@@ -123,7 +125,7 @@ function FacultyContent() {
 
   // For faculty's own page: merge auth user (looked up by _id, always correct) with API result.
   // API result may have null profile fields if eid lookup misses; fall back to auth user fields.
-  const PROFILE_KEYS = ['designation','cohort','designation_category','assigned_responsibility','load_as_per_designation','pl']
+  const PROFILE_KEYS = ['designation','phone','email','cohort','cohort_name','designation_category','assigned_responsibility','load_as_per_designation','pl']
   const profileData = (() => {
     if (!isFaculty) return result?.faculty || null
     const base = result?.faculty ? { ...result.faculty } : { ...user }
