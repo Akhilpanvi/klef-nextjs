@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 const YEARS = [{ v:'1', l:'Year 1' },{ v:'2', l:'Year 2' },{ v:'3', l:'Year 3' },{ v:'4', l:'Year 4' }]
-const REGS  = [{ v:'', l:'All Batches' },{ v:'R25', l:'R25' },{ v:'R24', l:'R24' },{ v:'R23', l:'R23' },{ v:'R22', l:'R22' }]
+const REGS  = [{ v:'', l:'All Batches' },{ v:'R25P', l:'R25P' },{ v:'R25', l:'R25' },{ v:'R24', l:'R24' },{ v:'R23', l:'R23' },{ v:'R22', l:'R22' }]
 
 function CoursesContent() {
   const { user, loading, isAdmin } = useAuth()
