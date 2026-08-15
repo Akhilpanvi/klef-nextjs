@@ -257,7 +257,8 @@ export default function SlotSummaryTab() {
     for (const [wing, d] of Object.entries(data.rooms.detail))
       for (const kind of ['occupied', 'free'])
         for (const r of d[kind]) roomRows.push({
-          Wing: wing, Status: kind === 'occupied' ? 'Occupied' : 'Free', Room: r.room,
+          Wing: wing, Allotment: r.allotment || wing,
+          Status: kind === 'occupied' ? 'Occupied' : 'Free', Room: r.room,
           Type: r.type || '', Capacity: r.capacity ?? '', Block: r.block || '', Floor: r.floor ?? '',
           'Allotted To': data.days.map(dn => r.usage?.[dn]).filter(Boolean).join(' | '),
           Notes: r.notes || '',
@@ -399,6 +400,7 @@ export default function SlotSummaryTab() {
                     <th style={{ ...thSt, textAlign: 'right' }}>Capacity</th>
                     <th style={{ ...thSt, textAlign: 'left' }}>Block</th>
                     <th style={{ ...thSt, textAlign: 'right' }}>Floor</th>
+                    <th style={{ ...thSt, textAlign: 'left' }}>Wing</th>
                     <th style={{ ...thSt, textAlign: 'left' }}>Allotted to (Room Allocation)</th>
                   </tr>
                 </thead>
@@ -410,6 +412,14 @@ export default function SlotSummaryTab() {
                       <td style={{ ...tdSt, textAlign: 'right' }}>{r.capacity ?? '—'}</td>
                       <td style={tdSt}>{r.block || '—'}</td>
                       <td style={{ ...tdSt, textAlign: 'right' }}>{r.floor ?? '—'}</td>
+                      <td style={tdSt}>
+                        <span style={{ fontWeight: 700, fontSize: 12, color: WING_COLOR[r.wing] || 'var(--text-2)' }}>
+                          {r.wing}
+                        </span>
+                        {r.allotment && r.allotment !== r.wing && (
+                          <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 5 }}>({r.allotment})</span>
+                        )}
+                      </td>
                       <td style={{ ...tdSt, fontSize: 12 }}>
                         {data.days.map(d => r.usage?.[d]).filter(Boolean).join('  |  ') || '—'}
                       </td>

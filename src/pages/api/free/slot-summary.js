@@ -60,16 +60,18 @@ export default async function handler(req, res) {
   }
 
   for (const m of metas) {
-    const key  = String(m.room_no || '').trim().toUpperCase()
-    const wing = WING_BY_ALLOTMENT[String(m.alloted_to || '').toUpperCase()]
+    const key       = String(m.room_no || '').trim().toUpperCase()
+    const allotment = String(m.alloted_to || '').toUpperCase()
+    const wing      = WING_BY_ALLOTMENT[allotment]
     if (!key || !wing) continue
-    put(key, { wing, type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
+    put(key, { wing, allotment, type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
   }
   for (const a of allocs) {
     const key = String(a.roomNo || '').trim().toUpperCase()
     if (!key) continue
-    const existing = room.get(key)
-    const wing = existing?.wing || WING_BY_ALLOTMENT[String(a.coeMhs || '').toUpperCase()]
+    const existing  = room.get(key)
+    const allotment = String(a.coeMhs || '').toUpperCase()
+    const wing = existing?.wing || WING_BY_ALLOTMENT[allotment]
     if (!wing) continue
     // Usage label per selected day, from the Room Allocation sheet.
     const usage = {}
@@ -79,6 +81,7 @@ export default async function handler(req, res) {
     }
     put(key, {
       wing,
+      allotment: existing?.allotment || allotment || wing,
       type:     existing?.type     ?? a.type     ?? null,
       capacity: existing?.capacity ?? a.capacity ?? null,
       block:    existing?.block    ?? a.block    ?? null,
@@ -152,6 +155,7 @@ export default async function handler(req, res) {
     ;(busyRooms.has(info.room) ? bucket.occupied : bucket.free).push({
       room: info.room, capacity: info.capacity ?? null, type: info.type || null,
       block: info.block || null, floor: info.floor ?? null,
+      wing: info.wing, allotment: info.allotment || info.wing,
       usage: info.usage || {}, status: info.status || null, notes: info.notes || '',
     })
   }
