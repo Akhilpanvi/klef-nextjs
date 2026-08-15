@@ -37,6 +37,36 @@ export function categoryOf(normalizedProgram) {
   return /^(B\.Tech|M\.Tech)\b/i.test(normalizedProgram) ? 'COE' : 'MHS'
 }
 
+/**
+ * Sub-table within COE. B.Tech 1st year is not run by COE — those sections
+ * belong to FED (Freshman Engineering Department), so they are pulled out of
+ * the B.Tech table into their own.
+ */
+export function subGroupOf(normalizedProgram, year) {
+  if (/^M\.Tech\b/i.test(normalizedProgram)) return 'M.Tech'
+  if (/^B\.Tech\b/i.test(normalizedProgram)) return Number(year) === 1 ? 'FED' : 'B.Tech'
+  return 'MHS'
+}
+
+/** The only three wings. */
+export const WINGS = ['COE', 'MHS', 'FED']
+
+/**
+ * Wing per room.
+ *
+ * RoomMeta.alloted_to also carries CRT and COR, but neither is a wing:
+ *   • CRT (28 rooms) is Campus Recruitment Training — a *usage*. Every one of
+ *     those rooms is coeMhs=COE in RoomAllocation ("III CRT" / "IV ENGG").
+ *   • COR (4 rooms: C517-C520, HLABs) is likewise coeMhs=COE in RoomAllocation.
+ * Both therefore fold into COE.
+ */
+export const WING_BY_ALLOTMENT = {
+  COE: 'COE', MHS: 'MHS', FED: 'FED', CRT: 'COE', COR: 'COE',
+}
+
+export const DAY_FIELDS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+export const DAY_NAMES  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
 /** Returns null when the label does not match the expected shape. */
 export function parseLabel(raw) {
   const m = LABEL_RE.exec(String(raw || '').trim())
