@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo, Fragment } from 'react'
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react'
 import { X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
@@ -174,10 +174,10 @@ function WingTable({ wing, groups, onCell }) {
 }
 
 // ── Tab ─────────────────────────────────────────────────────────────────────
-export default function SlotSummaryTab() {
+export default function SlotSummaryTab({ initialDays, initialPeriods, onQueryChange }) {
   const { get } = useApi()
-  const [days, setDays]       = useState([1])
-  const [periods, setPeriods] = useState([])
+  const [days, setDays]       = useState(initialDays?.length ? initialDays : [1])
+  const [periods, setPeriods] = useState(initialPeriods?.length ? initialPeriods : [])
   const [data, setData]       = useState(null)
   const [busy, setBusy]       = useState(false)
   const [cell, setCell]       = useState(null)
@@ -185,20 +185,32 @@ export default function SlotSummaryTab() {
 
   const toggleDay = d => setDays(p => p.includes(d) ? p.filter(x => x !== d) : [...p, d].sort())
 
-  const run = async () => {
-    if (!days.length)    return toast.error('Select at least one day')
-    if (!periods.length) return toast.error('Select at least one period')
+  const run = async (d0 = days, p0 = periods) => {
+    if (!d0.length)  return toast.error('Select at least one day')
+    if (!p0.length)  return toast.error('Select at least one period')
     setBusy(true); setCell(null); setRoomView(null)
     try {
-      const d = await get(`/api/free/slot-summary?days=${days.join(',')}&periods=${periods.join(',')}`)
+      const d = await get(`/api/free/slot-summary?days=${d0.join(',')}&periods=${p0.join(',')}`)
       if (!d.success) throw new Error(d.message)
       if (d.noData) { setData(null); return toast.error(d.message) }
       setData(d)
+      onQueryChange?.({ days: d0, periods: p0 })
       const n = d.tables.reduce((s, t) => s + t.rows.length, 0)
       toast.success(n ? `${n} programme rows across ${d.days.length} day(s)` : 'Nothing scheduled')
     } catch (err) { toast.error(err.message) }
     finally { setBusy(false) }
   }
+
+  // A shared link carries the slot — run it straight away so the recipient
+  // lands on the result instead of an empty form.
+  const autoRan = useRef(false)
+  useEffect(() => {
+    if (autoRan.current) return
+    if (initialDays?.length && initialPeriods?.length) {
+      autoRan.current = true
+      run(initialDays, initialPeriods)
+    }
+  }, [initialDays, initialPeriods])
 
   // One table per wing; the API's sub-tables become bands inside it.
   const wings = useMemo(() => {
@@ -309,7 +321,7 @@ export default function SlotSummaryTab() {
       <PeriodPicker selected={periods} onChange={setPeriods} max={24} />
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
-        <button className="btn btn-primary" onClick={run} disabled={busy}>{busy ? 'Analysing…' : 'Analyse Slot'}</button>
+        <button className="btn btn-primary" onClick={() => run()} disabled={busy}>{busy ? 'Analysing…' : 'Analyse Slot'}</button>
         {data && <button className="btn btn-success" onClick={download}>📥 Export Excel</button>}
       </div>
 
