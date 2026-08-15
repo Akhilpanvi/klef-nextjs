@@ -91,6 +91,27 @@ export function parseLabel(raw) {
  */
 const SECTION_SUFFIX = /-(A|B|C|D|E|F|MA|AB|CD)$/i
 
+/**
+ * Some sources name a room descriptively — RoomAllocation has
+ * "F102-CHEMISTRY LAB" and "F201-PHYSICS LAB" where RoomMeta has plain
+ * "F102" and the room timetable has "F102-A" / "F102-MA". Left alone these
+ * become a phantom second room that no timetable entry ever matches, so it
+ * reads as permanently free. Reduce them to the room code.
+ *
+ * Only a tail of 3+ characters counts as a description; "-A" / "-MA" are
+ * section suffixes and are left for resolveRoom to strip.
+ */
+const DESCRIPTIVE = /^([A-Z]{1,3}\s?\d{2,4}[A-Z]?\d?)\s*-\s*(.{3,})$/
+
+export function canonicalRoom(raw) {
+  // Internal spacing is significant elsewhere ("C421  B1"), so only trim/upper.
+  const s = String(raw || '').trim().toUpperCase()
+  const m = DESCRIPTIVE.exec(s)
+  if (!m) return s
+  if (/^(A|B|C|D|E|F|MA|AB|CD)$/.test(m[2].trim())) return s
+  return m[1].replace(/\s+/g, '')
+}
+
 export function resolveRoom(raw, knownRooms) {
   let s = String(raw || '').trim().toUpperCase()
   if (!s) return ''
@@ -103,6 +124,11 @@ export function resolveRoom(raw, knownRooms) {
   // "C117A" → "C117", but only when the stripped form is a real room.
   const trimmed = s.replace(/([A-Z0-9]{3,})[A-Z]$/, '$1')
   if (knownRooms?.has(trimmed)) return trimmed
+
+  // Last resort only, so this can never displace a match the rules above found:
+  // "F001-ELECTRICAL M/C LAB" → "F001".
+  const canon = canonicalRoom(s)
+  if (canon !== s && knownRooms?.has(canon)) return canon
 
   return s
 }

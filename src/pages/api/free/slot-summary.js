@@ -4,7 +4,7 @@ import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta         from '@/lib/models/RoomMeta'
 import RoomAllocation   from '@/lib/models/RoomAllocation'
-import { parseLabel, resolveRoom, subGroupOf, WINGS, WING_BY_ALLOTMENT, DAY_FIELDS }
+import { parseLabel, resolveRoom, canonicalRoom, subGroupOf, WINGS, WING_BY_ALLOTMENT, DAY_FIELDS }
   from '@/lib/roomLabel'
 
 /**
@@ -60,14 +60,14 @@ export default async function handler(req, res) {
   }
 
   for (const m of metas) {
-    const key       = String(m.room_no || '').trim().toUpperCase()
+    const key       = canonicalRoom(m.room_no)
     const allotment = String(m.alloted_to || '').toUpperCase()
     const wing      = WING_BY_ALLOTMENT[allotment]
     if (!key || !wing) continue
     put(key, { wing, allotment, type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
   }
   for (const a of allocs) {
-    const key = String(a.roomNo || '').trim().toUpperCase()
+    const key = canonicalRoom(a.roomNo)
     if (!key) continue
     const existing  = room.get(key)
     const allotment = String(a.coeMhs || '').toUpperCase()
