@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import { X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
@@ -62,59 +62,113 @@ function WingTile({ stat, onPick }) {
   )
 }
 
-// ── Programme × Year pivot ──────────────────────────────────────────────────
-function PivotTable({ table, years, onCell }) {
-  const color = WING_COLOR[table.wing] || 'var(--brand)'
-  const colTotal = y => table.rows.reduce((s, r) => s + (r.years[y] || 0), 0)
+/** Year columns actually used by a set of rows — keeps empty years off screen. */
+const yearsOf = rows => {
+  const s = new Set()
+  for (const r of rows) for (const [y, n] of Object.entries(r.years)) if (n) s.add(+y)
+  return s.size ? [...s].sort((a, b) => a - b) : [1, 2, 3, 4]
+}
+
+const sumYear = (rows, y) => rows.reduce((s, r) => s + (r.years[y] || 0), 0)
+const sumAll  = rows => rows.reduce((s, r) => s + r.total, 0)
+
+// ── One wing = one table, its sub-groups banded inside it ───────────────────
+function WingTable({ wing, groups, onCell }) {
+  const color   = WING_COLOR[wing] || 'var(--brand)'
+  const allRows = groups.flatMap(g => g.rows)
+  const years   = yearsOf(allRows)
+  const banded  = groups.length > 1
+
+  if (!allRows.length) return (
+    <div style={{ flex: '1 1 460px', minWidth: 0 }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color, marginBottom: 8 }}>{wing}</div>
+      <div style={{ padding: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-3)' }}>
+        Nothing running in this slot.
+      </div>
+    </div>
+  )
+
+  const numCell = (r, y, sub) => {
+    const n = r.years[y] || 0
+    if (!n) return <span style={{ color: 'var(--text-3)' }}>—</span>
+    return (
+      <button
+        onClick={() => onCell({ wing, sub, program: r.program, year: y })}
+        title="Show courses running"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', fontWeight: 800, color, textDecoration: 'underline dotted', padding: '2px 6px' }}
+      >{n}</button>
+    )
+  }
+
   return (
-    <div style={{ flex: '1 1 400px', minWidth: 0 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color, marginBottom: 8 }}>{table.title}</div>
-      {!table.rows.length ? (
-        <div style={{ padding: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-3)' }}>
-          Nothing running in this slot.
-        </div>
-      ) : (
-        <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 8 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 340 }}>
-            <thead>
-              <tr>
-                <th style={{ ...thSt, textAlign: 'left' }}>Programme</th>
-                {years.map(y => <th key={y} style={{ ...thSt, textAlign: 'center' }}>Year {y}</th>)}
-                <th style={{ ...thSt, textAlign: 'center' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {table.rows.map(r => (
-                <tr key={r.program}>
-                  <td style={{ ...tdSt, fontWeight: 700 }}>{r.program}</td>
-                  {years.map(y => {
-                    const n = r.years[y] || 0
-                    return (
-                      <td key={y} style={{ ...tdSt, textAlign: 'center' }}>
-                        {n ? (
-                          <button
-                            onClick={() => onCell({ wing: table.wing, sub: table.sub, program: r.program, year: y })}
-                            title="Show courses running"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', fontWeight: 800, color, textDecoration: 'underline dotted', padding: '2px 6px' }}
-                          >{n}</button>
-                        ) : <span style={{ color: 'var(--text-3)' }}>—</span>}
+    <div style={{ flex: '1 1 460px', minWidth: 0 }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color, marginBottom: 8 }}>{wing}</div>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 8 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 360 }}>
+          <thead>
+            <tr>
+              <th style={{ ...thSt, textAlign: 'left' }}>Programme</th>
+              {years.map(y => <th key={y} style={{ ...thSt, textAlign: 'center' }}>Year {y}</th>)}
+              <th style={{ ...thSt, textAlign: 'center' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map(g => {
+              if (!g.rows.length) return null
+              return (
+                <Fragment key={g.sub}>
+                  {banded && (
+                    <tr>
+                      <td colSpan={years.length + 2} style={{
+                        padding: '6px 10px', fontSize: 11, fontWeight: 800, letterSpacing: '.05em',
+                        color, background: 'var(--surface-2)', borderBottom: '1px solid var(--border)',
+                        borderTop: '1px solid var(--border)',
+                      }}>{g.title}</td>
+                    </tr>
+                  )}
+                  {g.rows.map(r => (
+                    <tr key={`${g.sub}|${r.program}`}>
+                      <td style={{ ...tdSt, fontWeight: 700, paddingLeft: banded ? 20 : 10 }}>{r.program}</td>
+                      {years.map(y => (
+                        <td key={y} style={{ ...tdSt, textAlign: 'center' }}>{numCell(r, y, g.sub)}</td>
+                      ))}
+                      <td style={{ ...tdSt, textAlign: 'center', fontWeight: 800 }}>{r.total}</td>
+                    </tr>
+                  ))}
+                  {banded && (
+                    <tr>
+                      <td style={{ ...tdSt, paddingLeft: 20, fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
+                        Subtotal
                       </td>
-                    )
-                  })}
-                  <td style={{ ...tdSt, textAlign: 'center', fontWeight: 800 }}>{r.total}</td>
-                </tr>
-              ))}
-              <tr>
-                <td style={{ ...tdSt, fontWeight: 800, background: 'var(--surface-2)' }}>All sections</td>
-                {years.map(y => <td key={y} style={{ ...tdSt, textAlign: 'center', fontWeight: 800, background: 'var(--surface-2)' }}>{colTotal(y)}</td>)}
-                <td style={{ ...tdSt, textAlign: 'center', fontWeight: 800, background: 'var(--surface-2)' }}>
-                  {table.rows.reduce((s, r) => s + r.total, 0)}
+                      {years.map(y => (
+                        <td key={y} style={{ ...tdSt, textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
+                          {sumYear(g.rows, y) || '—'}
+                        </td>
+                      ))}
+                      <td style={{ ...tdSt, textAlign: 'center', fontSize: 12, fontWeight: 800, color: 'var(--text-2)' }}>
+                        {sumAll(g.rows)}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              )
+            })}
+            <tr>
+              <td style={{ ...tdSt, fontWeight: 800, background: 'var(--surface-2)', borderTop: `2px solid ${color}` }}>
+                {wing} total
+              </td>
+              {years.map(y => (
+                <td key={y} style={{ ...tdSt, textAlign: 'center', fontWeight: 800, background: 'var(--surface-2)', borderTop: `2px solid ${color}` }}>
+                  {sumYear(allRows, y) || '—'}
                 </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))}
+              <td style={{ ...tdSt, textAlign: 'center', fontWeight: 800, background: 'var(--surface-2)', borderTop: `2px solid ${color}`, color }}>
+                {sumAll(allRows)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -146,11 +200,16 @@ export default function SlotSummaryTab() {
     finally { setBusy(false) }
   }
 
-  const years = useMemo(() => {
-    if (!data) return [1, 2, 3, 4]
-    const s = new Set()
-    for (const t of data.tables) for (const r of t.rows) Object.keys(r.years).forEach(y => s.add(+y))
-    return s.size ? [...s].sort((a, b) => a - b) : [1, 2, 3, 4]
+  // One table per wing; the API's sub-tables become bands inside it.
+  const wings = useMemo(() => {
+    if (!data) return []
+    const order = []
+    const byWing = {}
+    for (const t of data.tables) {
+      if (!byWing[t.wing]) { byWing[t.wing] = []; order.push(t.wing) }
+      byWing[t.wing].push(t)
+    }
+    return order.map(wing => ({ wing, groups: byWing[wing] }))
   }, [data])
 
   const slotLabel = data
@@ -161,15 +220,30 @@ export default function SlotSummaryTab() {
     if (!data) return toast.error('Run the analysis first')
     const wb = XLSX.utils.book_new()
 
-    for (const t of data.tables) {
-      const rows = t.rows.map(r => {
-        const o = { Programme: r.program }
-        years.forEach(y => { o[`Year ${y}`] = r.years[y] || 0 })
-        o.Total = r.total
-        return o
-      })
-      if (!rows.length) rows.push({ Programme: `No sections — ${slotLabel}` })
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), `${t.wing}-${t.sub}`.slice(0, 31))
+    // One sheet per wing, mirroring the on-screen banding.
+    for (const { wing, groups } of wings) {
+      const allRows = groups.flatMap(g => g.rows)
+      const rows = []
+      if (!allRows.length) {
+        rows.push({ Programme: `No sections — ${slotLabel}` })
+      } else {
+        const yrs = yearsOf(allRows)
+        const banded = groups.length > 1
+        const line = (group, programme, get) => {
+          const o = banded ? { Group: group, Programme: programme } : { Programme: programme }
+          yrs.forEach(y => { o[`Year ${y}`] = get(y) })
+          return o
+        }
+        for (const g of groups) {
+          if (!g.rows.length) continue
+          for (const r of g.rows)
+            rows.push({ ...line(g.title, r.program, y => r.years[y] || 0), Total: r.total })
+          if (banded)
+            rows.push({ ...line(g.title, 'Subtotal', y => sumYear(g.rows, y)), Total: sumAll(g.rows) })
+        }
+        rows.push({ ...line('', `${wing} total`, y => sumYear(allRows, y)), Total: sumAll(allRows) })
+      }
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), `${wing} Sections`.slice(0, 31))
     }
 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
@@ -260,9 +334,9 @@ export default function SlotSummaryTab() {
           )}
 
           <p style={{ ...lSt, marginTop: 20 }}>SECTIONS RUNNING — click a count to see the courses</p>
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-            {data.tables.map(t => (
-              <PivotTable key={`${t.wing}|${t.sub}`} table={t} years={years} onCell={setCell} />
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            {wings.map(w => (
+              <WingTable key={w.wing} wing={w.wing} groups={w.groups} onCell={setCell} />
             ))}
           </div>
         </div>
