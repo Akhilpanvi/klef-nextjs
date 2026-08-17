@@ -97,6 +97,11 @@ export default async function handler(req, res) {
     })
   }
 
+  // A room with no recorded capacity cannot be planned against, so drop it
+  // rather than let it pad the counts. Capacity is only final once both
+  // sources have been merged, hence the pass here rather than in the loops.
+  for (const [key, info] of room) if (!info.capacity) room.delete(key)
+
   const knownRooms = new Set(room.keys())
 
   // ── Walk the slot's entries ────────────────────────────────────────────────
