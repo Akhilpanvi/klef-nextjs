@@ -4,6 +4,7 @@ import TimetableEntry from '@/lib/models/TimetableEntry'
 import TimetableSnapshot from '@/lib/models/TimetableSnapshot'
 import GSheetConfig from '@/lib/models/GSheetConfig'
 import { parseGSheetRows } from '@/lib/csvParser'
+import { getColumnOverrides } from '@/lib/columnMapping'
 import { google } from 'googleapis'
 
 // Fixed snapshot ID — always overwritten on sync, never accumulates
@@ -59,7 +60,8 @@ export default async function handler(req, res) {
 
   let docs, warnings, headers, firstRow
   try {
-    ;({ docs, warnings, headers, firstRow } = parseGSheetRows(rows, GSHEET_SNAPSHOT_ID))
+    ;({ docs, warnings, headers, firstRow } =
+      parseGSheetRows(rows, GSHEET_SNAPSHOT_ID, await getColumnOverrides()))
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Parse failed: ' + err.message })
   }

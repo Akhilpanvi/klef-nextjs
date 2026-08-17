@@ -4,6 +4,7 @@ import TimetableEntry from '@/lib/models/TimetableEntry'
 import TimetableSnapshot from '@/lib/models/TimetableSnapshot'
 import RoomMeta from '@/lib/models/RoomMeta'
 import { parseBTTBuffer, parseRoomBuffer } from '@/lib/csvParser'
+import { getColumnOverrides } from '@/lib/columnMapping'
 import formidable from 'formidable'
 import fs from 'fs'
 
@@ -62,7 +63,8 @@ export default async function handler(req, res) {
 
     let docs, warnings, headers, firstRow
     try {
-      ;({ docs, warnings, headers, firstRow } = parseBTTBuffer(buf, snapshotId))
+      ;({ docs, warnings, headers, firstRow } =
+        parseBTTBuffer(buf, snapshotId, await getColumnOverrides()))
     } catch (err) {
       results[key] = { error: 'Parse failed: ' + err.message }
       continue

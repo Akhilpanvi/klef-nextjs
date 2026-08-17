@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
+import ColumnMappingPanel from '@/components/admin/ColumnMappingPanel'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink, UserPlus, ChevronDown, ChevronUp } from 'lucide-react'
@@ -614,6 +615,9 @@ function AdminContent() {
       )}
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+
+        {/* CSV column-name mapping */}
+        <ColumnMappingPanel />
 
         {/* Upload panel */}
         <div className="card" style={{ padding:22, gridColumn:'span 2' }}>
