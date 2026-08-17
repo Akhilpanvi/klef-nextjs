@@ -330,7 +330,7 @@ export default function SlotSummaryTab({ initialDays, initialPeriods, onQueryCha
       </div>
 
       <p style={lSt}>STEP 2 — Pick hour(s)</p>
-      <PeriodPicker selected={periods} onChange={setPeriods} max={24} />
+      <PeriodPicker selected={periods} onChange={setPeriods} max={24} quick />
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
         <button className="btn btn-primary" onClick={() => run()} disabled={busy}>{busy ? 'Analysing…' : 'Analyse Slot'}</button>

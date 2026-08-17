@@ -279,6 +279,14 @@ export default function YearRoomsTab() {
 
   const download = () => {
     if (!data) return toast.error('Run the analysis first')
+    try { buildWorkbook() }
+    catch (err) {
+      console.error('Excel export failed:', err)
+      toast.error(`Excel export failed: ${err?.message || err}`)
+    }
+  }
+
+  const buildWorkbook = () => {
     const wb = XLSX.utils.book_new()
     const add = (rows, name) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ Note: `None — ${slotLabel}` }]), name.slice(0, 31))
 
@@ -428,13 +436,31 @@ export default function YearRoomsTab() {
   return (
     <div>
       <p style={lSt}>STEP 1 — Pick year(s)</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 6 }}>
+        <button onClick={() => setYears(years.length === yearChoices.length ? [] : [...yearChoices])} style={{
+          padding: '5px 12px', fontSize: 11, fontWeight: 700, borderRadius: 6, cursor: 'pointer',
+          border: `1px solid ${years.length === yearChoices.length ? 'var(--brand)' : 'var(--border)'}`,
+          background: years.length === yearChoices.length ? 'var(--brand)' : 'transparent',
+          color: years.length === yearChoices.length ? '#fff' : 'var(--text-2)',
+        }}>{years.length === yearChoices.length ? 'All years selected' : 'Select all years'}</button>
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{years.length} year(s) selected</span>
+      </div>
       <Pills items={yearChoices} value={years} onToggle={toggle(years, setYears)} labelOf={y => `Year ${y}`} />
 
       <p style={lSt}>STEP 2 — Pick day(s)</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 6 }}>
+        <button onClick={() => setDays(days.length === 6 ? [] : [1, 2, 3, 4, 5, 6])} style={{
+          padding: '5px 12px', fontSize: 11, fontWeight: 700, borderRadius: 6, cursor: 'pointer',
+          border: `1px solid ${days.length === 6 ? 'var(--brand)' : 'var(--border)'}`,
+          background: days.length === 6 ? 'var(--brand)' : 'transparent',
+          color: days.length === 6 ? '#fff' : 'var(--text-2)',
+        }}>{days.length === 6 ? 'All week selected' : 'Select all week'}</button>
+        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{days.length} day(s) selected</span>
+      </div>
       <Pills items={[1, 2, 3, 4, 5, 6]} value={days} onToggle={toggle(days, setDays)} labelOf={d => DAY_SHORT[d - 1]} />
 
       <p style={lSt}>STEP 3 — Pick hour(s)</p>
-      <PeriodPicker selected={periods} onChange={setPeriods} max={24} />
+      <PeriodPicker selected={periods} onChange={setPeriods} max={24} quick />
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 14 }}>
         <button className="btn btn-primary" onClick={run} disabled={busy}>
