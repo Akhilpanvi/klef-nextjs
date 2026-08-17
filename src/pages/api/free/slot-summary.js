@@ -59,18 +59,37 @@ export default async function handler(req, res) {
     room.set(key, { ...(room.get(key) || { room: key }), ...patch })
   }
 
+  // Every room kept out of the counts is recorded with its reason, so the
+  // Excel export can account for all of them and nothing disappears silently.
+  const excluded = new Map()
+  const exclude = (key, patch) => {
+    if (!key) return
+    excluded.set(key, { ...(excluded.get(key) || { room: key }), ...patch })
+  }
+
   for (const m of metas) {
     const key       = canonicalRoom(m.room_no)
     const allotment = String(m.alloted_to || '').toUpperCase()
     const wing      = WING_BY_ALLOTMENT[allotment]
     if (!key || !wing) continue
-    if (isSportsRoom(m.block, m.room_type)) continue
+    if (isSportsRoom(m.block, m.room_type)) {
+      exclude(key, { reason: 'Sports facility', wing, allotment,
+        type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
+      continue
+    }
     put(key, { wing, allotment, type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
   }
   for (const a of allocs) {
     const key = canonicalRoom(a.roomNo)
     if (!key) continue
-    if (isSportsRoom(a.block, a.type)) { room.delete(key); continue }
+    if (isSportsRoom(a.block, a.type)) {
+      const prev = room.get(key)
+      room.delete(key)
+      exclude(key, { reason: 'Sports facility', wing: prev?.wing ?? null,
+        type: a.type || prev?.type || null, capacity: a.capacity ?? prev?.capacity ?? null,
+        block: a.block || prev?.block || null, floor: a.floor ?? null })
+      continue
+    }
     const existing  = room.get(key)
     const allotment = String(a.coeMhs || '').toUpperCase()
     const wing = existing?.wing || WING_BY_ALLOTMENT[allotment]
@@ -100,7 +119,11 @@ export default async function handler(req, res) {
   // A room with no recorded capacity cannot be planned against, so drop it
   // rather than let it pad the counts. Capacity is only final once both
   // sources have been merged, hence the pass here rather than in the loops.
-  for (const [key, info] of room) if (!info.capacity) room.delete(key)
+  for (const [key, info] of room) {
+    if (info.capacity) continue
+    exclude(key, { ...info, reason: 'No capacity recorded' })
+    room.delete(key)
+  }
 
   const knownRooms = new Set(room.keys())
 
@@ -108,11 +131,19 @@ export default async function handler(req, res) {
   const cells     = {}   // "wing|sub|programme|year" -> Map(courseKey -> {...})
   const sections  = {}   // same key -> Set(section numbers)
   const busyRooms = new Set()
+  const unmatched = new Map()   // resolved key -> raw timetable names + a sample class
   let unparsed = 0
 
   for (const e of entries) {
     const r = resolveRoom(e.room_no, knownRooms)
-    if (r) busyRooms.add(r)
+    if (r) {
+      busyRooms.add(r)
+      if (!room.has(r)) {
+        const u = unmatched.get(r) || { raws: new Set(), sample: e.label || '' }
+        u.raws.add(String(e.room_no || '').trim())
+        unmatched.set(r, u)
+      }
+    }
 
     const p = parseLabel(e.label)
     if (!p) { unparsed++; continue }
@@ -169,7 +200,30 @@ export default async function handler(req, res) {
       usage: info.usage || {}, status: info.status || null, notes: info.notes || '',
     })
   }
-  for (const r of busyRooms) if (!room.has(r)) uncategorisedOccupied++
+  // Everything held back from the tallies, occupied or not, with its reason.
+  const excludedReport = []
+  for (const [key, u] of unmatched) {
+    const ex = excluded.get(key)
+    excludedReport.push({
+      room: key, reason: ex?.reason || 'Not in room master', occupied: true,
+      wing: ex?.wing ?? null, type: ex?.type ?? null, capacity: ex?.capacity ?? null,
+      block: ex?.block ?? null, floor: ex?.floor ?? null,
+      timetableNames: [...u.raws].sort(), sample: u.sample,
+    })
+  }
+  for (const [key, ex] of excluded) {
+    if (unmatched.has(key)) continue
+    excludedReport.push({
+      room: key, reason: ex.reason, occupied: false,
+      wing: ex.wing ?? null, type: ex.type ?? null, capacity: ex.capacity ?? null,
+      block: ex.block ?? null, floor: ex.floor ?? null,
+      timetableNames: [], sample: '',
+    })
+  }
+  excludedReport.sort((a, b) =>
+    a.reason.localeCompare(b.reason) ||
+    a.room.localeCompare(b.room, undefined, { numeric: true }))
+  uncategorisedOccupied = unmatched.size
 
   const byRoomNo = (a, b) => a.room.localeCompare(b.room, undefined, { numeric: true })
   for (const w of WINGS) { detail[w].occupied.sort(byRoomNo); detail[w].free.sort(byRoomNo) }
@@ -202,7 +256,8 @@ export default async function handler(req, res) {
     snapshot: snap.label || snap.filename || dataset,
     tables,
     courses,
-    rooms: { byWing: roomStats, detail, masterTotal: knownRooms.size, uncategorisedOccupied },
+    rooms: { byWing: roomStats, detail, masterTotal: knownRooms.size,
+      uncategorisedOccupied, excluded: excludedReport },
     entryCount: entries.length,
     unparsed,
   })

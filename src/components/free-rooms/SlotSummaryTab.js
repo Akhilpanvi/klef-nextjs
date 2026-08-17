@@ -277,6 +277,18 @@ export default function SlotSummaryTab({ initialDays, initialPeriods, onQueryCha
         })
     if (roomRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(roomRows), 'Room Detail')
 
+    // Everything held back from the tallies, so the sheet reconciles fully.
+    const excluded = data.rooms.excluded || []
+    if (excluded.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      excluded.map(r => ({
+        Room: r.room, Reason: r.reason,
+        Status: r.occupied ? 'In use this slot' : 'Not in use this slot',
+        Wing: r.wing || '', Type: r.type || '', Capacity: r.capacity ?? '',
+        Block: r.block || '', Floor: r.floor ?? '',
+        'Name(s) in room timetable': (r.timetableNames || []).join(' | '),
+        'Sample class': r.sample || '',
+      }))), 'Excluded Rooms')
+
     const detail = []
     for (const [key, list] of Object.entries(data.courses)) {
       const [wing, sub, program, year] = key.split('|')
@@ -341,8 +353,10 @@ export default function SlotSummaryTab({ initialDays, initialPeriods, onQueryCha
           </div>
           {data.rooms.uncategorisedOccupied > 0 && (
             <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 20 }}>
-              ⚠️ {data.rooms.uncategorisedOccupied} occupied room(s) are not in the room master, so they are
-              excluded above. Free figures cover the {data.rooms.masterTotal} known rooms only.
+              ⚠️ {data.rooms.uncategorisedOccupied} occupied room(s) are not counted above — not in the room
+              master, no recorded capacity, or a sports facility. Figures cover the {data.rooms.masterTotal}{' '}
+              countable rooms only. All {(data.rooms.excluded || []).length} excluded room(s) are itemised with
+              their reason on the “Excluded Rooms” sheet of the Excel export.
             </div>
           )}
 
