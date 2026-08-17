@@ -3,7 +3,9 @@ import { connectDB }       from '@/lib/mongodb'
 import RoomwiseEntry       from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot    from '@/lib/models/RoomwiseSnapshot'
 import FacultywiseEntry    from '@/lib/models/FacultywiseEntry'
+import FacultywiseFaculty  from '@/lib/models/FacultywiseFaculty'
 import FacultywiseSnapshot from '@/lib/models/FacultywiseSnapshot'
+import User                from '@/lib/models/User'
 import { parseLabel, resolveRoom, normalizeProgram, categoryOf, degreeGroupOf, WINGS }
   from '@/lib/roomLabel'
 import { buildRoomMaster, buildExcludedReport } from '@/lib/roomMaster'
@@ -227,9 +229,81 @@ export default async function handler(req, res) {
     freeSeats: seats(detail[w].free),
   }))
 
-  const faculty = [...facultyMap.values()]
-    .map(f => ({ ...f, slotCount: f.classes.length }))
+  // ── Enrich each faculty with FD details and their real weekly load ───────
+  // uni_id in the faculty-wise grid is the Emp No, which is User.eid from the
+  // FD upload — that join is what carries designation, responsibility and the
+  // permissible load into the export.
+  const facultyIds = [...facultyMap.keys()].filter(Boolean)
+  let fdById = new Map(), rosterById = new Map(), weekById = new Map()
+
+  if (facultyIds.length) {
+    const [users, roster, weekRows] = await Promise.all([
+      User.find({ eid: { $in: facultyIds } },
+        'eid display_name dept designation designation_category assigned_responsibility ' +
+        'cohort cohort_name phone email load_as_per_designation pl').lean(),
+      fwSnap ? FacultywiseFaculty.find(
+        { dataset: fwSnap.snapshotId, uni_id: { $in: facultyIds } },
+        'uni_id campus slotCount').lean() : [],
+      fwSnap ? FacultywiseEntry.find(
+        { dataset: fwSnap.snapshotId, uni_id: { $in: facultyIds } },
+        'uni_id course_code room_no section day hour').lean() : [],
+    ])
+    fdById     = new Map(users.map(u => [String(u.eid).trim(), u]))
+    rosterById = new Map(roster.map(r => [String(r.uni_id).trim(), r]))
+
+    for (const w of weekRows) {
+      const id = String(w.uni_id || '').trim()
+      if (!id) continue
+      const agg = weekById.get(id) ||
+        { slots: 0, courses: new Set(), rooms: new Set(), days: new Set() }
+      agg.slots++
+      if (w.course_code) agg.courses.add(w.course_code)
+      if (w.room_no)     agg.rooms.add(String(w.room_no).trim())
+      if (w.day)         agg.days.add(w.day)
+      weekById.set(id, agg)
+    }
+  }
+
+  const faculty = [...facultyMap.entries()]
+    .map(([id, f]) => {
+      const key  = String(id).trim()
+      const fd   = fdById.get(key)
+      const week = weekById.get(key)
+      const weekLoad = week ? week.slots : (rosterById.get(key)?.slotCount ?? null)
+      const pl = fd?.pl ?? null
+      return {
+        ...f,
+        slotCount: f.classes.length,
+        campus: f.campus || rosterById.get(key)?.campus || null,
+        // FD (faculty details) upload
+        fd: fd ? {
+          name: fd.display_name || null,
+          dept: fd.dept || null,                                  // DPET
+          designation: fd.designation || null,
+          category: fd.designation_category || null,              // R / Ac / Ad
+          responsibility: fd.assigned_responsibility || null,     // HOD, Dy.HOD, ...
+          cohort: fd.cohort || null,
+          cohort_name: fd.cohort_name || null,
+          phone: fd.phone || null,
+          email: fd.email || null,
+          designationLoad: fd.load_as_per_designation ?? null,
+          permissibleLoad: pl,
+        } : null,
+        // Actual load, measured from the faculty-wise timetable
+        workload: {
+          weekLoad,
+          weekCourses: week ? week.courses.size : null,
+          weekRooms:   week ? week.rooms.size : null,
+          weekDays:    week ? week.days.size : null,
+          vsPermissible: weekLoad != null && pl != null ? weekLoad - pl : null,
+          utilisationPct: weekLoad != null && pl ? Math.round((weekLoad / pl) * 100) : null,
+        },
+      }
+    })
     .sort((a, b) => String(a.faculty_name || a.uni_id).localeCompare(String(b.faculty_name || b.uni_id)))
+
+  const fdMatched = faculty.filter(f => f.fd).length
+  const overloaded = faculty.filter(f => (f.workload.vsPermissible ?? 0) > 0).length
 
   res.json({
     success: true,
@@ -252,6 +326,9 @@ export default async function handler(req, res) {
       count: faculty.length,
       classes: faculty.reduce((s, f) => s + f.slotCount, 0),
       fromFacultywise: Boolean(fwSnap),
+      fdMatched,
+      fdMissing: faculty.length - fdMatched,
+      overloaded,
     },
     rooms: {
       byWing: roomStats,

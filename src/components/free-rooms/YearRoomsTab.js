@@ -59,15 +59,20 @@ function Modal({ title, subtitle, onClose, children }) {
   )
 }
 
-function Stat({ label, value, sub, color }) {
+function Stat({ label, value, sub, color, onClick }) {
   return (
-    <div className="card" style={{ padding: 14, minWidth: 150, flex: '1 1 150px' }}>
+    <button className="card" onClick={onClick} title="Click for the full list" style={{
+      padding: 14, minWidth: 150, flex: '1 1 150px', cursor: 'pointer',
+      textAlign: 'left', border: '1px solid var(--border)', background: 'var(--surface)',
+    }}>
       <div style={{ fontSize: 11, fontWeight: 800, color: color || 'var(--text-3)', letterSpacing: '.04em', marginBottom: 6 }}>
         {label}
       </div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: color || 'var(--text)', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 800, color: color || 'var(--text)', lineHeight: 1, textDecoration: 'underline dotted' }}>
+        {value}
+      </div>
       {sub && <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{sub}</div>}
-    </div>
+    </button>
   )
 }
 
@@ -145,6 +150,7 @@ export default function YearRoomsTab() {
   const [cell, setCell]       = useState(null)
   const [roomView, setRoomView] = useState('free')
   const [showFaculty, setShowFaculty] = useState(false)
+  const [detail, setDetail] = useState(null)   // 'sections' | 'faculty' | 'selected' | 'other' | 'free'
 
   const toggle = (list, set) => v => set(list.includes(v) ? list.filter(x => x !== v) : [...list, v].sort((a, b) => a - b))
 
@@ -170,6 +176,36 @@ export default function YearRoomsTab() {
   const cellKey = cell ? `${cell.wing}|${cell.group}|${cell.program}|${cell.year}` : null
   const cellList = cellKey ? (data?.cellClasses?.[cellKey] || []) : []
 
+  // room -> full details, so a room mentioned anywhere can show its wing and
+  // what it is allotted to without a second lookup.
+  const roomById = useMemo(() => {
+    const m = new Map()
+    if (!data) return m
+    for (const [, d] of Object.entries(data.rooms.detail))
+      for (const status of ['selected', 'other', 'free'])
+        for (const r of d[status] || []) m.set(r.room, { ...r, status })
+    return m
+  }, [data])
+
+  const allClasses = useMemo(() => {
+    if (!data) return []
+    const out = []
+    for (const [key, list] of Object.entries(data.cellClasses)) {
+      const [wing, group, program, year] = key.split('|')
+      for (const c of list) out.push({ wing, group, program, year: +year, ...c })
+    }
+    return out.sort((a, b) =>
+      a.program.localeCompare(b.program) || a.year - b.year ||
+      String(a.course_code).localeCompare(String(b.course_code)))
+  }, [data])
+
+  const roomMeta = r => roomById.get(r) || null
+  const allottedTo = r => {
+    const m = roomMeta(r)
+    if (!m || !data) return ''
+    return data.days.map(d => m.usage?.[d]).filter(Boolean).join(' | ')
+  }
+
   const roomRows = useMemo(() => {
     if (!data) return []
     return Object.values(data.rooms.detail).flatMap(d => d[roomView] || [])
@@ -188,6 +224,9 @@ export default function YearRoomsTab() {
       { Metric: 'Total sections', Value: data.totals.sections },
       { Metric: 'Total classes', Value: data.totals.classes },
       { Metric: 'Faculty in these slots', Value: data.facultyTotals.count },
+      { Metric: 'Faculty with FD details matched', Value: data.facultyTotals.fdMatched },
+      { Metric: 'Faculty missing an FD row', Value: data.facultyTotals.fdMissing },
+      { Metric: 'Faculty over permissible load', Value: data.facultyTotals.overloaded },
       { Metric: 'Rooms used by selected year(s)', Value: data.totals.selectedRooms },
       { Metric: 'Rooms used by other years', Value: data.totals.otherRooms },
       { Metric: 'Free rooms', Value: data.totals.freeRooms },
@@ -213,30 +252,62 @@ export default function YearRoomsTab() {
         Wing: wing, Group: group, Programme: program, Year: year,
         'Course Code': c.course_code || '', Type: c.component || '', Section: c.section || '',
         Rooms: (c.rooms || []).join(' | '),
+        'Room Wing': (c.rooms || []).map(r => roomMeta(r)?.wing || '?').join(' | '),
+        'Room Allotment': (c.rooms || []).map(r => roomMeta(r)?.allotment || '?').join(' | '),
+        'Room Allotted To': (c.rooms || []).map(r => allottedTo(r) || '-').join(' | '),
+        'Room Type': (c.rooms || []).map(r => roomMeta(r)?.type || '?').join(' | '),
+        'Room Capacity': (c.rooms || []).map(r => roomMeta(r)?.capacity ?? '?').join(' | '),
         'Faculty ID': (c.faculty || []).map(f => f.uni_id).filter(Boolean).join(' | '),
         'Faculty Name': (c.faculty || []).map(f => f.faculty_name).filter(Boolean).join(' | '),
-        Source: (c.sources || []).join(' + '),
       })
     }
     add(classRows, 'Classes')
 
+    // Faculty sheet carries the FD details and the measured load, so the year's
+    // work can be reviewed from the workbook alone.
     add(data.faculty.map(f => ({
-      'Faculty ID': f.uni_id || '', 'Faculty Name': f.faculty_name || '',
-      Campus: f.campus || '', 'Classes in slot': f.slotCount,
+      'Faculty ID':   f.uni_id || '',
+      'Faculty Name': f.faculty_name || f.fd?.name || '',
+      'Dept (DPET)':  f.fd?.dept || '',
+      Designation:    f.fd?.designation || '',
+      'Category (R/Ac/Ad)': f.fd?.category || '',
+      'Assigned Responsibility': f.fd?.responsibility || '',
+      Cohort:        f.fd?.cohort || '',
+      'Cohort Name': f.fd?.cohort_name || '',
+      'Contact Number': f.fd?.phone || '',
+      'Email ID':       f.fd?.email || '',
+      Campus:           f.campus || '',
+      'Designation Load': f.fd?.designationLoad ?? '',
+      'Permissible Load': f.fd?.permissibleLoad ?? '',
+      'Actual Weekly Load (hrs)': f.workload?.weekLoad ?? '',
+      'Load vs Permissible':      f.workload?.vsPermissible ?? '',
+      'Utilisation %':            f.workload?.utilisationPct ?? '',
+      'Courses (week)': f.workload?.weekCourses ?? '',
+      'Rooms (week)':   f.workload?.weekRooms ?? '',
+      'Days (week)':    f.workload?.weekDays ?? '',
+      'Classes in selected slot': f.slotCount,
       Teaching: f.classes.map(c => `${c.program} Y${c.year} ${c.course_code || ''}-${c.component || ''} SEC:${c.section || ''} @${c.room || '?'}`).join(' | '),
+      'Rooms used': [...new Set(f.classes.map(c => c.room).filter(Boolean))].join(' | '),
+      'Room Wing': [...new Set(f.classes.map(c => roomMeta(c.room)?.wing).filter(Boolean))].join(' | '),
+      'Room Allotted To': [...new Set(f.classes.map(c => allottedTo(c.room)).filter(Boolean))].join(' | '),
+      'FD record': f.fd ? 'matched' : 'no FD row for this Emp No',
     })), 'Faculty')
 
-    for (const v of ROOM_VIEWS) {
-      const rows = Object.values(data.rooms.detail).flatMap(d => d[v.key] || [])
-        .sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }))
-      add(rows.map(r => ({
-        Room: r.room, Wing: r.wing, Allotment: r.allotment || '', Type: r.type || '',
-        Capacity: r.capacity ?? '', Block: r.block || '', Floor: r.floor ?? '',
-        'Allotted To': data.days.map(d => r.usage?.[d]).filter(Boolean).join(' | '),
+    // Every countable room on one sheet with a Status column, so it can be
+    // filtered or pivoted in Excel rather than split across three tabs.
+    const statusLabel = { selected: 'Used by selected year(s)', other: 'Used by other years', free: 'Free' }
+    add([...roomById.values()]
+      .sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }))
+      .map(r => ({
+        Room: r.room, Status: statusLabel[r.status] || r.status,
+        'Allocated Wing': r.wing,
+        'Allocated To (category)': r.allotment || '',
+        'Allotted To (Room Allocation)': allottedTo(r.room) || '',
+        Type: r.type || '', Capacity: r.capacity ?? '',
+        Block: r.block || '', Floor: r.floor ?? '',
         'Selected year(s) in room': (r.yearsSelected || []).join(', '),
         'Other year(s) in room': (r.yearsOther || []).join(', '),
-      })), `Rooms ${v.key}`)
-    }
+      })), 'Rooms')
 
     if (data.rooms.excluded?.length) add(data.rooms.excluded.map(r => ({
       Room: r.room, Reason: r.reason,
@@ -273,25 +344,24 @@ export default function YearRoomsTab() {
           <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 4 }}>
             <strong style={{ color: 'var(--text-2)' }}>{slotLabel}</strong>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 14 }}>
-            Sources —{' '}
-            <span style={{ color: data.sources.roomwise ? '#10b981' : '#ef4444' }}>
-              Room-wise TT: {data.sources.roomwise ? `${data.sources.roomwise.entries} rows` : 'not uploaded'}
-            </span>
-            {' · '}
-            <span style={{ color: data.sources.facultywise ? '#10b981' : '#ef4444' }}>
-              Faculty-wise TT: {data.sources.facultywise ? `${data.sources.facultywise.entries} rows` : 'not uploaded'}
-            </span>
-            {!data.sources.facultywise && ' — faculty names need this upload'}
-            {data.unparsed > 0 && <span style={{ color: '#f59e0b' }}> · {data.unparsed} cell(s) unreadable</span>}
-          </div>
+          {(!data.sources.facultywise || data.unparsed > 0) && (
+            <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 14 }}>
+              {!data.sources.facultywise && 'Faculty-wise timetable not uploaded — faculty names and load are unavailable. '}
+              {data.unparsed > 0 && `${data.unparsed} cell(s) unreadable.`}
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
-            <Stat label="SECTIONS" value={data.totals.sections} sub={`${data.totals.classes} classes`} />
-            <Stat label="FACULTY" value={data.facultyTotals.count} sub="teaching in these slots" color="#2563eb" />
-            <Stat label="ROOMS — SELECTED" value={data.totals.selectedRooms} sub="used by these year(s)" color="#c9122a" />
-            <Stat label="ROOMS — OTHER YEARS" value={data.totals.otherRooms} sub="not available" color="#f59e0b" />
-            <Stat label="ROOMS FREE" value={data.totals.freeRooms} sub={`${data.totals.freeSeats.toLocaleString()} seats`} color="#10b981" />
+            <Stat label="SECTIONS" value={data.totals.sections} sub={`${data.totals.classes} classes`}
+              onClick={() => setDetail('sections')} />
+            <Stat label="FACULTY" value={data.facultyTotals.count} sub="teaching in these slots" color="#2563eb"
+              onClick={() => setDetail('faculty')} />
+            <Stat label="ROOMS — SELECTED" value={data.totals.selectedRooms} sub="used by these year(s)" color="#c9122a"
+              onClick={() => { setRoomView('selected'); setDetail('selected') }} />
+            <Stat label="ROOMS — OTHER YEARS" value={data.totals.otherRooms} sub="not available" color="#f59e0b"
+              onClick={() => { setRoomView('other'); setDetail('other') }} />
+            <Stat label="ROOMS FREE" value={data.totals.freeRooms} sub={`${data.totals.freeSeats.toLocaleString()} seats`} color="#10b981"
+              onClick={() => { setRoomView('free'); setDetail('free') }} />
           </div>
 
           <p style={lSt}>SECTIONS BY PROGRAMME — click a count for courses &amp; faculty</p>
@@ -302,7 +372,19 @@ export default function YearRoomsTab() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <p style={{ ...lSt, margin: 0 }}>FACULTY IN THESE SLOTS — {data.facultyTotals.count}</p>
+            <p style={{ ...lSt, margin: 0 }}>
+              FACULTY IN THESE SLOTS — {data.facultyTotals.count}
+              {data.facultyTotals.fdMissing > 0 && (
+                <span style={{ fontWeight: 400, color: '#f59e0b', letterSpacing: 0, textTransform: 'none' }}>
+                  {' '}· {data.facultyTotals.fdMissing} without an FD record
+                </span>
+              )}
+              {data.facultyTotals.overloaded > 0 && (
+                <span style={{ fontWeight: 400, color: '#ef4444', letterSpacing: 0, textTransform: 'none' }}>
+                  {' '}· {data.facultyTotals.overloaded} over permissible load
+                </span>
+              )}
+            </p>
             <button className="btn btn-ghost" onClick={() => setShowFaculty(s => !s)} style={{ fontSize: 12 }}>
               {showFaculty ? 'Hide' : 'Show faculty list'}
             </button>
@@ -314,7 +396,10 @@ export default function YearRoomsTab() {
                   <tr>
                     <th style={thSt}>Faculty ID</th>
                     <th style={thSt}>Name</th>
-                    <th style={thSt}>Campus</th>
+                    <th style={thSt}>Dept</th>
+                    <th style={thSt}>Designation</th>
+                    <th style={thSt}>Responsibility</th>
+                    <th style={{ ...thSt, textAlign: 'right' }}>Load / PL</th>
                     <th style={{ ...thSt, textAlign: 'right' }}>Classes</th>
                     <th style={thSt}>Teaching</th>
                   </tr>
@@ -323,8 +408,17 @@ export default function YearRoomsTab() {
                   {data.faculty.length ? data.faculty.map(f => (
                     <tr key={f.uni_id || f.faculty_name}>
                       <td style={{ ...tdSt, fontFamily: 'monospace', fontWeight: 700 }}>{f.uni_id || '—'}</td>
-                      <td style={tdSt}>{f.faculty_name || '—'}</td>
-                      <td style={{ ...tdSt, fontSize: 12 }}>{f.campus || '—'}</td>
+                      <td style={tdSt}>{f.faculty_name || f.fd?.name || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{f.fd?.dept || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{f.fd?.designation || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{f.fd?.responsibility || '—'}</td>
+                      <td style={{ ...tdSt, textAlign: 'right', fontSize: 12 }}>
+                        {f.workload?.weekLoad ?? '—'}
+                        <span style={{ color: 'var(--text-3)' }}> / {f.fd?.permissibleLoad ?? '—'}</span>
+                        {f.workload?.vsPermissible > 0 && (
+                          <span style={{ color: '#ef4444', fontWeight: 700 }}> +{f.workload.vsPermissible}</span>
+                        )}
+                      </td>
                       <td style={{ ...tdSt, textAlign: 'right' }}>{f.slotCount}</td>
                       <td style={{ ...tdSt, fontSize: 11 }}>
                         {f.classes.map((c, i) => (
@@ -336,7 +430,7 @@ export default function YearRoomsTab() {
                       </td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={5} style={{ ...tdSt, color: 'var(--text-3)' }}>
+                    <tr><td colSpan={8} style={{ ...tdSt, color: 'var(--text-3)' }}>
                       No faculty identified — the Faculty-wise timetable supplies these names.
                     </td></tr>
                   )}
@@ -440,6 +534,158 @@ export default function YearRoomsTab() {
             </div>
           )}
         </div>
+      )}
+
+      {detail && (
+        <Modal
+          title={
+            detail === 'sections' ? `All sections — ${data.totals.sections} across ${data.totals.classes} classes`
+            : detail === 'faculty' ? `Faculty in these slots — ${data.facultyTotals.count}`
+            : `${ROOM_VIEWS.find(v => v.key === detail)?.label} — ${roomRows.length} room(s)`
+          }
+          subtitle={slotLabel}
+          onClose={() => setDetail(null)}
+        >
+          {detail === 'sections' && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={thSt}>Programme</th>
+                    <th style={{ ...thSt, textAlign: 'center' }}>Yr</th>
+                    <th style={thSt}>Course</th>
+                    <th style={thSt}>Type</th>
+                    <th style={thSt}>Sec</th>
+                    <th style={thSt}>Room</th>
+                    <th style={thSt}>Wing</th>
+                    <th style={thSt}>Allotted to</th>
+                    <th style={thSt}>Faculty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allClasses.map((c, i) => (
+                    <tr key={i}>
+                      <td style={{ ...tdSt, fontWeight: 700, fontSize: 12 }}>{c.program}</td>
+                      <td style={{ ...tdSt, textAlign: 'center' }}>{c.year}</td>
+                      <td style={{ ...tdSt, fontFamily: 'monospace', fontSize: 12 }}>{c.course_code || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{c.component || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{c.section || '—'}</td>
+                      <td style={{ ...tdSt, fontFamily: 'monospace', fontSize: 12 }}>{c.rooms?.join(', ') || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>
+                        {(c.rooms || []).map(r => roomMeta(r)?.wing).filter(Boolean).map((w, j) => (
+                          <span key={j} style={{ color: WING_COLOR[w], fontWeight: 700 }}>{w} </span>
+                        ))}
+                        {!(c.rooms || []).length && '—'}
+                      </td>
+                      <td style={{ ...tdSt, fontSize: 11 }}>
+                        {(c.rooms || []).map(r => allottedTo(r)).filter(Boolean).join(' | ') || '—'}
+                      </td>
+                      <td style={{ ...tdSt, fontSize: 11 }}>
+                        {c.faculty?.length
+                          ? c.faculty.map(f => `${f.uni_id || '?'} ${f.faculty_name || ''}`).join(', ')
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {detail === 'faculty' && (
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>
+                {data.facultyTotals.fdMatched} matched to an FD record
+                {data.facultyTotals.fdMissing > 0 && ` · ${data.facultyTotals.fdMissing} without one`}
+                {data.facultyTotals.overloaded > 0 && ` · ${data.facultyTotals.overloaded} over permissible load`}
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={thSt}>ID</th>
+                    <th style={thSt}>Name</th>
+                    <th style={thSt}>Dept</th>
+                    <th style={thSt}>Designation</th>
+                    <th style={thSt}>Responsibility</th>
+                    <th style={thSt}>Cohort</th>
+                    <th style={{ ...thSt, textAlign: 'right' }}>Load / PL</th>
+                    <th style={{ ...thSt, textAlign: 'right' }}>Util%</th>
+                    <th style={thSt}>Rooms used</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.faculty.map(f => (
+                    <tr key={f.uni_id || f.faculty_name}>
+                      <td style={{ ...tdSt, fontFamily: 'monospace', fontWeight: 700, fontSize: 12 }}>{f.uni_id || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{f.faculty_name || f.fd?.name || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{f.fd?.dept || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 11 }}>{f.fd?.designation || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 11 }}>{f.fd?.responsibility || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 11 }}>{f.fd?.cohort || '—'}</td>
+                      <td style={{ ...tdSt, textAlign: 'right', fontSize: 12 }}>
+                        {f.workload?.weekLoad ?? '—'}<span style={{ color: 'var(--text-3)' }}> / {f.fd?.permissibleLoad ?? '—'}</span>
+                      </td>
+                      <td style={{ ...tdSt, textAlign: 'right', fontSize: 12,
+                        color: f.workload?.utilisationPct > 100 ? '#ef4444' : 'var(--text)' }}>
+                        {f.workload?.utilisationPct != null ? `${f.workload.utilisationPct}%` : '—'}
+                      </td>
+                      <td style={{ ...tdSt, fontSize: 11, fontFamily: 'monospace' }}>
+                        {[...new Set(f.classes.map(c => c.room).filter(Boolean))].join(', ') || '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {['selected', 'other', 'free'].includes(detail) && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={thSt}>Room</th>
+                    <th style={thSt}>Allocated wing</th>
+                    <th style={thSt}>Allotted to</th>
+                    <th style={thSt}>Type</th>
+                    <th style={{ ...thSt, textAlign: 'right' }}>Capacity</th>
+                    <th style={thSt}>Block</th>
+                    <th style={thSt}>Year(s) in room</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roomRows.map(r => (
+                    <tr key={r.room}>
+                      <td style={{ ...tdSt, fontWeight: 700, fontFamily: 'monospace' }}>{r.room}</td>
+                      <td style={tdSt}>
+                        <span style={{ fontWeight: 700, fontSize: 12, color: WING_COLOR[r.wing] }}>{r.wing}</span>
+                        {r.allotment && r.allotment !== r.wing && (
+                          <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 4 }}>({r.allotment})</span>
+                        )}
+                      </td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{allottedTo(r.room) || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{r.type || '—'}</td>
+                      <td style={{ ...tdSt, textAlign: 'right' }}>{r.capacity ?? '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>{r.block || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 12 }}>
+                        {r.yearsSelected?.length ? <strong>Y{r.yearsSelected.join(', Y')}</strong> : null}
+                        {r.yearsSelected?.length && r.yearsOther?.length ? ' · ' : null}
+                        {r.yearsOther?.length ? <span style={{ color: 'var(--text-3)' }}>Y{r.yearsOther.join(', Y')}</span> : null}
+                        {!r.yearsSelected?.length && !r.yearsOther?.length ? '—' : null}
+                      </td>
+                    </tr>
+                  ))}
+                  {!roomRows.length && (
+                    <tr><td colSpan={7} style={{ ...tdSt, color: 'var(--text-3)' }}>No rooms in this group.</td></tr>
+                  )}
+                </tbody>
+              </table>
+              <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-3)' }}>
+                Total capacity: {roomRows.reduce((t, r) => t + (r.capacity || 0), 0).toLocaleString()} seats
+              </div>
+            </div>
+          )}
+        </Modal>
       )}
 
       {cell && (
