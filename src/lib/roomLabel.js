@@ -64,6 +64,15 @@ export const WING_BY_ALLOTMENT = {
   COE: 'COE', MHS: 'MHS', FED: 'FED', CRT: 'COE', COR: 'COE',
 }
 
+/**
+ * Sports facilities (block/type "SPORTS": courts, cricket nets, tracks) are not
+ * bookable teaching rooms, so they are excluded from occupied/free counts —
+ * otherwise 6 courts pad the COE free figure in every slot.
+ */
+export const isSportsRoom = (block, type) =>
+  /^SPORTS$/i.test(String(block || '').trim()) ||
+  /^SPORTS$/i.test(String(type  || '').trim())
+
 export const DAY_FIELDS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 export const DAY_NAMES  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 

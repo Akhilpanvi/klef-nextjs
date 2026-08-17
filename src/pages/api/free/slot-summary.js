@@ -4,8 +4,8 @@ import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta         from '@/lib/models/RoomMeta'
 import RoomAllocation   from '@/lib/models/RoomAllocation'
-import { parseLabel, resolveRoom, canonicalRoom, subGroupOf, WINGS, WING_BY_ALLOTMENT, DAY_FIELDS }
-  from '@/lib/roomLabel'
+import { parseLabel, resolveRoom, canonicalRoom, subGroupOf, isSportsRoom,
+  WINGS, WING_BY_ALLOTMENT, DAY_FIELDS } from '@/lib/roomLabel'
 
 /**
  * Slot summary for clash-removal planning.
@@ -64,11 +64,13 @@ export default async function handler(req, res) {
     const allotment = String(m.alloted_to || '').toUpperCase()
     const wing      = WING_BY_ALLOTMENT[allotment]
     if (!key || !wing) continue
+    if (isSportsRoom(m.block, m.room_type)) continue
     put(key, { wing, allotment, type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
   }
   for (const a of allocs) {
     const key = canonicalRoom(a.roomNo)
     if (!key) continue
+    if (isSportsRoom(a.block, a.type)) { room.delete(key); continue }
     const existing  = room.get(key)
     const allotment = String(a.coeMhs || '').toUpperCase()
     const wing = existing?.wing || WING_BY_ALLOTMENT[allotment]
