@@ -15,11 +15,78 @@ const lSt  = { fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpac
 const thSt = { padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', background: 'var(--surface-2)', whiteSpace: 'nowrap', textAlign: 'left' }
 const tdSt = { padding: '7px 10px', fontSize: 13, borderBottom: '1px solid var(--border)' }
 
+/**
+ * Two independent questions, so two independent filters.
+ *  status       - who touches the room anywhere in the selection
+ *  availability - how much of the selection it is actually free for
+ * A room used by year 3 on Monday is status "selected" yet may still be
+ * partly free for 44 of 66 slots, which is the number worth acting on.
+ */
 const ROOM_VIEWS = [
-  { key: 'selected', label: 'Used by selected year(s)', color: '#c9122a' },
-  { key: 'other',    label: 'Used by other years',      color: '#f59e0b' },
-  { key: 'free',     label: 'Free — nobody in them',    color: '#10b981' },
+  { key: 'all',        kind: 'all',   label: 'All rooms',                        color: 'var(--text-2)' },
+  { key: 'exclusive',  kind: 'excl',  label: 'Single use — only selected year(s)', color: '#059669' },
+  { key: 'shared',     kind: 'excl',  label: 'Multi use — shared with other years', color: '#f59e0b' },
+  { key: 'othersOnly', kind: 'excl',  label: 'Only other years',                 color: '#a855f7' },
+  { key: 'fullyFree',  kind: 'avail', label: 'Free in every slot',               color: '#10b981' },
+  { key: 'partlyFree', kind: 'avail', label: 'Free in some slots',               color: '#0ea5e9' },
+  { key: 'fullyBusy',  kind: 'avail', label: 'Busy in every slot',               color: '#ef4444' },
 ]
+const viewMatch = (r, key) => {
+  const v = ROOM_VIEWS.find(x => x.key === key)
+  if (!v || v.kind === 'all') return true
+  if (v.kind === 'excl')  return r.exclusivity === key
+  if (v.kind === 'avail') return r.availability === key
+  return r.status === key
+}
+
+const EXCL_LABEL = {
+  exclusive:  'Single use (only selected years)',
+  shared:     'Multi use (shared with other years)',
+  othersOnly: 'Only other years',
+  unused:     'Not used at all',
+}
+const AVAIL_LABEL = { fullyFree: 'Free every slot', partlyFree: 'Free some slots', fullyBusy: 'Busy every slot' }
+
+
+/** Day x hour grid of who occupies a room; blank means genuinely free. */
+function SlotGrid({ room, days, periods }) {
+  const byKey = new Map((room.slots || []).map(s => [`${s.d}-${s.h}`, s]))
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+        <thead>
+          <tr>
+            <th style={{ ...thSt, padding: '4px 6px' }}>Day</th>
+            {periods.map(h => <th key={h} style={{ ...thSt, padding: '4px 6px', textAlign: 'center' }}>{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {days.map(d => (
+            <tr key={d}>
+              <td style={{ ...tdSt, padding: '4px 6px', fontWeight: 700 }}>{DAY_SHORT[d - 1]}</td>
+              {periods.map(h => {
+                const cell = byKey.get(`${d}-${h}`)
+                const sel = cell?.sel?.length ? cell.sel.join('/') : ''
+                const oth = cell?.oth?.length ? cell.oth.join('/') : ''
+                const txt = [sel, oth].filter(Boolean).join('+')
+                return (
+                  <td key={h} title={cell ? `Year ${txt}` : 'free'} style={{
+                    ...tdSt, padding: '4px 6px', textAlign: 'center', fontWeight: 700,
+                    background: !cell ? 'rgba(16,185,129,.12)' : sel ? 'rgba(201,18,42,.14)' : 'rgba(245,158,11,.14)',
+                    color: !cell ? '#10b981' : sel ? '#c9122a' : '#b45309',
+                  }}>{txt || '·'}</td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
+        Numbers are the year occupying that hour. Green = free · red = a selected year · amber = another year.
+      </div>
+    </div>
+  )
+}
 
 function Pills({ items, value, onToggle, labelOf }) {
   return (
@@ -148,9 +215,10 @@ export default function YearRoomsTab() {
   const [data, setData]       = useState(null)
   const [busy, setBusy]       = useState(false)
   const [cell, setCell]       = useState(null)
-  const [roomView, setRoomView] = useState('free')
+  const [roomView, setRoomView] = useState('partlyFree')
   const [showFaculty, setShowFaculty] = useState(false)
-  const [detail, setDetail] = useState(null)   // 'sections' | 'faculty' | 'selected' | 'other' | 'free'
+  const [detail, setDetail] = useState(null)   // 'sections' | 'faculty' | 'rooms'
+  const [gridRoom, setGridRoom] = useState(null)
 
   const toggle = (list, set) => v => set(list.includes(v) ? list.filter(x => x !== v) : [...list, v].sort((a, b) => a - b))
 
@@ -181,9 +249,7 @@ export default function YearRoomsTab() {
   const roomById = useMemo(() => {
     const m = new Map()
     if (!data) return m
-    for (const [, d] of Object.entries(data.rooms.detail))
-      for (const status of ['selected', 'other', 'free'])
-        for (const r of d[status] || []) m.set(r.room, { ...r, status })
+    for (const r of data.rooms.list || []) m.set(r.room, r)
     return m
   }, [data])
 
@@ -208,8 +274,7 @@ export default function YearRoomsTab() {
 
   const roomRows = useMemo(() => {
     if (!data) return []
-    return Object.values(data.rooms.detail).flatMap(d => d[roomView] || [])
-      .sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }))
+    return (data.rooms.list || []).filter(r => viewMatch(r, roomView))
   }, [data, roomView])
 
   const download = () => {
@@ -227,10 +292,17 @@ export default function YearRoomsTab() {
       { Metric: 'Faculty with FD details matched', Value: data.facultyTotals.fdMatched },
       { Metric: 'Faculty missing an FD row', Value: data.facultyTotals.fdMissing },
       { Metric: 'Faculty over permissible load', Value: data.facultyTotals.overloaded },
-      { Metric: 'Rooms used by selected year(s)', Value: data.totals.selectedRooms },
-      { Metric: 'Rooms used by other years', Value: data.totals.otherRooms },
-      { Metric: 'Free rooms', Value: data.totals.freeRooms },
-      { Metric: 'Free seats', Value: data.totals.freeSeats },
+      { Metric: 'Slots per room in this selection', Value: data.totals.slotsPerRoom },
+      { Metric: 'Single use — only selected year(s)', Value: data.totals.exclusiveRooms },
+      { Metric: 'Single use seats', Value: data.totals.exclusiveSeats },
+      { Metric: 'Multi use — shared with other years', Value: data.totals.sharedRooms },
+      { Metric: 'Rooms touched by selected year(s)', Value: data.totals.selectedRooms },
+      { Metric: 'Rooms used by other years only', Value: data.totals.otherRooms },
+      { Metric: 'Free in every slot', Value: data.totals.fullyFree },
+      { Metric: 'Free in some slots', Value: data.totals.partlyFree },
+      { Metric: 'Busy in every slot', Value: data.totals.fullyBusy },
+      { Metric: 'Free seats (rooms free every slot)', Value: data.totals.freeSeats },
+      { Metric: 'Total free room-hours', Value: data.totals.freeSlotTotal },
       { Metric: 'Countable rooms', Value: data.rooms.masterTotal },
       { Metric: 'Room-wise TT', Value: data.sources.roomwise ? `${data.sources.roomwise.label} (${data.sources.roomwise.entries} rows)` : 'not uploaded' },
       { Metric: 'Faculty-wise TT', Value: data.sources.facultywise ? `${data.sources.facultywise.label} (${data.sources.facultywise.entries} rows)` : 'not uploaded' },
@@ -295,19 +367,51 @@ export default function YearRoomsTab() {
 
     // Every countable room on one sheet with a Status column, so it can be
     // filtered or pivoted in Excel rather than split across three tabs.
-    const statusLabel = { selected: 'Used by selected year(s)', other: 'Used by other years', free: 'Free' }
-    add([...roomById.values()]
+    const roomRow = r => ({
+      Room: r.room,
+      Use: EXCL_LABEL[r.exclusivity] || r.exclusivity,
+      Availability: AVAIL_LABEL[r.availability] || r.availability,
+      'Allocated Wing': r.wing,
+      'Allocated To (category)': r.allotment || '',
+      'Allotted To (Room Allocation)': allottedTo(r.room) || '',
+      Type: r.type || '', Capacity: r.capacity ?? '',
+      Block: r.block || '', Floor: r.floor ?? '',
+      'Selected year(s) in room': (r.yearsSelected || []).join(', '),
+      'Other year(s) in room': (r.yearsOther || []).join(', '),
+      'Busy slots': r.busySlots, 'Free slots': r.freeSlots, 'Slots in selection': r.totalSlots,
+      'Busy when': (r.slots || [])
+        .map(sl => `${DAY_SHORT[sl.d - 1]}${sl.h}:${[...(sl.sel || []), ...(sl.oth || [])].join('/')}`)
+        .join(' '),
+      'Free when': (() => {
+        const busy = new Set((r.slots || []).map(sl => `${sl.d}-${sl.h}`))
+        const out = []
+        for (const d of data.days) for (const h of data.periods)
+          if (!busy.has(`${d}-${h}`)) out.push(`${DAY_SHORT[d - 1]}${h}`)
+        return out.join(' ')
+      })(),
+    })
+
+    const allRooms = [...roomById.values()]
       .sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }))
-      .map(r => ({
-        Room: r.room, Status: statusLabel[r.status] || r.status,
-        'Allocated Wing': r.wing,
-        'Allocated To (category)': r.allotment || '',
+
+    // Every room, then the two that matter for reassignment on their own sheets.
+    add(allRooms.map(roomRow), 'Rooms')
+    add(allRooms.filter(r => r.exclusivity === 'exclusive').map(roomRow), 'Rooms Single Use')
+    add(allRooms.filter(r => r.exclusivity === 'shared').map(roomRow), 'Rooms Multi Use')
+
+    // One row per room per busy slot, so the grid can be pivoted in Excel.
+    const gridRows = []
+    for (const r of allRooms) {
+      for (const sl of r.slots || []) gridRows.push({
+        Room: r.room, Wing: r.wing, Use: EXCL_LABEL[r.exclusivity] || '',
+        Day: DAY_NAMES[sl.d - 1], Period: sl.h,
+        'Selected year(s)': (sl.sel || []).join(', '),
+        'Other year(s)': (sl.oth || []).join(', '),
+        Capacity: r.capacity ?? '',
         'Allotted To (Room Allocation)': allottedTo(r.room) || '',
-        Type: r.type || '', Capacity: r.capacity ?? '',
-        Block: r.block || '', Floor: r.floor ?? '',
-        'Selected year(s) in room': (r.yearsSelected || []).join(', '),
-        'Other year(s) in room': (r.yearsOther || []).join(', '),
-      })), 'Rooms')
+      })
+    }
+    add(gridRows, 'Room Slot Grid')
 
     if (data.rooms.excluded?.length) add(data.rooms.excluded.map(r => ({
       Room: r.room, Reason: r.reason,
@@ -356,12 +460,15 @@ export default function YearRoomsTab() {
               onClick={() => setDetail('sections')} />
             <Stat label="FACULTY" value={data.facultyTotals.count} sub="teaching in these slots" color="#2563eb"
               onClick={() => setDetail('faculty')} />
-            <Stat label="ROOMS — SELECTED" value={data.totals.selectedRooms} sub="used by these year(s)" color="#c9122a"
-              onClick={() => { setRoomView('selected'); setDetail('selected') }} />
-            <Stat label="ROOMS — OTHER YEARS" value={data.totals.otherRooms} sub="not available" color="#f59e0b"
-              onClick={() => { setRoomView('other'); setDetail('other') }} />
-            <Stat label="ROOMS FREE" value={data.totals.freeRooms} sub={`${data.totals.freeSeats.toLocaleString()} seats`} color="#10b981"
-              onClick={() => { setRoomView('free'); setDetail('free') }} />
+            <Stat label="SINGLE USE" value={data.totals.exclusiveRooms}
+              sub={`only these year(s) · ${data.totals.exclusiveSeats.toLocaleString()} seats`} color="#059669"
+              onClick={() => { setRoomView('exclusive'); setDetail('rooms') }} />
+            <Stat label="MULTI USE" value={data.totals.sharedRooms} sub="shared with other years" color="#f59e0b"
+              onClick={() => { setRoomView('shared'); setDetail('rooms') }} />
+            <Stat label="FREE EVERY SLOT" value={data.totals.fullyFree} sub={`${data.totals.freeSeats.toLocaleString()} seats · all ${data.totals.slotsPerRoom} slots`} color="#10b981"
+              onClick={() => { setRoomView('fullyFree'); setDetail('rooms') }} />
+            <Stat label="FREE SOME SLOTS" value={data.totals.partlyFree} sub={`${data.totals.freeSlotTotal.toLocaleString()} free room-hours`} color="#0ea5e9"
+              onClick={() => { setRoomView('partlyFree'); setDetail('rooms') }} />
           </div>
 
           <p style={lSt}>SECTIONS BY PROGRAMME — click a count for courses &amp; faculty</p>
@@ -440,10 +547,15 @@ export default function YearRoomsTab() {
           )}
 
           <p style={{ ...lSt, marginTop: 8 }}>ROOMS</p>
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>
+            Each room is measured across all {data.totals.slotsPerRoom} selected slots
+            ({data.days.length} day(s) × {data.periods.length} hour(s)). A room can be used by a
+            selected year in one hour and still be free in others — the Free / Busy slot counts
+            below say which, and the grid shows exactly when.
+          </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
             {ROOM_VIEWS.map(v => {
-              const n = v.key === 'selected' ? data.totals.selectedRooms
-                : v.key === 'other' ? data.totals.otherRooms : data.totals.freeRooms
+              const n = (data.rooms.list || []).filter(r => viewMatch(r, v.key)).length
               const on = roomView === v.key
               return (
                 <button key={v.key} onClick={() => setRoomView(v.key)} style={{
@@ -461,10 +573,13 @@ export default function YearRoomsTab() {
               <thead>
                 <tr>
                   <th style={thSt}>Wing</th>
-                  <th style={{ ...thSt, textAlign: 'right' }}>Selected</th>
-                  <th style={{ ...thSt, textAlign: 'right' }}>Other years</th>
-                  <th style={{ ...thSt, textAlign: 'right' }}>Free</th>
-                  <th style={{ ...thSt, textAlign: 'right' }}>Free seats</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Single use</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Multi use</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Only other yrs</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Free every slot</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Free some slots</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Busy every slot</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Free room-hours</th>
                   <th style={{ ...thSt, textAlign: 'right' }}>Total</th>
                 </tr>
               </thead>
@@ -472,10 +587,13 @@ export default function YearRoomsTab() {
                 {data.rooms.byWing.map(w => (
                   <tr key={w.wing}>
                     <td style={{ ...tdSt, fontWeight: 700, color: WING_COLOR[w.wing] }}>{w.wing}</td>
-                    <td style={{ ...tdSt, textAlign: 'right' }}>{w.selected}</td>
+                    <td style={{ ...tdSt, textAlign: 'right', fontWeight: 700, color: '#059669' }}>{w.exclusive}</td>
+                    <td style={{ ...tdSt, textAlign: 'right', color: '#f59e0b' }}>{w.shared}</td>
                     <td style={{ ...tdSt, textAlign: 'right' }}>{w.other}</td>
-                    <td style={{ ...tdSt, textAlign: 'right', fontWeight: 700, color: '#10b981' }}>{w.free}</td>
-                    <td style={{ ...tdSt, textAlign: 'right' }}>{w.freeSeats.toLocaleString()}</td>
+                    <td style={{ ...tdSt, textAlign: 'right', fontWeight: 700, color: '#10b981' }}>{w.fullyFree}</td>
+                    <td style={{ ...tdSt, textAlign: 'right', color: '#0ea5e9' }}>{w.partlyFree}</td>
+                    <td style={{ ...tdSt, textAlign: 'right', color: '#ef4444' }}>{w.fullyBusy}</td>
+                    <td style={{ ...tdSt, textAlign: 'right' }}>{w.freeSlots.toLocaleString()}</td>
                     <td style={{ ...tdSt, textAlign: 'right' }}>{w.total}</td>
                   </tr>
                 ))}
@@ -493,6 +611,8 @@ export default function YearRoomsTab() {
                   <th style={thSt}>Block</th>
                   <th style={thSt}>Wing</th>
                   <th style={thSt}>Allotted to</th>
+                  <th style={thSt}>Use</th>
+                  <th style={{ ...thSt, textAlign: 'right' }}>Busy / Free slots</th>
                   <th style={thSt}>Year(s) in room</th>
                 </tr>
               </thead>
@@ -512,6 +632,14 @@ export default function YearRoomsTab() {
                     <td style={{ ...tdSt, fontSize: 12 }}>
                       {data.days.map(d => r.usage?.[d]).filter(Boolean).join('  |  ') || '—'}
                     </td>
+                    <td style={{ ...tdSt, fontSize: 11 }}>
+                      <span style={{ fontWeight: 700, color: r.exclusivity === 'exclusive' ? '#059669' : r.exclusivity === 'shared' ? '#f59e0b' : 'var(--text-3)' }}>
+                        {r.exclusivity === 'exclusive' ? 'Single' : r.exclusivity === 'shared' ? 'Multi' : r.exclusivity === 'othersOnly' ? 'Others' : 'Unused'}
+                      </span>
+                    </td>
+                    <td style={{ ...tdSt, textAlign: 'right', fontSize: 12 }}>
+                      {r.busySlots} / <span style={{ color: '#10b981', fontWeight: 700 }}>{r.freeSlots}</span>
+                    </td>
                     <td style={{ ...tdSt, fontSize: 12 }}>
                       {r.yearsSelected?.length ? <strong>Y{r.yearsSelected.join(', Y')}</strong> : null}
                       {r.yearsSelected?.length && r.yearsOther?.length ? ' · ' : null}
@@ -520,7 +648,7 @@ export default function YearRoomsTab() {
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan={7} style={{ ...tdSt, color: 'var(--text-3)' }}>No rooms in this group.</td></tr>
+                  <tr><td colSpan={9} style={{ ...tdSt, color: 'var(--text-3)' }}>No rooms in this group.</td></tr>
                 )}
               </tbody>
             </table>
@@ -541,10 +669,10 @@ export default function YearRoomsTab() {
           title={
             detail === 'sections' ? `All sections — ${data.totals.sections} across ${data.totals.classes} classes`
             : detail === 'faculty' ? `Faculty in these slots — ${data.facultyTotals.count}`
-            : `${ROOM_VIEWS.find(v => v.key === detail)?.label} — ${roomRows.length} room(s)`
+            : `${ROOM_VIEWS.find(v => v.key === roomView)?.label} — ${roomRows.length} room(s)`
           }
           subtitle={slotLabel}
-          onClose={() => setDetail(null)}
+          onClose={() => { setDetail(null); setGridRoom(null) }}
         >
           {detail === 'sections' && (
             <div style={{ overflowX: 'auto' }}>
@@ -639,7 +767,7 @@ export default function YearRoomsTab() {
             </div>
           )}
 
-          {['selected', 'other', 'free'].includes(detail) && (
+          {detail === 'rooms' && (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -648,9 +776,11 @@ export default function YearRoomsTab() {
                     <th style={thSt}>Allocated wing</th>
                     <th style={thSt}>Allotted to</th>
                     <th style={thSt}>Type</th>
-                    <th style={{ ...thSt, textAlign: 'right' }}>Capacity</th>
-                    <th style={thSt}>Block</th>
+                    <th style={{ ...thSt, textAlign: 'right' }}>Cap</th>
+                    <th style={thSt}>Use</th>
+                    <th style={{ ...thSt, textAlign: 'right' }}>Busy / Free</th>
                     <th style={thSt}>Year(s) in room</th>
+                    <th style={thSt}>When</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -663,25 +793,46 @@ export default function YearRoomsTab() {
                           <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 4 }}>({r.allotment})</span>
                         )}
                       </td>
-                      <td style={{ ...tdSt, fontSize: 12 }}>{allottedTo(r.room) || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 11 }}>{allottedTo(r.room) || '—'}</td>
                       <td style={{ ...tdSt, fontSize: 12 }}>{r.type || '—'}</td>
                       <td style={{ ...tdSt, textAlign: 'right' }}>{r.capacity ?? '—'}</td>
-                      <td style={{ ...tdSt, fontSize: 12 }}>{r.block || '—'}</td>
+                      <td style={{ ...tdSt, fontSize: 11, fontWeight: 700,
+                        color: r.exclusivity === 'exclusive' ? '#059669' : r.exclusivity === 'shared' ? '#f59e0b' : 'var(--text-3)' }}>
+                        {r.exclusivity === 'exclusive' ? 'Single' : r.exclusivity === 'shared' ? 'Multi' : r.exclusivity === 'othersOnly' ? 'Others' : 'Unused'}
+                      </td>
+                      <td style={{ ...tdSt, textAlign: 'right', fontSize: 12 }}>
+                        {r.busySlots} / <span style={{ color: '#10b981', fontWeight: 700 }}>{r.freeSlots}</span>
+                      </td>
                       <td style={{ ...tdSt, fontSize: 12 }}>
                         {r.yearsSelected?.length ? <strong>Y{r.yearsSelected.join(', Y')}</strong> : null}
                         {r.yearsSelected?.length && r.yearsOther?.length ? ' · ' : null}
                         {r.yearsOther?.length ? <span style={{ color: 'var(--text-3)' }}>Y{r.yearsOther.join(', Y')}</span> : null}
                         {!r.yearsSelected?.length && !r.yearsOther?.length ? '—' : null}
                       </td>
+                      <td style={tdSt}>
+                        <button onClick={() => setGridRoom(gridRoom === r.room ? null : r.room)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--brand)', fontSize: 11, textDecoration: 'underline dotted', padding: 0 }}>
+                          {gridRoom === r.room ? 'hide' : 'grid'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {!roomRows.length && (
-                    <tr><td colSpan={7} style={{ ...tdSt, color: 'var(--text-3)' }}>No rooms in this group.</td></tr>
+                    <tr><td colSpan={9} style={{ ...tdSt, color: 'var(--text-3)' }}>No rooms in this group.</td></tr>
                   )}
                 </tbody>
               </table>
+              {gridRoom && roomById.get(gridRoom) && (
+                <div style={{ marginTop: 14, padding: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 8 }}>
+                    {gridRoom} — busy {roomById.get(gridRoom).busySlots} of {roomById.get(gridRoom).totalSlots} slots
+                  </div>
+                  <SlotGrid room={roomById.get(gridRoom)} days={data.days} periods={data.periods} />
+                </div>
+              )}
               <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-3)' }}>
-                Total capacity: {roomRows.reduce((t, r) => t + (r.capacity || 0), 0).toLocaleString()} seats
+                Total capacity: {roomRows.reduce((t, r) => t + (r.capacity || 0), 0).toLocaleString()} seats ·
+                {' '}{roomRows.reduce((t, r) => t + r.freeSlots, 0).toLocaleString()} free room-hours in this group
               </div>
             </div>
           )}

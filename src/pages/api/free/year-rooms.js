@@ -73,11 +73,16 @@ export default async function handler(req, res) {
   const yearsSeen  = new Set()
   const classes    = new Map()   // dedupe key -> merged class record
   const facultyMap = new Map()   // uni_id -> { name, campus, classes:[] }
-  const roomUse    = new Map()   // resolved room -> { selected:Set(year), other:Set(year) }
+  // room -> Map("day-hour" -> { sel:Set(year), oth:Set(year) }).
+  // Per slot, not per room: a room used by year 3 on Monday and year 2 at hour 8
+  // is busy in two slots and free in the rest, and collapsing that to a single
+  // label hides every hour it is actually available.
+  const roomSlots  = new Map()
   const unmatched  = new Map()
   let unparsed = 0
+  const totalSlots = dayNums.length * periodNums.length
 
-  const noteRoom = (raw, sample, year, inScope) => {
+  const noteRoom = (raw, sample, year, inScope, day, hour) => {
     if (!raw) return null
     const r = resolveRoom(raw, knownRooms)
     if (!r) return null
@@ -87,17 +92,22 @@ export default async function handler(req, res) {
       unmatched.set(r, u)
       return r
     }
-    const use = roomUse.get(r) || { selected: new Set(), other: new Set() }
-    ;(inScope ? use.selected : use.other).add(year)
-    roomUse.set(r, use)
+    if (day && hour) {
+      const grid = roomSlots.get(r) || new Map()
+      const key  = `${day}-${hour}`
+      const cell = grid.get(key) || { sel: new Set(), oth: new Set() }
+      if (year != null) (inScope ? cell.sel : cell.oth).add(year)
+      grid.set(key, cell)
+      roomSlots.set(r, grid)
+    }
     return r
   }
 
-  const addClass = ({ program, year, course_code, component, section, roomRaw, sample, source, uni_id, faculty_name, campus }) => {
+  const addClass = ({ program, year, course_code, component, section, roomRaw, sample, source, uni_id, faculty_name, campus, day, hour }) => {
     if (!program || !year) return
     yearsSeen.add(year)
     const inScope = yearSet.has(year)
-    const resolved = noteRoom(roomRaw, sample, year, inScope)
+    const resolved = noteRoom(roomRaw, sample, year, inScope, day, hour)
     if (!inScope) return
 
     const wing  = categoryOf(program)
@@ -132,11 +142,12 @@ export default async function handler(req, res) {
   // ── Room-wise TT ──────────────────────────────────────────────────────────
   for (const e of rwEntries) {
     const p = parseLabel(e.label)
-    if (!p) { unparsed++; noteRoom(e.room_no, e.label, null, false); continue }
+    if (!p) { unparsed++; noteRoom(e.room_no, e.label, null, false, e.day, e.hour); continue }
     addClass({
       program: p.program, year: p.year, course_code: p.course_code,
       component: p.component, section: p.section,
       roomRaw: e.room_no, sample: e.label, source: 'roomwise',
+      day: e.day, hour: e.hour,
     })
   }
 
@@ -146,13 +157,14 @@ export default async function handler(req, res) {
     const year    = parseInt(e.offering_level, 10)
     if (!program || !year) {
       unparsed++
-      noteRoom(e.room_no, e.raw, null, false)
+      noteRoom(e.room_no, e.raw, null, false, e.day, e.hour)
       continue
     }
     addClass({
       program, year, course_code: e.course_code, component: e.component,
       section: e.section, roomRaw: e.room_no, sample: e.raw, source: 'facultywise',
       uni_id: e.uni_id, faculty_name: e.faculty_name, campus: e.campus,
+      day: e.day, hour: e.hour,
     })
   }
 
@@ -198,71 +210,72 @@ export default async function handler(req, res) {
       String(a.section).localeCompare(String(b.section), undefined, { numeric: true }))
   }
 
-  // ── Rooms: used by the selected years, by others, or free ────────────────
-  const detail = Object.fromEntries(WINGS.map(w => [w, { selected: [], other: [], free: [] }]))
+  // ── Rooms, per slot ──────────────────────────────────────────────────────
+  // Every room reports how many of the selected slots it is busy in, which
+  // years those are, and the busy slots themselves — so a room that is taken
+  // on Monday and free at hour 8 reads as exactly that.
+  const roomList = []
   for (const info of room.values()) {
-    const bucket = detail[info.wing]
-    if (!bucket) continue
-    const use = roomUse.get(info.room)
-    const row = {
+    if (!WINGS.includes(info.wing)) continue
+    const grid = roomSlots.get(info.room)
+    const selYears = new Set(), othYears = new Set()
+    const slots = []
+    if (grid) {
+      for (const [key, cell] of grid) {
+        const [d, h] = key.split('-').map(Number)
+        for (const y of cell.sel) selYears.add(y)
+        for (const y of cell.oth) othYears.add(y)
+        slots.push({ d, h, sel: [...cell.sel].sort((a, b) => a - b), oth: [...cell.oth].sort((a, b) => a - b) })
+      }
+      slots.sort((a, b) => a.d - b.d || a.h - b.h)
+    }
+    const busySlots = slots.length
+    const freeSlots = Math.max(0, totalSlots - busySlots)
+
+    roomList.push({
       room: info.room, capacity: info.capacity ?? null, type: info.type || null,
       block: info.block || null, floor: info.floor ?? null,
       wing: info.wing, allotment: info.allotment || info.wing,
       usage: info.usage || {},
-      yearsSelected: use ? [...use.selected].sort((a, b) => a - b) : [],
-      yearsOther:    use ? [...use.other].sort((a, b) => a - b) : [],
-    }
-    if (use?.selected.size)    bucket.selected.push(row)
-    else if (use?.other.size)  bucket.other.push(row)
-    else                       bucket.free.push(row)
+      yearsSelected: [...selYears].sort((a, b) => a - b),
+      yearsOther:    [...othYears].sort((a, b) => a - b),
+      busySlots, freeSlots, totalSlots,
+      // Who has it: touched by a selected year, only by others, or nobody.
+      status: selYears.size ? 'selected' : othYears.size ? 'other' : 'free',
+      // Whether the selected years have it to themselves. A room used only by
+      // the selected years can be reassigned outright; one shared with another
+      // year cannot, so this is the split that decides what is actionable.
+      exclusivity: selYears.size
+        ? (othYears.size ? 'shared' : 'exclusive')
+        : (othYears.size ? 'othersOnly' : 'unused'),
+      // How available it is across the selection.
+      availability: busySlots === 0 ? 'fullyFree'
+        : busySlots >= totalSlots ? 'fullyBusy' : 'partlyFree',
+      slots,
+    })
   }
-  const byRoomNo = (a, b) => a.room.localeCompare(b.room, undefined, { numeric: true })
-  for (const w of WINGS) for (const k of ['selected', 'other', 'free']) detail[w][k].sort(byRoomNo)
+  roomList.sort((a, b) => a.room.localeCompare(b.room, undefined, { numeric: true }))
 
   const seats = rows => rows.reduce((s, r) => s + (r.capacity || 0), 0)
-  const roomStats = WINGS.map(w => ({
-    wing: w,
-    selected: detail[w].selected.length,
-    other:    detail[w].other.length,
-    free:     detail[w].free.length,
-    total:    detail[w].selected.length + detail[w].other.length + detail[w].free.length,
-    freeSeats: seats(detail[w].free),
-  }))
+  const count = fn => roomList.filter(fn).length
 
-  // ── Enrich each faculty with FD details and their real weekly load ───────
-  // uni_id in the faculty-wise grid is the Emp No, which is User.eid from the
-  // FD upload — that join is what carries designation, responsibility and the
-  // permissible load into the export.
-  const facultyIds = [...facultyMap.keys()].filter(Boolean)
-  let fdById = new Map(), rosterById = new Map(), weekById = new Map()
-
-  if (facultyIds.length) {
-    const [users, roster, weekRows] = await Promise.all([
-      User.find({ eid: { $in: facultyIds } },
-        'eid display_name dept designation designation_category assigned_responsibility ' +
-        'cohort cohort_name phone email load_as_per_designation pl').lean(),
-      fwSnap ? FacultywiseFaculty.find(
-        { dataset: fwSnap.snapshotId, uni_id: { $in: facultyIds } },
-        'uni_id campus slotCount').lean() : [],
-      fwSnap ? FacultywiseEntry.find(
-        { dataset: fwSnap.snapshotId, uni_id: { $in: facultyIds } },
-        'uni_id course_code room_no section day hour').lean() : [],
-    ])
-    fdById     = new Map(users.map(u => [String(u.eid).trim(), u]))
-    rosterById = new Map(roster.map(r => [String(r.uni_id).trim(), r]))
-
-    for (const w of weekRows) {
-      const id = String(w.uni_id || '').trim()
-      if (!id) continue
-      const agg = weekById.get(id) ||
-        { slots: 0, courses: new Set(), rooms: new Set(), days: new Set() }
-      agg.slots++
-      if (w.course_code) agg.courses.add(w.course_code)
-      if (w.room_no)     agg.rooms.add(String(w.room_no).trim())
-      if (w.day)         agg.days.add(w.day)
-      weekById.set(id, agg)
+  const roomStats = WINGS.map(w => {
+    const inWing = roomList.filter(r => r.wing === w)
+    return {
+      wing: w,
+      selected:   inWing.filter(r => r.status === 'selected').length,
+      other:      inWing.filter(r => r.status === 'other').length,
+      free:       inWing.filter(r => r.status === 'free').length,
+      exclusive:  inWing.filter(r => r.exclusivity === 'exclusive').length,
+      shared:     inWing.filter(r => r.exclusivity === 'shared').length,
+      fullyFree:  inWing.filter(r => r.availability === 'fullyFree').length,
+      partlyFree: inWing.filter(r => r.availability === 'partlyFree').length,
+      fullyBusy:  inWing.filter(r => r.availability === 'fullyBusy').length,
+      freeSlots:  inWing.reduce((s, r) => s + r.freeSlots, 0),
+      total:      inWing.length,
+      freeSeats:  seats(inWing.filter(r => r.availability === 'fullyFree')),
     }
-  }
+  })
 
   const faculty = [...facultyMap.entries()]
     .map(([id, f]) => {
@@ -332,7 +345,7 @@ export default async function handler(req, res) {
     },
     rooms: {
       byWing: roomStats,
-      detail,
+      list: roomList,
       masterTotal: knownRooms.size,
       uncategorisedOccupied: unmatched.size,
       excluded: buildExcludedReport(excluded, unmatched),
@@ -340,10 +353,18 @@ export default async function handler(req, res) {
     totals: {
       classes:  classes.size,
       sections: tables.reduce((s, t) => s + t.sections, 0),
-      selectedRooms: WINGS.reduce((s, w) => s + detail[w].selected.length, 0),
-      otherRooms:    WINGS.reduce((s, w) => s + detail[w].other.length, 0),
-      freeRooms:     WINGS.reduce((s, w) => s + detail[w].free.length, 0),
-      freeSeats:     WINGS.reduce((s, w) => s + seats(detail[w].free), 0),
+      slotsPerRoom:  totalSlots,
+      selectedRooms: count(r => r.status === 'selected'),
+      otherRooms:    count(r => r.status === 'other'),
+      exclusiveRooms: count(r => r.exclusivity === 'exclusive'),
+      sharedRooms:    count(r => r.exclusivity === 'shared'),
+      exclusiveSeats: seats(roomList.filter(r => r.exclusivity === 'exclusive')),
+      freeRooms:     count(r => r.status === 'free'),
+      fullyFree:     count(r => r.availability === 'fullyFree'),
+      partlyFree:    count(r => r.availability === 'partlyFree'),
+      fullyBusy:     count(r => r.availability === 'fullyBusy'),
+      freeSeats:     seats(roomList.filter(r => r.availability === 'fullyFree')),
+      freeSlotTotal: roomList.reduce((s, r) => s + r.freeSlots, 0),
     },
     unparsed,
   })
