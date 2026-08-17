@@ -92,6 +92,16 @@ export function parseLabel(raw) {
 const SECTION_SUFFIX = /-(A|B|C|D|E|F|MA|AB|CD)$/i
 
 /**
+ * Room names are spelled inconsistently across sources — RoomMeta carries both
+ * "C421 B1" and "C421B1" for the same room, and RoomAllocation adds a third
+ * spelling. Whitespace never distinguishes two real rooms, so drop it before
+ * comparing; otherwise one spelling matches the timetable and its twin sits in
+ * the free list forever.
+ */
+const normaliseRoomText = raw =>
+  String(raw || '').trim().toUpperCase().replace(/\s+/g, '')
+
+/**
  * Some sources name a room descriptively — RoomAllocation has
  * "F102-CHEMISTRY LAB" and "F201-PHYSICS LAB" where RoomMeta has plain
  * "F102" and the room timetable has "F102-A" / "F102-MA". Left alone these
@@ -104,8 +114,7 @@ const SECTION_SUFFIX = /-(A|B|C|D|E|F|MA|AB|CD)$/i
 const DESCRIPTIVE = /^([A-Z]{1,3}\s?\d{2,4}[A-Z]?\d?)\s*-\s*(.{3,})$/
 
 export function canonicalRoom(raw) {
-  // Internal spacing is significant elsewhere ("C421  B1"), so only trim/upper.
-  const s = String(raw || '').trim().toUpperCase()
+  const s = normaliseRoomText(raw)
   const m = DESCRIPTIVE.exec(s)
   if (!m) return s
   if (/^(A|B|C|D|E|F|MA|AB|CD)$/.test(m[2].trim())) return s
@@ -113,7 +122,7 @@ export function canonicalRoom(raw) {
 }
 
 export function resolveRoom(raw, knownRooms) {
-  let s = String(raw || '').trim().toUpperCase()
+  let s = normaliseRoomText(raw)
   if (!s) return ''
   if (knownRooms?.has(s)) return s
 

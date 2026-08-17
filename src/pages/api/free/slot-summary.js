@@ -82,9 +82,12 @@ export default async function handler(req, res) {
     put(key, {
       wing,
       allotment: existing?.allotment || allotment || wing,
-      type:     existing?.type     ?? a.type     ?? null,
-      capacity: existing?.capacity ?? a.capacity ?? null,
-      block:    existing?.block    ?? a.block    ?? null,
+      // Occupancy comes from the room timetable; descriptive data comes from
+      // Room Allocation, falling back to RoomMeta where the sheet is blank
+      // (capacity in particular is often null there).
+      type:     a.type     ?? existing?.type     ?? null,
+      capacity: a.capacity ?? existing?.capacity ?? null,
+      block:    a.block    ?? existing?.block    ?? null,
       floor:    a.floor ?? null,
       usage,
       status:   a.status || null,
