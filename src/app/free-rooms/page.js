@@ -12,6 +12,12 @@ import SlotSummaryTab from '@/components/free-rooms/SlotSummaryTab'
 const DAYS     = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const DAY_KEYS = ['Mon','Tue','Wed','Thu','Fri','Sat']
 
+// A week is TOTAL_DAYS x MAX_PERIOD slots. Day-wise bars count periods within
+// one day (out of MAX_PERIOD); hour-wise bars count days for one period (out
+// of TOTAL_DAYS). Kept as constants so the two are never mixed up again.
+const TOTAL_DAYS = 6
+const MAX_PERIOD = 11
+
 const getPctColor = p => p < 40 ? '#10b981' : p < 75 ? '#f59e0b' : '#ef4444'
 
 // Renders small ERP ID badges for each section (MA, A, B, C, D…)
@@ -444,7 +450,6 @@ function RoomSearchTab() {
 // ── Tab 5: Box TT to Room TT Converter ───────────────────────────────────────
 const BOX_DAY_KEYS  = ['Mon','Tue','Wed','Thu','Fri','Sat']
 const BOX_DAY_NAMES = { Mon:'Monday', Tue:'Tuesday', Wed:'Wednesday', Thu:'Thursday', Fri:'Friday', Sat:'Saturday' }
-const MAX_PERIOD    = 11
 
 function BoxTTTab() {
   const { user, loading: authLoading } = useAuth()
@@ -790,23 +795,34 @@ function AnalyticsTab({ initialRoom, onClear }) {
             <div className="result-card" style={{flexDirection:'column',alignItems:'center',padding:24}}>
               <div style={{fontSize:12,fontWeight:700,color:'var(--text-3)',marginBottom:8}}>WEEKLY OVERVIEW</div>
               <div style={{fontSize:'3rem',fontWeight:800,color:'var(--brand)'}}>{data.weeklyPct}%</div>
-              <div style={{fontSize:13,color:'var(--text-3)',marginTop:4}}>Total Occupancy: {data.totalBusy}/{data.totalSlots}</div>
+              <div style={{fontSize:13,color:'var(--text-3)',marginTop:4}}>
+                Total Occupancy: {data.totalBusy}/{data.totalSlots} slots
+              </div>
+              <div style={{fontSize:11,color:'var(--text-3)',marginTop:2}}>
+                {TOTAL_DAYS} days &times; {MAX_PERIOD} periods
+              </div>
             </div>
             <div className="result-card" style={{flexDirection:'column',padding:20}}>
-              <div style={{fontSize:12,fontWeight:700,color:'var(--text-3)',marginBottom:12}}>DAY-WISE USAGE</div>
+              <div style={{fontSize:12,fontWeight:700,color:'var(--text-3)',marginBottom:2}}>DAY-WISE USAGE</div>
+              <div style={{fontSize:11,fontWeight:400,color:'var(--text-3)',marginBottom:12}}>
+                Periods busy on each day — out of {MAX_PERIOD} periods
+              </div>
               {DAY_KEYS.map((d,i)=>{
                 const count = data.dayCounts?.[d]||0
-                const pct   = Math.round((count/11)*100)
-                return <UtilBar key={d} label={DAYS[i]} value={count} max={11} pct={pct}/>
+                const pct   = Math.round((count/MAX_PERIOD)*100)
+                return <UtilBar key={d} label={DAYS[i]} value={count} max={MAX_PERIOD} pct={pct}/>
               })}
             </div>
           </div>
           <div className="result-card" style={{flexDirection:'column',padding:20}}>
-            <div style={{fontSize:12,fontWeight:700,color:'var(--text-3)',marginBottom:12}}>HOUR-WISE USAGE</div>
+            <div style={{fontSize:12,fontWeight:700,color:'var(--text-3)',marginBottom:2}}>HOUR-WISE USAGE</div>
+            <div style={{fontSize:11,fontWeight:400,color:'var(--text-3)',marginBottom:12}}>
+              Days each period is busy — out of {TOTAL_DAYS} days
+            </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:'8px 20px'}}>
-              {Array.from({length:11},(_,i)=>i+1).map(p=>{
+              {Array.from({length:MAX_PERIOD},(_,i)=>i+1).map(p=>{
                 const h = data.hourStats?.[p]||{count:0,pct:0}
-                return <UtilBar key={p} label={`Period ${p}`} value={h.count} max={6} pct={h.pct}/>
+                return <UtilBar key={p} label={`Period ${p}`} value={h.count} max={TOTAL_DAYS} pct={h.pct}/>
               })}
             </div>
           </div>
