@@ -48,6 +48,17 @@ export function subGroupOf(normalizedProgram, year) {
   return 'MHS'
 }
 
+/**
+ * Degree group without the FED split — B.Tech Year 1 stays inside B.Tech.
+ * Slot Summary pulls first-years out into FED because FED runs them; the
+ * year-wise view wants them counted under COE with the rest of their degree.
+ */
+export function degreeGroupOf(normalizedProgram) {
+  if (/^M\.Tech\b/i.test(normalizedProgram)) return 'M.Tech'
+  if (/^B\.Tech\b/i.test(normalizedProgram)) return 'B.Tech'
+  return 'MHS'
+}
+
 /** The only three wings. */
 export const WINGS = ['COE', 'MHS', 'FED']
 
