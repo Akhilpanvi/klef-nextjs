@@ -40,14 +40,22 @@ export default async function handler(req, res) {
     'day hour'
   ).lean()
 
-  const dayCounts = { Mon:0, Tue:0, Wed:0, Thu:0, Fri:0, Sat:0 }
-  const hourBusy  = {}
+  // Count distinct busy HOURS per day, not entries. A room has one row per
+  // associative section (MA/A/B/C/D), so a single busy hour yields several
+  // rows — summing rows pushed days past their own 11-period maximum and the
+  // weekly total past 100%.
+  const dayHours = {}
+  const hourBusy = {}
+  for (const dk of DAY_KEYS) dayHours[dk] = new Set()
   for (const e of entries) {
     const dk = DAY_KEYS[e.day - 1]
-    if (dk) dayCounts[dk]++
+    if (dk) dayHours[dk].add(e.hour)
     if (!hourBusy[e.hour]) hourBusy[e.hour] = new Set()
     hourBusy[e.hour].add(e.day)
   }
+
+  const dayCounts = {}
+  for (const dk of DAY_KEYS) dayCounts[dk] = dayHours[dk].size
 
   const hourStats = {}
   for (let h = 1; h <= MAX_PERIOD; h++) {
@@ -55,7 +63,8 @@ export default async function handler(req, res) {
     hourStats[h] = { count, pct: Math.round((count / 6) * 100) }
   }
 
-  const totalBusy = Object.values(dayCounts).reduce((a,b) => a+b, 0)
+  // Distinct day+hour slots, so this can never exceed TOTAL_SLOTS.
+  const totalBusy = Object.values(dayCounts).reduce((a, b) => a + b, 0)
   const weeklyPct = Math.round((totalBusy / TOTAL_SLOTS) * 100)
 
   const meta   = await RoomMeta.findOne({ room_no: roomName }).lean()
