@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import RoomAllocationTab from '@/components/free-rooms/RoomAllocationTab'
 import SlotSummaryTab from '@/components/free-rooms/SlotSummaryTab'
+import YearRoomsTab from '@/components/free-rooms/YearRoomsTab'
 
 const DAYS     = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const DAY_KEYS = ['Mon','Tue','Wed','Thu','Fri','Sat']
@@ -853,7 +854,7 @@ function FreeRoomsContent() {
       <h2 style={{margin:'0 0 16px',fontFamily:"'DM Serif Display',serif",fontSize:'1.25rem'}}>Room Availability</h2>
 
       <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'2px solid var(--border)',flexWrap:'wrap'}}>
-        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'},{id:'allocation',label:'🏢 Room Allocation'},{id:'slot',label:'🧩 Slot Summary'}].map(t=>(
+        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'},{id:'allocation',label:'🏢 Room Allocation'},{id:'slot',label:'🧩 Slot Summary'},{id:'year',label:'🎓 Year-wise Rooms'}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
             padding:'8px 18px',fontSize:13,fontWeight:700,border:'none',background:'none',cursor:'pointer',
             borderBottom:tab===t.id?'2px solid var(--brand)':'2px solid transparent',
@@ -869,6 +870,7 @@ function FreeRoomsContent() {
       {tab==='boxtt'      && <BoxTTTab/>}
       {tab==='allocation' && <RoomAllocationTab/>}
       {tab==='slot'       && <SlotSummaryTab/>}
+      {tab==='year'       && <YearRoomsTab/>}
     </PortalShell>
   )
 }

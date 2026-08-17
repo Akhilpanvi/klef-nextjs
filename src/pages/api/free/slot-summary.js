@@ -2,10 +2,8 @@ import { requireAuth }  from '@/lib/auth'
 import { connectDB }    from '@/lib/mongodb'
 import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
-import RoomMeta         from '@/lib/models/RoomMeta'
-import RoomAllocation   from '@/lib/models/RoomAllocation'
-import { parseLabel, resolveRoom, canonicalRoom, subGroupOf, isSportsRoom,
-  WINGS, WING_BY_ALLOTMENT, DAY_FIELDS } from '@/lib/roomLabel'
+import { parseLabel, resolveRoom, subGroupOf, WINGS } from '@/lib/roomLabel'
+import { buildRoomMaster, buildExcludedReport } from '@/lib/roomMaster'
 
 /**
  * Slot summary for clash-removal planning.
@@ -43,89 +41,12 @@ export default async function handler(req, res) {
 
   const dataset = snap.snapshotId
 
-  const [entries, metas, allocs] = await Promise.all([
-    RoomwiseEntry.find(
-      { dataset, day: { $in: dayNums }, hour: { $in: periodNums } },
-      'room_no label day hour').lean(),
-    RoomMeta.find({}, 'room_no alloted_to room_type capacity block').lean(),
-    RoomAllocation.find({}).lean(),
-  ])
+  const entries = await RoomwiseEntry.find(
+    { dataset, day: { $in: dayNums }, hour: { $in: periodNums } },
+    'room_no label day hour').lean()
 
-  // ── Room master: wing + details per physical room ──────────────────────────
-  // RoomMeta first (widest coverage), RoomAllocation fills the gaps.
-  const room = new Map()
-  const put = (key, patch) => {
-    if (!key) return
-    room.set(key, { ...(room.get(key) || { room: key }), ...patch })
-  }
-
-  // Every room kept out of the counts is recorded with its reason, so the
-  // Excel export can account for all of them and nothing disappears silently.
-  const excluded = new Map()
-  const exclude = (key, patch) => {
-    if (!key) return
-    excluded.set(key, { ...(excluded.get(key) || { room: key }), ...patch })
-  }
-
-  for (const m of metas) {
-    const key       = canonicalRoom(m.room_no)
-    const allotment = String(m.alloted_to || '').toUpperCase()
-    const wing      = WING_BY_ALLOTMENT[allotment]
-    if (!key || !wing) continue
-    if (isSportsRoom(m.block, m.room_type)) {
-      exclude(key, { reason: 'Sports facility', wing, allotment,
-        type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
-      continue
-    }
-    put(key, { wing, allotment, type: m.room_type || null, capacity: m.capacity ?? null, block: m.block || null })
-  }
-  for (const a of allocs) {
-    const key = canonicalRoom(a.roomNo)
-    if (!key) continue
-    if (isSportsRoom(a.block, a.type)) {
-      const prev = room.get(key)
-      room.delete(key)
-      exclude(key, { reason: 'Sports facility', wing: prev?.wing ?? null,
-        type: a.type || prev?.type || null, capacity: a.capacity ?? prev?.capacity ?? null,
-        block: a.block || prev?.block || null, floor: a.floor ?? null })
-      continue
-    }
-    const existing  = room.get(key)
-    const allotment = String(a.coeMhs || '').toUpperCase()
-    const wing = existing?.wing || WING_BY_ALLOTMENT[allotment]
-    if (!wing) continue
-    // Usage label per selected day, from the Room Allocation sheet.
-    const usage = {}
-    for (const d of dayNums) {
-      const v = a[DAY_FIELDS[d - 1]]
-      if (v && String(v).trim()) usage[d] = String(v).trim()
-    }
-    put(key, {
-      wing,
-      allotment: existing?.allotment || allotment || wing,
-      // Occupancy comes from the room timetable; descriptive data comes from
-      // Room Allocation, falling back to RoomMeta where the sheet is blank
-      // (capacity in particular is often null there).
-      type:     a.type     ?? existing?.type     ?? null,
-      capacity: a.capacity ?? existing?.capacity ?? null,
-      block:    a.block    ?? existing?.block    ?? null,
-      floor:    a.floor ?? null,
-      usage,
-      status:   a.status || null,
-      notes:    a.notes  || '',
-    })
-  }
-
-  // A room with no recorded capacity cannot be planned against, so drop it
-  // rather than let it pad the counts. Capacity is only final once both
-  // sources have been merged, hence the pass here rather than in the loops.
-  for (const [key, info] of room) {
-    if (info.capacity) continue
-    exclude(key, { ...info, reason: 'No capacity recorded' })
-    room.delete(key)
-  }
-
-  const knownRooms = new Set(room.keys())
+  // Countable rooms, with the wing / sports / no-capacity rules applied.
+  const { room, excluded, knownRooms } = await buildRoomMaster(dayNums)
 
   // ── Walk the slot's entries ────────────────────────────────────────────────
   const cells     = {}   // "wing|sub|programme|year" -> Map(courseKey -> {...})
@@ -201,28 +122,7 @@ export default async function handler(req, res) {
     })
   }
   // Everything held back from the tallies, occupied or not, with its reason.
-  const excludedReport = []
-  for (const [key, u] of unmatched) {
-    const ex = excluded.get(key)
-    excludedReport.push({
-      room: key, reason: ex?.reason || 'Not in room master', occupied: true,
-      wing: ex?.wing ?? null, type: ex?.type ?? null, capacity: ex?.capacity ?? null,
-      block: ex?.block ?? null, floor: ex?.floor ?? null,
-      timetableNames: [...u.raws].sort(), sample: u.sample,
-    })
-  }
-  for (const [key, ex] of excluded) {
-    if (unmatched.has(key)) continue
-    excludedReport.push({
-      room: key, reason: ex.reason, occupied: false,
-      wing: ex.wing ?? null, type: ex.type ?? null, capacity: ex.capacity ?? null,
-      block: ex.block ?? null, floor: ex.floor ?? null,
-      timetableNames: [], sample: '',
-    })
-  }
-  excludedReport.sort((a, b) =>
-    a.reason.localeCompare(b.reason) ||
-    a.room.localeCompare(b.room, undefined, { numeric: true }))
+  const excludedReport = buildExcludedReport(excluded, unmatched)
   uncategorisedOccupied = unmatched.size
 
   const byRoomNo = (a, b) => a.room.localeCompare(b.room, undefined, { numeric: true })
