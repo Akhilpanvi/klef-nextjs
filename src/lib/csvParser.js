@@ -1,4 +1,21 @@
 import Papa from 'papaparse'
+import {
+  DEFAULT_COLUMNS, REQUIRED_FIELDS, FIELD_LABELS, resolveColumns,
+} from './csvColumns.js'
+
+// Re-exported so existing importers of '@/lib/csvParser' keep working.
+export { DEFAULT_COLUMNS, REQUIRED_FIELDS, FIELD_LABELS, resolveColumns }
+
+/** Which alias of each required field the file actually uses. */
+function checkHeaders(headers, cols) {
+  const missing = []
+  for (const field of REQUIRED_FIELDS) {
+    if (!(cols[field] || []).some(n => headers.includes(n))) {
+      missing.push(`${field} (expected one of: ${(cols[field] || []).join(' / ')})`)
+    }
+  }
+  return missing
+}
 
 /**
  * parseBTTBuffer(buffer)
@@ -12,82 +29,6 @@ import Papa from 'papaparse'
  *
  * Returns an array of objects ready for MongoDB bulk insert.
  */
-/**
- * Column aliases, newest name first.
- *
- * The BTT export was renamed (Course code -> coursecode, EMP ID -> uni_id,
- * R-CAP -> ROOM_CAP, and so on). Both spellings are accepted so older files
- * still upload; the first alias present on a row wins.
- */
-export const DEFAULT_COLUMNS = {
-  department:    ['DEPT'],
-  regulation:    ['REG'],
-  year:          ['YEAR'],
-  courseCode:    ['coursecode', 'Course code'],
-  courseName:    ['C_NAME', 'C-Name', 'COURSE NAME', 'course_name'],
-  cocssiid:      ['cocssiid'],
-  deliveryComp:  ['coursedeliverycomponent'],
-  offeredBy:     ['offerred_by_deptid', 'offered_by_deptid'],
-  offeredTo:     ['offered_to_deptid'],
-  sectionNo:     ['main_sectionno'],
-  subSection:    ['associative_sectionno'],
-  empId:         ['uni_id', 'EMP ID'],
-  facultySeq:    ['faculty_seq'],
-  secCount:      ['SEC COUNT'],
-  day:           ['umatdayid'],
-  hour:          ['umat_hourno'],
-  classroomNo:   ['umat_classroomno'],
-  roomNo:        ['ROOM NO'],
-  roomCap:       ['ROOM_CAP', 'R-CAP'],
-  roomDiff:      ['DIFF_CAP', 'R-DIFF'],
-  roomType:      ['TYPE', 'R-TYPE'],
-  roomCon:       ['ROOM_CON', 'ROOM CON', 'CON'],
-  facultyName:   ['F-Name'],
-  facultyDept:   ['F-Dept'],
-  facultyCohort: ['F_COHORT', 'F-Cohort', 'FACULTY COHORT', 'COHORT'],
-  academicYear:  ['umat_academic_year_id'],
-  semester:      ['umat_semester_id'],
-  srcD:          ['SRC_DATA', 'SRC-D'],
-  fctt:          ['FCTT'],
-  rctt:          ['RCTT'],
-}
-
-// Fields marked REQ in the upload spec.
-export const REQUIRED_FIELDS = [
-  'department', 'empId', 'day', 'hour', 'roomNo', 'facultyName', 'facultyDept',
-]
-
-/** Human labels for the Admin editor. */
-export const FIELD_LABELS = {
-  department: 'Department', regulation: 'Regulation', year: 'Year',
-  courseCode: 'Course Code', courseName: 'Course Name', cocssiid: 'COCSSI ID',
-  deliveryComp: 'Delivery Component (L/T/P/S)', offeredBy: 'Offered By Dept ID',
-  offeredTo: 'Offered To Dept ID', sectionNo: 'Section No', subSection: 'Sub Section',
-  empId: 'Employee ID', facultySeq: 'Faculty Seq', secCount: 'Section Count',
-  day: 'Day', hour: 'Period / Hour', classroomNo: 'Classroom No',
-  roomNo: 'Room No', roomCap: 'Room Cap', roomDiff: 'Room Diff',
-  roomType: 'Room Type', roomCon: 'Room Con', facultyName: 'Faculty Name',
-  facultyDept: 'Faculty Dept', facultyCohort: 'Faculty Cohort',
-  academicYear: 'Academic Year ID', semester: 'Semester ID', srcD: 'Source Data',
-  fctt: 'FCTT', rctt: 'RCTT',
-}
-
-/**
- * Merge stored overrides over the defaults. Only fields present in the
- * override are replaced, so a partial mapping stays valid.
- */
-export function resolveColumns(overrides) {
-  if (!overrides) return DEFAULT_COLUMNS
-  const merged = { ...DEFAULT_COLUMNS }
-  for (const [field, names] of Object.entries(overrides)) {
-    if (!(field in DEFAULT_COLUMNS)) continue
-    const list = (Array.isArray(names) ? names : [names])
-      .map(n => String(n || '').trim()).filter(Boolean)
-    if (list.length) merged[field] = list
-  }
-  return merged
-}
-
 /** First alias with a non-empty value, as a trimmed string. */
 const pickFrom = (cols, row, field) => {
   for (const name of cols[field] || []) {
@@ -101,17 +42,6 @@ const pickFrom = (cols, row, field) => {
 const pickIntFrom = (cols, row, field) => {
   const n = parseInt(pickFrom(cols, row, field), 10)
   return Number.isNaN(n) ? null : n
-}
-
-/** Which alias of each required field the file actually uses. */
-function checkHeaders(headers, cols) {
-  const missing = []
-  for (const field of REQUIRED_FIELDS) {
-    if (!(cols[field] || []).some(n => headers.includes(n))) {
-      missing.push(`${field} (expected one of: ${(cols[field] || []).join(' / ')})`)
-    }
-  }
-  return missing
 }
 
 export function parseBTTBuffer(buffer, dataset = 'live', columnOverrides = null) {
