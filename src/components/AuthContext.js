@@ -73,11 +73,41 @@ export function useApi() {
     return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra }
   }
 
+  /**
+   * Read a response as JSON, but report what actually happened when it is not.
+   *
+   * Calling r.json() blindly turned a gateway timeout or an HTML error page
+   * into "The string did not match the expected pattern." in Safari, which
+   * says nothing about the real failure. Check the status and content type
+   * first and surface the server's own message.
+   */
+  const asJson = async (r) => {
+    const type = r.headers.get('content-type') || ''
+    if (type.includes('application/json')) {
+      const body = await r.json()
+      if (!r.ok && !body?.message) {
+        throw new Error(`Request failed (${r.status} ${r.statusText || ''})`.trim())
+      }
+      return body
+    }
+    const text = (await r.text()).trim()
+    if (r.status === 504 || r.status === 408)
+      throw new Error('The server took too long to respond. Narrow the day or hour selection and try again.')
+    if (r.status === 413)
+      throw new Error('That selection returns too much data. Narrow the day or hour selection and try again.')
+    const snippet = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').slice(0, 160)
+    throw new Error(
+      r.ok
+        ? `Unexpected non-JSON response from ${url0(r)}${snippet ? `: ${snippet}` : ''}`
+        : `Request failed (${r.status})${snippet ? `: ${snippet}` : ''}`)
+  }
+  const url0 = r => { try { return new URL(r.url).pathname } catch { return 'server' } }
+
   const get = (url) =>
-    fetch(url, { headers: getHeaders() }).then(r => r.json())
+    fetch(url, { headers: getHeaders() }).then(asJson)
 
   const post = (url, body) =>
-    fetch(url, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(r => r.json())
+    fetch(url, { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) }).then(asJson)
 
   const postForm = (url, formData) => {
     const token = localStorage.getItem('klef_token')
@@ -85,14 +115,14 @@ export function useApi() {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
-    }).then(r => r.json())
+    }).then(asJson)
   }
 
   const del = (url) =>
-    fetch(url, { method: 'DELETE', headers: getHeaders() }).then(r => r.json())
+    fetch(url, { method: 'DELETE', headers: getHeaders() }).then(asJson)
 
   const patch = (url, body) =>
-    fetch(url, { method: 'PATCH', headers: getHeaders(), body: JSON.stringify(body) }).then(r => r.json())
+    fetch(url, { method: 'PATCH', headers: getHeaders(), body: JSON.stringify(body) }).then(asJson)
 
   return { get, post, postForm, del, patch }
 }

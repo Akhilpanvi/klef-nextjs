@@ -64,7 +64,8 @@ export default async function handler(req, res) {
   const [rwEntries, fwEntries] = await Promise.all([
     rwSnap ? RoomwiseEntry.find({ dataset: rwSnap.snapshotId, ...slot },
       'room_no label day hour').lean() : [],
-    fwSnap ? FacultywiseEntry.find({ dataset: fwSnap.snapshotId, ...slot }).lean() : [],
+    fwSnap ? FacultywiseEntry.find({ dataset: fwSnap.snapshotId, ...slot },
+      'uni_id faculty_name campus day hour room_no degree offering_level course_code component section').lean() : [],
   ])
 
   const { room, excluded, knownRooms } = await buildRoomMaster(dayNums)
@@ -277,6 +278,51 @@ export default async function handler(req, res) {
     }
   })
 
+  // ── Enrich each faculty with FD details and their real weekly load ───────
+  // uni_id in the faculty-wise grid is the Emp No, which is User.eid from the
+  // FD upload — that join is what carries designation, responsibility and the
+  // permissible load into the export.
+  const facultyIds = [...facultyMap.keys()].filter(Boolean)
+  let fdById = new Map(), rosterById = new Map(), weekById = new Map()
+
+  if (facultyIds.length) {
+    const [users, roster, weekRows] = await Promise.all([
+      User.find({ eid: { $in: facultyIds } },
+        'eid display_name dept designation designation_category assigned_responsibility ' +
+        'cohort cohort_name phone email load_as_per_designation pl').lean(),
+      fwSnap ? FacultywiseFaculty.find(
+        { dataset: fwSnap.snapshotId, uni_id: { $in: facultyIds } },
+        'uni_id campus slotCount').lean() : [],
+      // Aggregate rather than fetch: the week holds ~16k rows for these
+      // faculty and pulling them all was by far the slowest step, enough to
+      // push a whole-week selection past the serverless timeout.
+      fwSnap ? FacultywiseEntry.aggregate([
+        { $match: { dataset: fwSnap.snapshotId, uni_id: { $in: facultyIds } } },
+        { $group: {
+          _id: '$uni_id',
+          slots:   { $sum: 1 },
+          courses: { $addToSet: '$course_code' },
+          rooms:   { $addToSet: '$room_no' },
+          days:    { $addToSet: '$day' },
+        } },
+      ]) : [],
+    ])
+    fdById     = new Map(users.map(u => [String(u.eid).trim(), u]))
+    rosterById = new Map(roster.map(r => [String(r.uni_id).trim(), r]))
+
+    const nonEmpty = arr => (arr || []).filter(v => v !== null && v !== undefined && v !== '').length
+    for (const w of weekRows) {
+      const id = String(w._id || '').trim()
+      if (!id) continue
+      weekById.set(id, {
+        slots:   w.slots || 0,
+        courses: nonEmpty(w.courses),
+        rooms:   nonEmpty(w.rooms),
+        days:    nonEmpty(w.days),
+      })
+    }
+  }
+
   const faculty = [...facultyMap.entries()]
     .map(([id, f]) => {
       const key  = String(id).trim()
@@ -305,9 +351,9 @@ export default async function handler(req, res) {
         // Actual load, measured from the faculty-wise timetable
         workload: {
           weekLoad,
-          weekCourses: week ? week.courses.size : null,
-          weekRooms:   week ? week.rooms.size : null,
-          weekDays:    week ? week.days.size : null,
+          weekCourses: week ? week.courses : null,
+          weekRooms:   week ? week.rooms : null,
+          weekDays:    week ? week.days : null,
           vsPermissible: weekLoad != null && pl != null ? weekLoad - pl : null,
           utilisationPct: weekLoad != null && pl ? Math.round((weekLoad / pl) * 100) : null,
         },

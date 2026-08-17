@@ -48,7 +48,8 @@ export default async function handler(req, res) {
   if (campus) rosterQuery.campus = campus
 
   const [entries, roster] = await Promise.all([
-    FacultywiseEntry.find({ dataset, day: { $in: dayNums }, hour: { $in: periodNums } }).lean(),
+    FacultywiseEntry.find({ dataset, day: { $in: dayNums }, hour: { $in: periodNums } },
+      'uni_id faculty_name campus day hour room_no degree offering_level course_code component section raw').lean(),
     FacultywiseFaculty.find(rosterQuery).lean(),
   ])
 
