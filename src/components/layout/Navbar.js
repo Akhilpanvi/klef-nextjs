@@ -11,6 +11,7 @@ const ALL_TABS = [
   { label: 'Free Faculty',  path: '/free-faculty' },
   { label: 'Free Rooms',    path: '/free-rooms' },
   { label: '⚠ Clashes',    path: '/clash', bold: true, perm: 'view_clash' },
+  { label: 'ERP',           path: '/erp' },
 ]
 
 export default function Navbar({ onManageData }) {
