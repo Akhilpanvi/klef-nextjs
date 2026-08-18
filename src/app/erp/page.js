@@ -14,6 +14,8 @@ const DAY_FULL  = { 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5:
 const DESG_LABEL = { R: 'Research', Ac: 'Academic', Ad: 'Administrative' }
 const SEV_LABEL  = { severe: 'SEVERE', warn: 'WARNING', info: 'INFO' }
 const TYPE_ICON  = { 'Room Overlap': '🔴', 'Dual Faculty': '🟡', 'Faculty Double-Booked': '🔵' }
+const COMP_LABEL = { 1: 'Lecture', 2: 'Tutorial', 3: 'Practical', 4: 'Skill' }
+const COMP_SHORT = { 1: 'L', 2: 'T', 3: 'P', 4: 'S' }
 
 const lSt  = { fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '.06em', margin: '0 0 8px' }
 const thSt = { padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', background: 'var(--surface-2)', whiteSpace: 'nowrap', textAlign: 'left' }
@@ -73,12 +75,22 @@ function ProfileCard({ data, load }) {
   )
 }
 
+function StatCard({ label, value, color }) {
+  return (
+    <div className="card" style={{ padding: '16px 18px', textAlign: 'center', minWidth: 110, flex: '1 1 110px' }}>
+      <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1, fontFamily: "'DM Serif Display',serif" }}>{value}</div>
+      <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', marginTop: 4, letterSpacing: '.04em' }}>{label}</div>
+    </div>
+  )
+}
+
 // ── Sub-tab 1: Timetable ────────────────────────────────────────────────────
 function ErpTimetable() {
   const { get } = useApi()
   const [type, setType]   = useState('faculty')
   const [query, setQuery] = useState('')
   const [roster, setRoster] = useState([])
+  const [courses, setCourses] = useState([])
   const [result, setResult] = useState(null)
   const [busy, setBusy]   = useState(false)
 
@@ -88,13 +100,33 @@ function ErpTimetable() {
       .catch(() => {})
   }, [])
 
+  // Course list is only needed once the course tab is opened.
+  useEffect(() => {
+    if (type !== 'course' || courses.length) return
+    get('/api/erp/timetable?list=courses')
+      .then(d => { if (d.success) setCourses(d.courses || []) })
+      .catch(() => {})
+  }, [type])
+
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (type !== 'faculty' || q.length < 2) return []
-    return roster
-      .filter(f => String(f.id).includes(q) || (f.name || '').toLowerCase().includes(q))
-      .slice(0, 8)
-  }, [query, roster, type])
+    if (q.length < 2) return []
+    if (type === 'faculty') {
+      return roster
+        .filter(f => String(f.id).includes(q) || (f.name || '').toLowerCase().includes(q))
+        .slice(0, 8)
+        .map(f => ({ key: f.id, value: String(f.id), label: f.name || f.id,
+          hint: `${f.id}${f.dept ? ` · ${f.dept}` : ''}` }))
+    }
+    if (type === 'course') {
+      return courses
+        .filter(c => c.code.toLowerCase().includes(q))
+        .slice(0, 8)
+        .map(c => ({ key: c.code, value: c.code, label: c.code,
+          hint: `${c.slots} hrs · ${c.sections} sec${c.years.length ? ` · Y${c.years.join('/')}` : ''}` }))
+    }
+    return []
+  }, [query, roster, courses, type])
 
   const run = async (q = query) => {
     if (!q.trim()) return toast.error('Enter a name, Emp No or room')
@@ -110,11 +142,36 @@ function ErpTimetable() {
     finally { setBusy(false) }
   }
 
+  const exportCourse = (r) => {
+    const rows = (r.sections || []).map(x => ({
+      Course: r.title, Section: x.section,
+      Type: x.component ? COMP_LABEL[x.component] : '',
+      Programme: x.program || '', Year: x.year || '',
+      'Class hours': x.slots,
+      'Faculty ID': x.faculty.map(f => f.id).join(' | '),
+      'Faculty Name': x.faculty.map(f => f.name).filter(Boolean).join(' | '),
+      'Faculty count': x.faculty.length,
+      Rooms: x.rooms.join(' | '),
+      Days: x.days.map(d => DAY_SHORT[d - 1]).join(','),
+    }))
+    if (!rows.length) return toast.error('Nothing to export')
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Sections')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(
+      (r.entries || []).map(e => ({
+        Day: DAY_FULL[e.umatdayid], Period: e.umat_hourno,
+        Section: e.main_sectionno || '', Type: e.coursedeliverycomponent ? COMP_LABEL[e.coursedeliverycomponent] : '',
+        Room: e.room_no || '', 'Faculty ID': e.emp_id || '', 'Faculty Name': e.faculty_name || '',
+        Programme: e.program || '', Year: e.year || '', Source: e.source,
+      }))), 'Class hours')
+    XLSX.writeFile(wb, `erp-course-${r.title}.xlsx`)
+  }
+
   return (
     <div>
       <p style={lSt}>SEARCH THE ERP TIMETABLE</p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-        {['faculty', 'room'].map(t => (
+        {['faculty', 'room', 'course'].map(t => (
           <button key={t} onClick={() => { setType(t); setResult(null) }} style={{
             padding: '6px 16px', fontSize: 12, fontWeight: 700, borderRadius: 6, cursor: 'pointer',
             border: `1px solid ${type === t ? 'var(--brand)' : 'var(--border)'}`,
@@ -124,7 +181,9 @@ function ErpTimetable() {
         ))}
         <input className="input" value={query} onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && run()}
-          placeholder={type === 'faculty' ? 'Faculty name or Emp No…' : 'Room number, e.g. C207'}
+          placeholder={type === 'faculty' ? 'Faculty name or Emp No…'
+            : type === 'room' ? 'Room number, e.g. C207'
+            : 'Course code, e.g. 25CS2101'}
           style={{ flex: 1, minWidth: 220 }} />
         <button className="btn btn-primary" onClick={() => run()} disabled={busy}>
           {busy ? 'Loading…' : 'Show timetable'}
@@ -133,20 +192,20 @@ function ErpTimetable() {
 
       {suggestions.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-          {suggestions.map(f => (
-            <button key={f.id} onClick={() => { setQuery(String(f.id)); run(String(f.id)) }}
+          {suggestions.map(sg => (
+            <button key={sg.key} onClick={() => { setQuery(sg.value); run(sg.value) }}
               className="pill" style={{ fontSize: 11 }}>
-              {f.name || f.id} <span style={{ color: 'var(--text-3)' }}>· {f.id}{f.dept ? ` · ${f.dept}` : ''}</span>
+              {sg.label} <span style={{ color: 'var(--text-3)' }}>· {sg.hint}</span>
             </button>
           ))}
         </div>
       )}
 
-      {roster.length > 0 && (
-        <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 14 }}>
-          {roster.length.toLocaleString()} faculty in the ERP grid
-        </div>
-      )}
+      <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 14 }}>
+        {type === 'course'
+          ? `${courses.length.toLocaleString()} courses in the ERP grid`
+          : `${roster.length.toLocaleString()} faculty in the ERP grid`}
+      </div>
 
       {result && !result.found && (
         <div style={{ padding: 16, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text-2)' }}>
@@ -168,6 +227,75 @@ function ErpTimetable() {
             <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 14 }}>
               {result.load.slots} class hour(s) · {result.load.faculty} faculty · {result.load.courses} course(s)
             </div>
+          )}
+
+          {result.type === 'course' && (
+            <>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+                <StatCard label="Class hours" value={result.load.slots} color="var(--brand)" />
+                <StatCard label="Sections" value={result.load.sections} color="#2563eb" />
+                <StatCard label="Faculty" value={result.load.faculty} color="#059669" />
+                <StatCard label="Rooms" value={result.load.rooms} color="#0ea5e9" />
+                <StatCard label="Programmes" value={result.load.programs} color="#a855f7" />
+                <StatCard label="Days" value={result.load.days} color="var(--text-2)" />
+              </div>
+
+              {result.sections?.length > 0 && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                    <p style={{ ...lSt, margin: '0 0 8px' }}>
+                      SECTION BREAKDOWN — {result.sections.length} section/component row(s)
+                    </p>
+                    <button className="btn btn-success" style={{ fontSize: 12, padding: '5px 12px' }}
+                      onClick={() => exportCourse(result)}>📥 Export Excel</button>
+                  </div>
+                  <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 460, overflowY: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
+                      <thead>
+                        <tr>
+                          <th style={thSt}>Section</th>
+                          <th style={thSt}>Type</th>
+                          <th style={thSt}>Programme</th>
+                          <th style={{ ...thSt, textAlign: 'center' }}>Yr</th>
+                          <th style={{ ...thSt, textAlign: 'right' }}>Hrs</th>
+                          <th style={thSt}>Faculty</th>
+                          <th style={thSt}>Room(s)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.sections.map((r, i) => (
+                          <tr key={i}>
+                            <td style={{ ...tdSt, fontWeight: 700 }}>{r.section}</td>
+                            <td style={{ ...tdSt, fontSize: 12 }}>
+                              {r.component ? `${COMP_SHORT[r.component]} · ${COMP_LABEL[r.component]}` : '—'}
+                            </td>
+                            <td style={{ ...tdSt, fontSize: 12 }}>{r.program || '—'}</td>
+                            <td style={{ ...tdSt, textAlign: 'center' }}>{r.year || '—'}</td>
+                            <td style={{ ...tdSt, textAlign: 'right' }}>{r.slots}</td>
+                            <td style={{ ...tdSt, fontSize: 11 }}>
+                              {r.faculty.length
+                                ? r.faculty.map(f => (
+                                  <div key={f.id} style={{ whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{f.id}</span> {f.name || ''}
+                                  </div>
+                                ))
+                                : <span style={{ color: 'var(--text-3)' }}>no faculty in ERP</span>}
+                            </td>
+                            <td style={{ ...tdSt, fontSize: 11, fontFamily: 'monospace' }}>{r.rooms.join(', ') || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {result.sections.some(r => r.faculty.length > 1) && (
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>
+                      Rows with several faculty are co-taught — a main teacher plus supporting
+                      faculty on the same section, not a clash.
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
           <TimetableGrid
             title={result.type === 'room' ? `Room ${result.title}` : result.title}
@@ -347,14 +475,6 @@ function ErpFreeFaculty() {
 }
 
 // ── Sub-tab 3: Clashes ──────────────────────────────────────────────────────
-function StatCard({ label, value, color }) {
-  return (
-    <div className="card" style={{ padding: '16px 18px', textAlign: 'center', minWidth: 110, flex: '1 1 110px' }}>
-      <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1, fontFamily: "'DM Serif Display',serif" }}>{value}</div>
-      <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', marginTop: 4, letterSpacing: '.04em' }}>{label}</div>
-    </div>
-  )
-}
 
 function ClashCard({ c }) {
   return (
