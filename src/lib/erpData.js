@@ -43,16 +43,22 @@ export async function loadErpSnapshots() {
  *   umatdayid, umat_hourno, room_no, emp_id, faculty_name, course_code,
  *   main_sectionno, coursedeliverycomponent, src_d, year, program, source
  *
- * `src_d` is the role key the clash engine uses for Dual Faculty. In the BTT
- * feed that was a role string; here the equivalent is section + delivery
- * component, so two teachers only clash when they share the same section AND
- * the same component. Keying on the component alone flagged 20 legitimate
- * split-section pairs. It is set on faculty-wise rows only — a room-wise row
- * has no teacher, and a blank role key makes the engine skip it rather than
- * treat the absence as a second faculty.
+ * `src_d` is deliberately left null on every ERP row, which makes the clash
+ * engine skip its Dual Faculty branch. That branch needs a role key to tell a
+ * genuine double-assignment from legitimate co-teaching, and this source has
+ * none: the room-wise grid carries the associative section in the room name
+ * ("C007-MA", "C007-A", "C007-B" — main plus supporting faculty on one class)
+ * while the faculty-wise grid records the plain room, with no suffix on any of
+ * its 400 rooms. Several faculty on the same room + course + section are
+ * therefore support staff for one class, not a clash, and there is no field
+ * that separates main from supporting. Counting them flagged 1,259 pairs that
+ * were all legitimate. They are reported as co-taught classes instead.
  *
- * Note the source cannot express a Faculty Double-Booking: the grid has one
- * cell per faculty per slot, so that clash type is always empty here.
+ * The source also cannot express a Faculty Double-Booking: the grid has one
+ * cell per faculty per slot, so that clash type is always empty here too.
+ *
+ * Room Overlap is unaffected — it fires on two different course codes sharing
+ * a room in one slot, which stays meaningful.
  */
 export async function loadErpEntries({ days, periods, snapshots, roomMaster } = {}) {
   const { rwSnap, fwSnap } = snapshots || await loadErpSnapshots()
@@ -101,7 +107,7 @@ export async function loadErpEntries({ days, periods, snapshots, roomMaster } = 
       main_sectionno: e.section != null ? String(e.section) : null,
       associative_sectionno: null,
       coursedeliverycomponent: COMPONENT_TO_NUM[comp] || null,
-      src_d: [e.section ?? '', comp].join('-'),
+      src_d: null,   // no role field in this source — see the note above
       year: parseInt(e.offering_level, 10) || null,
       program: normalizeProgram(e.degree || '') || null,
       source: 'facultywise',
@@ -133,10 +139,27 @@ export async function loadErpEntries({ days, periods, snapshots, roomMaster } = 
     })
   }
 
+  // Several faculty on one room+course+section+slot is co-teaching, not a
+  // clash. Counted here so the clash page can report it as information.
+  const coTaught = new Map()
+  for (const e of entries) {
+    if (!e.emp_id) continue
+    const k = [e.umatdayid, e.umat_hourno, e.room_no, e.course_code, e.main_sectionno].join('|')
+    const set = coTaught.get(k) || new Set()
+    set.add(e.emp_id)
+    coTaught.set(k, set)
+  }
+  const coTaughtClasses = [...coTaught.values()].filter(s => s.size > 1)
+
   return {
     entries,
     unparsed,
     roomMaster: master,
+    coTaught: {
+      classes: coTaughtClasses.length,
+      maxFaculty: coTaughtClasses.reduce((m, s) => Math.max(m, s.size), 0),
+      extraFaculty: coTaughtClasses.reduce((n, s) => n + s.size - 1, 0),
+    },
     sources: {
       roomwise: rwSnap
         ? { label: rwSnap.label || rwSnap.filename, rows: rwRows.length } : null,

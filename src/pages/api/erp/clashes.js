@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       message: 'No ERP data yet — upload the Room-wise and Faculty-wise timetables in Admin.',
     })
 
-  const { entries, sources, counts, unparsed } = await loadErpEntries({ snapshots })
+  const { entries, sources, counts, unparsed, coTaught } = await loadErpEntries({ snapshots })
 
   const { room } = await buildRoomMaster([1, 2, 3, 4, 5, 6])
   const metaMap = Object.fromEntries(
@@ -65,6 +65,9 @@ export default async function handler(req, res) {
     entries: entries.length,
     slotsAffected: new Set(clashes.map(c => `${c.day}|${c.hour}`)).size,
     roomsAffected: new Set(clashes.map(c => c.room).filter(Boolean)).size,
+    coTaughtClasses: coTaught.classes,
+    supportingFaculty: coTaught.extraFaculty,
+    maxFacultyOnAClass: coTaught.maxFaculty,
   }
 
   res.json({

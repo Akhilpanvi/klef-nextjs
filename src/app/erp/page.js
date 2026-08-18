@@ -461,14 +461,23 @@ function ErpClashes() {
             <StatCard label="Rooms hit" value={data.stats.roomsAffected} color="var(--text-2)" />
           </div>
 
-          {data.stats.info === 0 && (
-            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 14, padding: 10,
-              background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8 }}>
-              Faculty Double-Booked is always 0 here: the faculty-wise grid has one cell per
-              faculty per period, so the format cannot record the same teacher in two places at once.
-              Room Overlap and Dual Faculty are detected normally.
-            </div>
-          )}
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 14, padding: 10,
+            background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, lineHeight: 1.6 }}>
+            <strong style={{ color: 'var(--text-2)' }}>What this source can and cannot show.</strong><br />
+            <b>Room Overlap</b> is detected normally — two different courses sharing a room in one period.<br />
+            <b>Dual Faculty</b> is not reported. The room-wise grid puts the associative section in the
+            room name (C007-MA, C007-A, C007-B: main plus supporting faculty on one class) while the
+            faculty-wise grid records the plain room with no suffix, so nothing separates a main
+            teacher from a supporting one. Several faculty on the same room, course and section are
+            support staff, not a clash
+            {data.stats.coTaughtClasses > 0 && (
+              <> — {data.stats.coTaughtClasses.toLocaleString()} class-hours here are co-taught,
+                {' '}{data.stats.supportingFaculty.toLocaleString()} supporting assignments, up to
+                {' '}{data.stats.maxFacultyOnAClass} faculty on one class</>
+            )}.<br />
+            <b>Faculty Double-Booked</b> is always 0: the grid holds one cell per faculty per period,
+            so it cannot record the same teacher in two places.
+          </div>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14, alignItems: 'center' }}>
             <select className="input" value={typeF} onChange={e => setTypeF(e.target.value)} style={{ maxWidth: 190 }}>
