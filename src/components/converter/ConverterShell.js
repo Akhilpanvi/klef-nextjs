@@ -9,7 +9,8 @@ import { useAuth } from '@/components/AuthContext'
  * reload or a duplicated tab stays where it was.
  */
 export const CONVERTER_TABS = [
-  { id: 'rooms', label: '🏫 Room Merger', path: '/converter/rooms' },
+  { id: 'rooms',   label: '🏫 Room Merger',      path: '/converter/rooms' },
+  { id: 'faculty', label: '🧑‍🏫 Faculty Workload', path: '/converter/faculty' },
 ]
 
 export default function ConverterShell({ children }) {
