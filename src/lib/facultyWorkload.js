@@ -65,6 +65,49 @@ export function parseExclusions(text) {
   return { rules, errors }
 }
 
+/**
+ * Turn a sheet of exclusions into rule lines for the textarea.
+ *
+ * Accepts a file with headers naming the code and the year — "Course Code" /
+ * "Code" / "Subject Code", and "Year" / "Offering Level" / "Level" — matched
+ * loosely. If neither header is recognised the first two columns are used, so
+ * a bare two-column list still works.
+ *
+ * Returns { text, count, note } rather than rules, so what was read lands in
+ * the box where it can be checked and edited before it takes effect.
+ */
+export function exclusionsFromRows(rows) {
+  if (!rows?.length) return { text: '', count: 0, note: 'That file has no rows.' }
+
+  const headers = Object.keys(rows[0])
+  const fold = h => String(h ?? '').toLowerCase().replace(/[^a-z]/g, '')
+  const codeCol = headers.find(h => /coursecode|subjectcode|^code$/.test(fold(h)))
+    || headers.find(h => fold(h).includes('course') || fold(h).includes('code'))
+  const yearCol = headers.find(h => /offeringlevel|yearofstudy|^year$|^level$/.test(fold(h)))
+    || headers.find(h => fold(h).includes('year') || fold(h).includes('level'))
+
+  const useCode = codeCol ?? headers[0]
+  const useYear = yearCol ?? headers[1]
+  const note = codeCol
+    ? null
+    : `No "Course Code" column found — using "${useCode}"${useYear ? ` and "${useYear}"` : ''}.`
+
+  const lines = []
+  const seen = new Set()
+  for (const row of rows) {
+    const code = norm(row[useCode])
+    if (!code || code === norm(useCode)) continue
+    const rawYear = useYear ? String(row[useYear] ?? '').trim() : ''
+    const year = parseInt(rawYear, 10)
+    const line = Number.isNaN(year) ? code : `${code}, ${year}`
+    if (seen.has(line)) continue
+    seen.add(line)
+    lines.push(line)
+  }
+
+  return { text: lines.join('\n'), count: lines.length, note }
+}
+
 /** Index the rules so matching is a lookup rather than a scan per row. */
 function indexRules(rules) {
   const anyYear = new Set()

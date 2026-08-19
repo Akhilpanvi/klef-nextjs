@@ -3,7 +3,7 @@ import { useState, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { parseFacultywiseBuffer } from '@/lib/facultywiseParser'
-import { parseExclusions, computeWorkload } from '@/lib/facultyWorkload'
+import { parseExclusions, computeWorkload, exclusionsFromRows } from '@/lib/facultyWorkload'
 
 const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const COMP_LABEL = { L: 'Lecture', T: 'Tutorial', P: 'Practical', S: 'Skill' }
@@ -88,6 +88,33 @@ export default function FacultyWorkload() {
   const [sort, setSort]       = useState('LOAD')
   const [openId, setOpenId]   = useState(null)
   const [showExcludedOnly, setExcludedOnly] = useState(false)
+  const [ruleFileName, setRuleFileName] = useState('')
+  const ruleFileRef = useRef(null)
+
+  /**
+   * Load the exclusion list from a file. The lines land in the box rather than
+   * being applied straight off, so they can be checked and edited first.
+   */
+  const loadRuleFile = async (file, { append } = {}) => {
+    if (!file) return
+    try {
+      const buf = await file.arrayBuffer()
+      const wb  = XLSX.read(new Uint8Array(buf), { type: 'array' })
+      const ws  = wb.Sheets[wb.SheetNames[0]]
+      if (!ws) throw new Error('That file has no readable sheet.')
+      const out = exclusionsFromRows(XLSX.utils.sheet_to_json(ws, { defval: '' }))
+      if (!out.count) throw new Error('No course codes found in that file.')
+      setRules(prev => (append && prev.trim() ? `${prev.trim()}\n${out.text}` : out.text))
+      setRuleFileName(file.name)
+      if (out.note) toast(out.note, { icon: '\u2139\ufe0f' })
+      toast.success(`${out.count} course(s) loaded from ${file.name}`)
+    } catch (err) {
+      console.error('Exclusion file failed:', err)
+      toast.error(err?.message || 'Could not read that file')
+    } finally {
+      if (ruleFileRef.current) ruleFileRef.current.value = ''
+    }
+  }
 
   const convertFile = async (file) => {
     if (!file) return
@@ -226,9 +253,44 @@ export default function FacultyWorkload() {
         )}
       </div>
 
-      {parsed && (
-        <>
-          <p style={lSt}>COURSES THAT DO NOT COUNT AS WORKLOAD</p>
+      <p style={lSt}>COURSES THAT DO NOT COUNT AS WORKLOAD — RE-REGISTRATION &amp; SLOW LEARNER</p>
+      <div style={{ padding: 12, background: 'var(--surface-2)', border: '1px dashed var(--border)',
+        borderRadius: 10, marginBottom: 14 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8 }}>
+          Upload a list of the re-registration and slow-learner courses, or type them below.
+          A sheet with a <strong>Course Code</strong> column and a <strong>Year</strong> (or
+          <strong> Offering Level</strong>) column is read directly; a plain two-column list works too.
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input ref={ruleFileRef} type="file" accept=".csv,.xlsx,.xls" className="input"
+            onChange={e => loadRuleFile(e.target.files?.[0], { append: false })}
+            style={{ flex: 1, minWidth: 220, fontSize: 12 }} />
+          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '5px 10px' }}
+            onClick={() => {
+              const rows = [
+                { 'Course Code': '23IE4053A', 'Year': 4 },
+                { 'Course Code': '25CS2101',  'Year': 2 },
+                { 'Course Code': '26SC1101',  'Year': '' },
+              ]
+              const wb = XLSX.utils.book_new()
+              XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Exclusions')
+              XLSX.writeFile(wb, 'exclusion-list-template.xlsx')
+            }}>
+            ⬇ Template
+          </button>
+          {rulesText.trim() && (
+            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '5px 10px' }}
+              onClick={() => { setRules(''); setRuleFileName('') }}>Clear list</button>
+          )}
+        </div>
+        {ruleFileName && (
+          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>
+            Loaded from {ruleFileName} — edit below if needed. Leave the year blank to exclude a
+            course in every year.
+          </div>
+        )}
+      </div>
+
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
             <div style={{ flex: '1 1 320px', minWidth: 260 }}>
               <textarea
@@ -284,6 +346,8 @@ export default function FacultyWorkload() {
             </div>
           </div>
 
+      {parsed && (
+        <>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
             <Stat label="FACULTY" value={s.facultyCount} sub={`${s.idle} with no classes`} />
             <Stat label="SCHEDULED HOURS" value={s.totalHours.toLocaleString()} sub="in the file" />
