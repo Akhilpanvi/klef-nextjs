@@ -88,32 +88,65 @@ export default function FacultyWorkload() {
   const [sort, setSort]       = useState('LOAD')
   const [openId, setOpenId]   = useState(null)
   const [showExcludedOnly, setExcludedOnly] = useState(false)
-  const [ruleFileName, setRuleFileName] = useState('')
+  const [ruleFiles, setRuleFiles] = useState([])   // [{ name, count }]
   const ruleFileRef = useRef(null)
 
   /**
-   * Load the exclusion list from a file. The lines land in the box rather than
-   * being applied straight off, so they can be checked and edited first.
+   * Load one or more exclusion lists — COE and MHS are kept as separate files,
+   * so several can be picked at once and each adds to the same list.
+   *
+   * The lines land in the text box rather than being applied straight off, so
+   * they can be checked and edited first. Duplicates across files fold away,
+   * which matters when a course appears on both lists.
    */
-  const loadRuleFile = async (file, { append } = {}) => {
-    if (!file) return
-    try {
-      const buf = await file.arrayBuffer()
-      const wb  = XLSX.read(new Uint8Array(buf), { type: 'array' })
-      const ws  = wb.Sheets[wb.SheetNames[0]]
-      if (!ws) throw new Error('That file has no readable sheet.')
-      const out = exclusionsFromRows(XLSX.utils.sheet_to_json(ws, { defval: '' }))
-      if (!out.count) throw new Error('No course codes found in that file.')
-      setRules(prev => (append && prev.trim() ? `${prev.trim()}\n${out.text}` : out.text))
-      setRuleFileName(file.name)
-      if (out.note) toast(out.note, { icon: '\u2139\ufe0f' })
-      toast.success(`${out.count} course(s) loaded from ${file.name}`)
-    } catch (err) {
-      console.error('Exclusion file failed:', err)
-      toast.error(err?.message || 'Could not read that file')
-    } finally {
-      if (ruleFileRef.current) ruleFileRef.current.value = ''
+  const loadRuleFiles = async (fileList) => {
+    const files = [...(fileList || [])]
+    if (!files.length) return
+
+    const loaded = []
+    const failed = []
+    let notes = []
+
+    for (const file of files) {
+      try {
+        const buf = await file.arrayBuffer()
+        const wb  = XLSX.read(new Uint8Array(buf), { type: 'array' })
+        const ws  = wb.Sheets[wb.SheetNames[0]]
+        if (!ws) throw new Error('no readable sheet')
+        const out = exclusionsFromRows(XLSX.utils.sheet_to_json(ws, { defval: '' }))
+        if (!out.count) throw new Error('no course codes found')
+        loaded.push({ name: file.name, count: out.count, text: out.text })
+        if (out.note) notes.push(`${file.name}: ${out.note}`)
+      } catch (err) {
+        failed.push(`${file.name} (${err?.message || 'unreadable'})`)
+      }
     }
+
+    if (loaded.length) {
+      setRules(prev => {
+        const seen = new Set()
+        const keep = []
+        for (const line of [prev, ...loaded.map(l => l.text)].join('\n').split(/\r?\n/)) {
+          const t = line.trim()
+          if (!t) continue
+          const key = t.toUpperCase().replace(/\s+/g, ' ')
+          if (seen.has(key)) continue
+          seen.add(key)
+          keep.push(t)
+        }
+        return keep.join('\n')
+      })
+      setRuleFiles(prev => {
+        const names = new Set(loaded.map(l => l.name))
+        return [...prev.filter(f => !names.has(f.name)),
+                ...loaded.map(l => ({ name: l.name, count: l.count }))]
+      })
+      const total = loaded.reduce((n, l) => n + l.count, 0)
+      toast.success(`${total} course(s) from ${loaded.length} file(s)`)
+    }
+    notes.forEach(n => toast(n, { icon: '\u2139\ufe0f' }))
+    if (failed.length) toast.error(`Could not read: ${failed.join(', ')}`)
+    if (ruleFileRef.current) ruleFileRef.current.value = ''
   }
 
   const convertFile = async (file) => {
@@ -257,13 +290,15 @@ export default function FacultyWorkload() {
       <div style={{ padding: 12, background: 'var(--surface-2)', border: '1px dashed var(--border)',
         borderRadius: 10, marginBottom: 14 }}>
         <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8 }}>
-          Upload a list of the re-registration and slow-learner courses, or type them below.
-          A sheet with a <strong>Course Code</strong> column and a <strong>Year</strong> (or
-          <strong> Offering Level</strong>) column is read directly; a plain two-column list works too.
+          Upload the re-registration and slow-learner lists, or type them below. Pick
+          <strong> several files at once</strong> — COE and MHS come as separate lists and are merged
+          here, with anything on both counted once. A sheet with a <strong>Course Code</strong> column
+          and a <strong>Year</strong> (or <strong>Offering Level</strong>) column is read directly;
+          a plain two-column list works too.
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input ref={ruleFileRef} type="file" accept=".csv,.xlsx,.xls" className="input"
-            onChange={e => loadRuleFile(e.target.files?.[0], { append: false })}
+          <input ref={ruleFileRef} type="file" accept=".csv,.xlsx,.xls" className="input" multiple
+            onChange={e => loadRuleFiles(e.target.files)}
             style={{ flex: 1, minWidth: 220, fontSize: 12 }} />
           <button className="btn btn-ghost" style={{ fontSize: 11, padding: '5px 10px' }}
             onClick={() => {
@@ -280,13 +315,29 @@ export default function FacultyWorkload() {
           </button>
           {rulesText.trim() && (
             <button className="btn btn-ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-              onClick={() => { setRules(''); setRuleFileName('') }}>Clear list</button>
+              onClick={() => { setRules(''); setRuleFiles([]) }}>Clear list</button>
           )}
         </div>
-        {ruleFileName && (
-          <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>
-            Loaded from {ruleFileName} — edit below if needed. Leave the year blank to exclude a
-            course in every year.
+        {ruleFiles.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              {ruleFiles.map(f => (
+                <span key={f.name} style={{
+                  fontSize: 11, padding: '3px 9px', borderRadius: 999,
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                }}>
+                  📄 {f.name} <strong>{f.count}</strong>
+                  <button onClick={() => setRuleFiles(p => p.filter(x => x.name !== f.name))}
+                    title="Remove from this list — lines already merged stay in the box"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--text-3)', marginLeft: 4, padding: 0 }}>×</button>
+                </span>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>
+              Merged into {rulesText.split(/\r?\n/).filter(l => l.trim()).length} line(s) below —
+              edit if needed. Leave the year blank to exclude a course in every year.
+            </div>
           </div>
         )}
       </div>
