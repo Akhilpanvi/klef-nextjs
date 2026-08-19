@@ -1,8 +1,9 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { useApi } from '@/components/AuthContext'
+import { mergeWideRows } from '@/lib/mergeRoomsWide'
 
 const DAY_KEYS  = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -31,6 +32,11 @@ export default function RoomMerger() {
   const [showAll, setShowAll]         = useState(false)
   const [conflictsOnly, setConflicts] = useState(false)
   const [search, setSearch] = useState('')
+  // 'snapshot' = the file already uploaded in Admin; 'file' = a one-off
+  // conversion of something the user picked, which is never saved anywhere.
+  const [mode, setMode]     = useState('snapshot')
+  const [fileName, setFileName] = useState('')
+  const fileRef = useRef(null)
 
   const load = async () => {
     setBusy(true)
@@ -43,7 +49,30 @@ export default function RoomMerger() {
     } catch (err) { toast.error(err.message) }
     finally { setBusy(false) }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (mode === 'snapshot') load() }, [])
+
+  /**
+   * Convert a file the user picked, entirely in the browser.
+   * Nothing is uploaded and nothing is stored — the parse, the merge and the
+   * download all happen locally, so this cannot disturb the saved timetable.
+   */
+  const convertFile = async (file) => {
+    if (!file) return
+    setBusy(true); setData(null); setFileName(file.name)
+    try {
+      const buf = await file.arrayBuffer()
+      const wb  = XLSX.read(buf, { type: 'array' })
+      const ws  = wb.Sheets[wb.SheetNames[0]]
+      if (!ws) throw new Error('That file has no readable sheet.')
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+      const out  = mergeWideRows(rows, { maxHour: 11 })
+      setData({ ...out, snapshot: `${file.name} (not saved)`, fromFile: true })
+      toast.success(`${out.stats.sourceRooms} room names merged to ${out.stats.mergedRooms}`)
+    } catch (err) {
+      console.error('Conversion failed:', err)
+      toast.error(err?.message || 'Could not read that file')
+    } finally { setBusy(false) }
+  }
 
   // Column set comes from the hours actually present after 12-22 are dropped.
   const cols = useMemo(() => {
@@ -107,7 +136,9 @@ export default function RoomMerger() {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([
         { Metric: 'Source file', Value: data.snapshot },
         { Metric: 'Source rows', Value: data.stats.sourceRows },
-        { Metric: `Rows dropped (period ${data.droppedHours.from} and above)`, Value: data.stats.droppedRows },
+        data.fromFile
+          ? { Metric: `Period columns dropped (${data.droppedHours.from} and above)`, Value: data.stats.droppedColumns }
+          : { Metric: `Rows dropped (period ${data.droppedHours.from} and above)`, Value: data.stats.droppedRows },
         { Metric: 'Rows used', Value: data.stats.sourceRowsUsed },
         { Metric: 'Room names in source', Value: data.stats.sourceRooms },
         { Metric: 'Merged rooms', Value: data.stats.mergedRooms },
@@ -136,18 +167,67 @@ export default function RoomMerger() {
         times. This merges them back into a single <code>C009</code> row.
       </p>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
-        <button className="btn btn-primary" onClick={load} disabled={busy}>
-          {busy ? 'Merging…' : data ? 'Reload source' : 'Merge rooms'}
-        </button>
-        {data && <button className="btn btn-success" onClick={download}>📥 Download Excel</button>}
+      <p style={lSt}>SOURCE</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+        {[
+          { id: 'snapshot', label: '🗄 Uploaded timetable', hint: 'the Room-wise TT saved in Admin' },
+          { id: 'file',     label: '📄 Convert a file',      hint: 'pick a file — nothing is saved' },
+        ].map(m => {
+          const on = mode === m.id
+          return (
+            <button key={m.id} title={m.hint}
+              onClick={() => {
+                setMode(m.id); setData(null); setFileName('')
+                if (fileRef.current) fileRef.current.value = ''
+                if (m.id === 'snapshot') load()
+              }}
+              style={{
+                padding: '6px 14px', fontSize: 12, fontWeight: 700, borderRadius: 6, cursor: 'pointer',
+                border: `1px solid ${on ? 'var(--brand)' : 'var(--border)'}`,
+                background: on ? 'var(--brand)' : 'transparent',
+                color: on ? '#fff' : 'var(--text-2)',
+              }}>{m.label}</button>
+          )
+        })}
       </div>
+
+      {mode === 'file' ? (
+        <div style={{ padding: 14, background: 'var(--surface-2)', border: '1px dashed var(--border)',
+          borderRadius: 10, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 10 }}>
+            Pick a Room-wise timetable (.csv or .xlsx). It is converted in your browser and
+            downloaded — <strong>nothing is uploaded and nothing is saved</strong>, so the timetable
+            in Admin is untouched.
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" className="input"
+              onChange={e => convertFile(e.target.files?.[0])}
+              style={{ flex: 1, minWidth: 220, fontSize: 12 }} />
+            {data && <button className="btn btn-success" onClick={download}>📥 Download Excel</button>}
+          </div>
+          {fileName && (
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>
+              {busy ? 'Converting… ' : 'Converted: '}{fileName}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
+          <button className="btn btn-primary" onClick={load} disabled={busy}>
+            {busy ? 'Merging…' : data ? 'Reload source' : 'Merge rooms'}
+          </button>
+          {data && <button className="btn btn-success" onClick={download}>📥 Download Excel</button>}
+        </div>
+      )}
 
       {data && (
         <>
           <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>
             Source: {data.snapshot} · periods {data.droppedHours.from} and above removed
-            ({data.stats.droppedRows.toLocaleString()} rows) · keeping periods 1–{data.maxHour}
+            {data.fromFile
+              ? ` (${data.stats.droppedColumns} columns)`
+              : ` (${data.stats.droppedRows.toLocaleString()} rows)`}
+            {' '}· keeping periods 1–{data.maxHour}
           </div>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
