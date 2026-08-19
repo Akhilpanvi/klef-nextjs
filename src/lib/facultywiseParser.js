@@ -156,7 +156,11 @@ export function parseFacultywiseBuffer(buf, snapshotId) {
       slotCount++
     }
 
-    faculty.push({ dataset: snapshotId, uni_id: uni_id || name, faculty_name: name || null, campus: campus || null, slotCount })
+    faculty.push({
+      dataset: snapshotId, uni_id: uni_id || name, faculty_name: name || null,
+      campus: campus || null, slotCount,
+      rowIndex: r,          // where this faculty sits in the source grid
+    })
   }
 
   if (!docs.length && faculty.length)
@@ -166,5 +170,12 @@ export function parseFacultywiseBuffer(buf, snapshotId) {
   if (unlabelled)
     warnings.push(`${unlabelled} occupied cell(s) had no "Room No" or "Course Code" — stored as raw text`)
 
-  return { docs, faculty, warnings, headers, slotColumns: slotCols.length }
+  return {
+    docs, faculty, warnings, headers,
+    slotColumns: slotCols.length,
+    // The grid exactly as it was read. Exporting a copy of the source with
+    // extra columns has to write the original cells back verbatim, so the
+    // caller needs the rows and the column positions, not just the parse.
+    grid: { rows, headers, dataStart, idCol, nameCol, campusCol, slotCols },
+  }
 }

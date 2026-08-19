@@ -203,6 +203,44 @@ export default function FacultyWorkload() {
           XLSX.utils.json_to_sheet(data.length ? data : [{ Note: 'Nothing to report' }]),
           name.slice(0, 31))
 
+      // ── Sheet 1: the source file, with workload columns beside the names ──
+      // The grid is written back cell for cell so the file keeps the shape it
+      // arrived in and can go straight back into whatever consumes it.
+      const g = parsed.grid
+      if (g?.rows?.length && g.slotCols?.length) {
+        const byId = new Map(result.faculty.map(f => [String(f.id), f]))
+        const idOf = row => {
+          const id = String(row[g.idCol] ?? '').replace(/\s+/g, ' ').trim()
+          const nm = String(row[g.nameCol] ?? '').replace(/\s+/g, ' ').trim()
+          return id || nm
+        }
+        // Identity columns first, then the load, then every original column
+        // that is not an identity column — which keeps the day/period grid
+        // and anything else the file carried.
+        const idCols = [g.idCol, g.nameCol, g.campusCol].filter(i => i >= 0)
+        const restCols = g.headers.map((_, i) => i).filter(i => !idCols.includes(i))
+
+        const header = [
+          ...idCols.map(i => g.headers[i] || ''),
+          'Total Hours', 'Workload (counted)', 'Excluded Hours', 'Excluded From',
+          ...restCols.map(i => g.headers[i] || ''),
+        ]
+        const aoa = [header]
+        for (let r = g.dataStart; r < g.rows.length; r++) {
+          const row = g.rows[r]
+          if (!row || row.every(c => String(c ?? '').trim() === '')) continue
+          const f = byId.get(idOf(row))
+          if (!f) continue
+          aoa.push([
+            ...idCols.map(i => row[i] ?? ''),
+            f.total, f.counted, f.excluded,
+            f.excludedBy.map(e => `${e.label} x${e.hours}`).join(' | '),
+            ...restCols.map(i => row[i] ?? ''),
+          ])
+        }
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'Faculty TT + Workload')
+      }
+
       add(result.faculty.map(f => ({
         'Emp No': f.id, Name: f.name || '', Campus: f.campus || '',
         'Total hours': f.total,
