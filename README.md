@@ -41,6 +41,23 @@ node --experimental-vm-modules --test scripts/approved-rooms.test.mjs
 Review the inventory changes and deploy the application for them to take effect
 on the live website. Uploading an ERP CSV alone does not change the approved list.
 
+### Block-wise room utilization
+
+Open **Free Rooms > Block-wise Utilization** for a Monday-Saturday, periods 1-11
+report from the currently uploaded Roomwise Timetable CSV (the same source as
+Find Free Rooms). The ERP Room Data mapping alone does not contain bookings.
+
+The report groups the approved inventory by its workbook block, counts each
+physical room once per slot, and displays occupied/covered rooms, daily and
+weekly utilization. Click a cell for occupied/free room lists, filter by block,
+or export the summary, individual slots and missing-data rooms to Excel.
+
+Utilization is occupied room-periods divided by covered room-periods; each
+covered room has 66 weekly periods. Rooms absent from the sparse uploaded
+timetable are listed as having no data, excluded from the denominator, and never
+assumed free. Rooms with bookings only after period 11 remain covered and have
+zero utilization during periods 1-11. Refresh reloads the latest uploaded data.
+
 ### 1. Prerequisites
 - Node.js 18+
 - MongoDB running locally or a MongoDB Atlas URI
