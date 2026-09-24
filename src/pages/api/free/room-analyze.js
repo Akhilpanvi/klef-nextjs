@@ -1,3 +1,4 @@
+import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }   from '@/lib/auth'
 import { connectDB }     from '@/lib/mongodb'
 import RoomwiseEntry     from '@/lib/models/RoomwiseEntry'
@@ -5,7 +6,7 @@ import RoomwiseSnapshot  from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta          from '@/lib/models/RoomMeta'
 import ErpRoomData       from '@/lib/models/ErpRoomData'
 
-function baseKey(roomNo) { return roomNo.split('-')[0].trim().toUpperCase() }
+const baseKey = approvedRoomKey
 
 const DAY_KEYS   = ['Mon','Tue','Wed','Thu','Fri','Sat']
 const MAX_PERIOD = 11
@@ -27,7 +28,8 @@ export default async function handler(req, res) {
   if (!snap) return res.status(404).json({ success: false, message: 'No roomwise data uploaded' })
 
   const dataset  = snap.snapshotId
-  const roomName = room.trim().toUpperCase()
+  const roomName = approvedRoomKey(room)
+  if (!roomName) return res.status(404).json({ success: false, message: 'Room not in approved inventory' })
 
   const allSections = await RoomwiseEntry.distinct('room_no', { dataset })
   const sections = allSections.filter(s => baseKey(s) === roomName)
@@ -42,7 +44,7 @@ export default async function handler(req, res) {
 
   // Count distinct busy HOURS per day, not entries. A room has one row per
   // associative section (MA/A/B/C/D), so a single busy hour yields several
-  // rows — summing rows pushed days past their own 11-period maximum and the
+  // rows â€” summing rows pushed days past their own 11-period maximum and the
   // weekly total past 100%.
   const dayHours = {}
   const hourBusy = {}
@@ -74,7 +76,7 @@ export default async function handler(req, res) {
     success: true,
     room:         roomName,
     erp_sections: erpDoc?.sections ?? [],
-    capacity:   meta?.capacity || null,
+    capacity:   approvedRoom(roomName)?.capacity || null,
     weeklyPct,
     totalBusy,
     totalSlots: TOTAL_SLOTS,

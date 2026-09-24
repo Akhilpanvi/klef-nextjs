@@ -1,0 +1,2179 @@
+[
+  {
+    "room_no": "C007",
+    "source_name": "C007",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C008",
+    "source_name": "C008",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C009",
+    "source_name": "C009",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C011",
+    "source_name": "C011",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C017",
+    "source_name": "C017",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C018",
+    "source_name": "C018",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C019",
+    "source_name": "C019",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C107",
+    "source_name": "C107",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C108",
+    "source_name": "C108",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C109",
+    "source_name": "C109",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C110",
+    "source_name": "C110",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C111",
+    "source_name": "C111",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C117A",
+    "source_name": "C117A",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C118A",
+    "source_name": "C118A",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C118B",
+    "source_name": "C118B",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C121",
+    "source_name": "C121",
+    "block": "C",
+    "room_type": "HALL",
+    "capacity": 282
+  },
+  {
+    "room_no": "C122",
+    "source_name": "C122",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 88
+  },
+  {
+    "room_no": "C123A",
+    "source_name": "C123A",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 24
+  },
+  {
+    "room_no": "C123B",
+    "source_name": "C123B",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 32
+  },
+  {
+    "room_no": "C124",
+    "source_name": "C124",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 63
+  },
+  {
+    "room_no": "C207",
+    "source_name": "C207",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C208",
+    "source_name": "C208",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C209",
+    "source_name": "C209",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C210",
+    "source_name": "C210",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C211",
+    "source_name": "C211",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C217",
+    "source_name": "C217",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C218",
+    "source_name": "C218",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C219",
+    "source_name": "C219",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C221B1",
+    "source_name": "C221B1",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "C221B2",
+    "source_name": "C221B2",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "C225",
+    "source_name": "C225",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 216
+  },
+  {
+    "room_no": "C307",
+    "source_name": "C307",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C308",
+    "source_name": "C308",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C309",
+    "source_name": "C309",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 108
+  },
+  {
+    "room_no": "C317A",
+    "source_name": "C317A",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C317B",
+    "source_name": "C317B",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C318A",
+    "source_name": "C318A",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "C321B1",
+    "source_name": "C321B1",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "C321B2",
+    "source_name": "C321B2",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "C322A",
+    "source_name": "C322A",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 36
+  },
+  {
+    "room_no": "C322B",
+    "source_name": "C322B",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 36
+  },
+  {
+    "room_no": "C325",
+    "source_name": "C325",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 216
+  },
+  {
+    "room_no": "C406",
+    "source_name": "C406",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C407",
+    "source_name": "C407",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C408",
+    "source_name": "C408",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 92
+  },
+  {
+    "room_no": "C409",
+    "source_name": "C409",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C410",
+    "source_name": "C410",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C411",
+    "source_name": "C411",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C419A",
+    "source_name": "C419A",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "C419B",
+    "source_name": "C419B",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "C420A",
+    "source_name": "C420A",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "C420B",
+    "source_name": "C420B",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "C421B1",
+    "source_name": "C421 B1",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 70
+  },
+  {
+    "room_no": "C421B2",
+    "source_name": "C421 B2",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C421A",
+    "source_name": "C421A",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 90
+  },
+  {
+    "room_no": "C422",
+    "source_name": "C422",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C423",
+    "source_name": "C423",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C425",
+    "source_name": "C425",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 216
+  },
+  {
+    "room_no": "C506",
+    "source_name": "C506",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "C507",
+    "source_name": "C507",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "C510",
+    "source_name": "C510",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C511",
+    "source_name": "C511",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C521A",
+    "source_name": "C521A",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C521B1",
+    "source_name": "C521B1",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C521B2",
+    "source_name": "C521B2",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "C522A",
+    "source_name": "C522A",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 40
+  },
+  {
+    "room_no": "C522B",
+    "source_name": "C522B",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 36
+  },
+  {
+    "room_no": "C523",
+    "source_name": "C523",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C525",
+    "source_name": "C525",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 216
+  },
+  {
+    "room_no": "C607",
+    "source_name": "C607",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "C608",
+    "source_name": "C608",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "C609",
+    "source_name": "C609",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "C617",
+    "source_name": "C617",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "C618",
+    "source_name": "C618",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "C619",
+    "source_name": "C619",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "C620",
+    "source_name": "C620",
+    "block": "C",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "C622",
+    "source_name": "C622",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 46
+  },
+  {
+    "room_no": "C623",
+    "source_name": "C623",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "C624A",
+    "source_name": "C624A",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "C624B",
+    "source_name": "C624B",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 100
+  },
+  {
+    "room_no": "C625",
+    "source_name": "C625",
+    "block": "C",
+    "room_type": "CR",
+    "capacity": 216
+  },
+  {
+    "room_no": "E005",
+    "source_name": "E005",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "E007",
+    "source_name": "E007",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "E101",
+    "source_name": "E101",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 48
+  },
+  {
+    "room_no": "E102",
+    "source_name": "E102",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 44
+  },
+  {
+    "room_no": "E103",
+    "source_name": "E103",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 48
+  },
+  {
+    "room_no": "E105",
+    "source_name": "E105",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 100
+  },
+  {
+    "room_no": "E201",
+    "source_name": "E201",
+    "block": "EEE",
+    "room_type": "CR",
+    "capacity": 56
+  },
+  {
+    "room_no": "E207",
+    "source_name": "E207",
+    "block": "EEE",
+    "room_type": "LAB",
+    "capacity": 40
+  },
+  {
+    "room_no": "F002",
+    "source_name": "F002",
+    "block": "FED",
+    "room_type": "LAB",
+    "capacity": 70
+  },
+  {
+    "room_no": "F107",
+    "source_name": "F1 07",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F101A",
+    "source_name": "F101A",
+    "block": "FED",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "F103",
+    "source_name": "F103",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F105",
+    "source_name": "F105",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F108",
+    "source_name": "F108",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F109",
+    "source_name": "F109",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F202",
+    "source_name": "F202",
+    "block": "FED",
+    "room_type": "LAB",
+    "capacity": 95
+  },
+  {
+    "room_no": "F203",
+    "source_name": "F203",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F205",
+    "source_name": "F205",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F207",
+    "source_name": "F207",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F208",
+    "source_name": "F208",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F209",
+    "source_name": "F209",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F301",
+    "source_name": "F301",
+    "block": "FED",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "F303",
+    "source_name": "F303",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F305",
+    "source_name": "F305",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F306",
+    "source_name": "F306",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F307",
+    "source_name": "F307",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F308",
+    "source_name": "F308",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F309",
+    "source_name": "F309",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "F406",
+    "source_name": "F406",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F407",
+    "source_name": "F407",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F506",
+    "source_name": "F506",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F507",
+    "source_name": "F507",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F606",
+    "source_name": "F606",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F607",
+    "source_name": "F607",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "F707",
+    "source_name": "F707",
+    "block": "FED",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "L212",
+    "source_name": "L212",
+    "block": "L",
+    "room_type": "LAB",
+    "capacity": 96
+  },
+  {
+    "room_no": "L214",
+    "source_name": "L214",
+    "block": "L",
+    "room_type": "LAB",
+    "capacity": 32
+  },
+  {
+    "room_no": "L302",
+    "source_name": "L302",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "L303",
+    "source_name": "L303",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "L306",
+    "source_name": "L306",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "L307",
+    "source_name": "L307",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "L308",
+    "source_name": "L308",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "L309",
+    "source_name": "L309",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "L311",
+    "source_name": "L311",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "L312",
+    "source_name": "L312",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "L315",
+    "source_name": "L315",
+    "block": "L",
+    "room_type": "LAB",
+    "capacity": 108
+  },
+  {
+    "room_no": "L501",
+    "source_name": "L501",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "L502",
+    "source_name": "L502",
+    "block": "L",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "L615",
+    "source_name": "L615",
+    "block": "L",
+    "room_type": "LAB",
+    "capacity": 108
+  },
+  {
+    "room_no": "M001",
+    "source_name": "M001 AEROSPACE",
+    "block": "Mech",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "M002A",
+    "source_name": "M002A",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M008",
+    "source_name": "M008",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 12
+  },
+  {
+    "room_no": "M101",
+    "source_name": "M101",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "M102",
+    "source_name": "M102",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "M114",
+    "source_name": "M114",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "M121",
+    "source_name": "M121",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M122",
+    "source_name": "M122",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M123",
+    "source_name": "M123",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 36
+  },
+  {
+    "room_no": "M124",
+    "source_name": "M124",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 44
+  },
+  {
+    "room_no": "M125",
+    "source_name": "M125",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "M126",
+    "source_name": "M126",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "M127",
+    "source_name": "M127",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M128",
+    "source_name": "M128",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 32
+  },
+  {
+    "room_no": "M129",
+    "source_name": "M129",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 88
+  },
+  {
+    "room_no": "M130",
+    "source_name": "M130",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 20
+  },
+  {
+    "room_no": "M201",
+    "source_name": "M201",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 78
+  },
+  {
+    "room_no": "M202",
+    "source_name": "M202",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "M203",
+    "source_name": "M203",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M204",
+    "source_name": "M204",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "M206",
+    "source_name": "M206",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "M207",
+    "source_name": "M207",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "M208",
+    "source_name": "M208",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 56
+  },
+  {
+    "room_no": "M213",
+    "source_name": "M213",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 78
+  },
+  {
+    "room_no": "M214",
+    "source_name": "M214 CAD LAB",
+    "block": "Mech",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "M215",
+    "source_name": "M215 CAD LAB",
+    "block": "Mech",
+    "room_type": "LAB",
+    "capacity": 60
+  },
+  {
+    "room_no": "M217",
+    "source_name": "M217",
+    "block": "Mech",
+    "room_type": "LAB",
+    "capacity": 18
+  },
+  {
+    "room_no": "M302",
+    "source_name": "M302",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 48
+  },
+  {
+    "room_no": "M304",
+    "source_name": "M304",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M305",
+    "source_name": "M305",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M306",
+    "source_name": "M306",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "M310",
+    "source_name": "M310",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "M311",
+    "source_name": "M311",
+    "block": "Mech",
+    "room_type": "CR",
+    "capacity": 48
+  },
+  {
+    "room_no": "R004",
+    "source_name": "R004",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 25
+  },
+  {
+    "room_no": "R005",
+    "source_name": "R005",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 96
+  },
+  {
+    "room_no": "R101",
+    "source_name": "R101",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 212
+  },
+  {
+    "room_no": "R105",
+    "source_name": "R105",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 32
+  },
+  {
+    "room_no": "R106",
+    "source_name": "R106",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 144
+  },
+  {
+    "room_no": "R107",
+    "source_name": "R107",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 144
+  },
+  {
+    "room_no": "R201A",
+    "source_name": "R201A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R201B",
+    "source_name": "R201B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R201C",
+    "source_name": "R201C",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R201D",
+    "source_name": "R201D",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R204",
+    "source_name": "R204",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 66
+  },
+  {
+    "room_no": "R205A",
+    "source_name": "R205A",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 36
+  },
+  {
+    "room_no": "R205B",
+    "source_name": "R205B",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 22
+  },
+  {
+    "room_no": "R206",
+    "source_name": "R206",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "R207",
+    "source_name": "R207",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 86
+  },
+  {
+    "room_no": "R208",
+    "source_name": "R208",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 28
+  },
+  {
+    "room_no": "R209A",
+    "source_name": "R209A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R209B",
+    "source_name": "R209B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R209C",
+    "source_name": "R209C",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R209D",
+    "source_name": "R209D",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R210A",
+    "source_name": "R210A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R210B",
+    "source_name": "R210B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R210C",
+    "source_name": "R210C",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R210D",
+    "source_name": "R210D",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "R211",
+    "source_name": "R211",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 44
+  },
+  {
+    "room_no": "R301A",
+    "source_name": "R301A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "R301B",
+    "source_name": "R301B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "R302A",
+    "source_name": "R302A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "R302B",
+    "source_name": "R302B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "R304",
+    "source_name": "R304",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 117
+  },
+  {
+    "room_no": "R306A",
+    "source_name": "R306A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "R306B",
+    "source_name": "R306B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "R307A",
+    "source_name": "R307A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "R307B",
+    "source_name": "R307B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 84
+  },
+  {
+    "room_no": "R309D",
+    "source_name": "R309D",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 52
+  },
+  {
+    "room_no": "R310A",
+    "source_name": "R310A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 52
+  },
+  {
+    "room_no": "R310B",
+    "source_name": "R310B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 52
+  },
+  {
+    "room_no": "R310C",
+    "source_name": "R310C",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 52
+  },
+  {
+    "room_no": "R310D",
+    "source_name": "R310D",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 52
+  },
+  {
+    "room_no": "R404A",
+    "source_name": "R404A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R404B",
+    "source_name": "R404B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R405A",
+    "source_name": "R405A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R405B",
+    "source_name": "R405B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R406A",
+    "source_name": "R406A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R406B",
+    "source_name": "R406B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R407A",
+    "source_name": "R407A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R407B",
+    "source_name": "R407B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R504A",
+    "source_name": "R504A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R504B",
+    "source_name": "R504B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R505A",
+    "source_name": "R505A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R505B",
+    "source_name": "R505B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R506A",
+    "source_name": "R506A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R506B",
+    "source_name": "R506B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R507A",
+    "source_name": "R507A",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R507B",
+    "source_name": "R507B",
+    "block": "R&D",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "R601",
+    "source_name": "R601",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 288
+  },
+  {
+    "room_no": "R604A",
+    "source_name": "R604 A",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 40
+  },
+  {
+    "room_no": "R605",
+    "source_name": "R605",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 30
+  },
+  {
+    "room_no": "R606",
+    "source_name": "R606",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 24
+  },
+  {
+    "room_no": "R607",
+    "source_name": "R607",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 80
+  },
+  {
+    "room_no": "R609",
+    "source_name": "R609",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 120
+  },
+  {
+    "room_no": "R610",
+    "source_name": "R610",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 101
+  },
+  {
+    "room_no": "R704A",
+    "source_name": "R704A",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "R704B",
+    "source_name": "R704B",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "R705A",
+    "source_name": "R705A",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 54
+  },
+  {
+    "room_no": "R705B",
+    "source_name": "R705B",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "R706A",
+    "source_name": "R706A",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "R707A",
+    "source_name": "R707A",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "R710C",
+    "source_name": "R710C",
+    "block": "R&D",
+    "room_type": "LAB",
+    "capacity": 36
+  },
+  {
+    "room_no": "S402A",
+    "source_name": "S402A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S402B",
+    "source_name": "S402B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S403",
+    "source_name": "S403",
+    "block": "SDC",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "S407",
+    "source_name": "S407",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S409A",
+    "source_name": "S409A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S409B",
+    "source_name": "S409B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S412A",
+    "source_name": "S412A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S412B",
+    "source_name": "S412B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S414",
+    "source_name": "S414",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S418",
+    "source_name": "S418",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S419A",
+    "source_name": "S419A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S419B",
+    "source_name": "S419B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S502",
+    "source_name": "S502",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S503",
+    "source_name": "S503",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S507",
+    "source_name": "S507",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S508",
+    "source_name": "S508",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 104
+  },
+  {
+    "room_no": "S509A",
+    "source_name": "S509A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S509B",
+    "source_name": "S509B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S512A",
+    "source_name": "S512A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S512B",
+    "source_name": "S512B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S513",
+    "source_name": "S513",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S514",
+    "source_name": "S514",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S518",
+    "source_name": "S518",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S519",
+    "source_name": "S519",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S602",
+    "source_name": "S602",
+    "block": "SDC",
+    "room_type": "LAB",
+    "capacity": 62
+  },
+  {
+    "room_no": "S603",
+    "source_name": "S603",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S607",
+    "source_name": "S607",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 88
+  },
+  {
+    "room_no": "S608",
+    "source_name": "S608",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S609",
+    "source_name": "S609",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S612",
+    "source_name": "S612",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S618",
+    "source_name": "S618",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S619A",
+    "source_name": "S619A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S619B",
+    "source_name": "S619B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S702",
+    "source_name": "S702",
+    "block": "SDC",
+    "room_type": "LAB",
+    "capacity": 48
+  },
+  {
+    "room_no": "S703",
+    "source_name": "S703",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S707",
+    "source_name": "S707",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S709A",
+    "source_name": "S709A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 48
+  },
+  {
+    "room_no": "S709B",
+    "source_name": "S709B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S712A",
+    "source_name": "S712A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S712B",
+    "source_name": "S712B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S714",
+    "source_name": "S714",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S718",
+    "source_name": "S718",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S719A",
+    "source_name": "S719A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S719B",
+    "source_name": "S719B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S802A",
+    "source_name": "S802A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S802B",
+    "source_name": "S802B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S803",
+    "source_name": "S803",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S807",
+    "source_name": "S807",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S808",
+    "source_name": "S808",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 72
+  },
+  {
+    "room_no": "S809A",
+    "source_name": "S809A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S809B",
+    "source_name": "S809B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 56
+  },
+  {
+    "room_no": "S812A",
+    "source_name": "S812A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S812B",
+    "source_name": "S812B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S813",
+    "source_name": "S813",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "S814",
+    "source_name": "S814",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S818",
+    "source_name": "S818",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 76
+  },
+  {
+    "room_no": "S819A",
+    "source_name": "S819A",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "S819B",
+    "source_name": "S819B",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 60
+  },
+  {
+    "room_no": "S902",
+    "source_name": "S902",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S903",
+    "source_name": "S903",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S907",
+    "source_name": "S907",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S908",
+    "source_name": "S908",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S909",
+    "source_name": "S909",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S912",
+    "source_name": "S912",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S913",
+    "source_name": "S913",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S914",
+    "source_name": "S914",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S918",
+    "source_name": "S918",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "S919",
+    "source_name": "S919",
+    "block": "SDC",
+    "room_type": "CR",
+    "capacity": 80
+  },
+  {
+    "room_no": "SDC310",
+    "source_name": "SDC 310",
+    "block": "SDC",
+    "room_type": "LAB",
+    "capacity": 72
+  },
+  {
+    "room_no": "SK006",
+    "source_name": "SK006",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 88
+  },
+  {
+    "room_no": "SK007",
+    "source_name": "SK007",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "SK008",
+    "source_name": "SK008",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 96
+  },
+  {
+    "room_no": "SK009",
+    "source_name": "SK009",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 24
+  },
+  {
+    "room_no": "SK010",
+    "source_name": "SK010",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 40
+  },
+  {
+    "room_no": "SK011",
+    "source_name": "SK011",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 64
+  },
+  {
+    "room_no": "SK014",
+    "source_name": "SK014",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "SK015",
+    "source_name": "SK015",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "SK016",
+    "source_name": "SK016",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 68
+  },
+  {
+    "room_no": "SK017",
+    "source_name": "SK017",
+    "block": "SK",
+    "room_type": "CR",
+    "capacity": 65
+  }
+]

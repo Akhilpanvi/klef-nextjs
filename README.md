@@ -14,6 +14,33 @@ Full-stack rewrite of the KLEF timetable system as a Next.js 14 application.
 
 ## Quick Start
 
+### Approved room inventory
+
+Room discovery and availability use `src/lib/data/approvedRooms.json`, imported
+from the final `ROOM DATA.xlsx`: 311 rooms (247 classrooms, 63 labs, 1 hall).
+Rooms outside this list are hidden from room availability, statistics, room
+searches, allocation lists and room exports. Uploaded timetable records are
+retained. Block, type and capacity come from this inventory; ERP IDs, bookings
+and wing allocations still come from uploads. `Classroom` is represented as `CR`.
+
+Spacing and ERP section suffixes are matched to the same physical room. The
+source labels `M001 AEROSPACE`, `M214 CAD LAB`, and `M215 CAD LAB` map to their
+room codes. The original labels are retained in `source_name`.
+
+An approved room is not automatically considered free: the existing timetable
+data requirements still apply. Wing summaries require uploaded wing metadata.
+Faculty/course timetable records retain their original room labels.
+
+To replace the approved inventory with a revised workbook of the same format:
+
+```powershell
+node scripts/import-approved-rooms.cjs "C:\path\ROOM DATA.xlsx"
+node --experimental-vm-modules --test scripts/approved-rooms.test.mjs
+```
+
+Review the inventory changes and deploy the application for them to take effect
+on the live website. Uploading an ERP CSV alone does not change the approved list.
+
 ### 1. Prerequisites
 - Node.js 18+
 - MongoDB running locally or a MongoDB Atlas URI

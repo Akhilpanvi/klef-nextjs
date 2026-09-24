@@ -1,3 +1,4 @@
+import { approvedRooms, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import RoomMeta        from '@/lib/models/RoomMeta'
@@ -17,13 +18,17 @@ export default async function handler(req, res) {
     ErpRoomData.find({}, 'room_no erp_id sections').lean(),
   ])
 
-  const map = new Map()
+  const map = new Map(approvedRooms.map(r => [r.room_no, { room: r.room_no, erp_id: null, erp_ids: [] }]))
 
   for (const r of metaRooms) {
+    r.room_no = approvedRoomKey(r.room_no)
+    if (!r.room_no) continue
     map.set(r.room_no, { room: r.room_no, erp_id: null, erp_ids: [] })
   }
 
   for (const r of erpRooms) {
+    r.room_no = approvedRoomKey(r.room_no)
+    if (!r.room_no) continue
     const entry = map.get(r.room_no) || { room: r.room_no, erp_id: null, erp_ids: [] }
     entry.erp_id  = r.erp_id ?? null
     entry.erp_ids = (r.sections || []).map(s => s.erp_id).filter(Boolean)

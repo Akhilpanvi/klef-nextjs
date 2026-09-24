@@ -1,7 +1,7 @@
+import { approvedRoom, approvedRoomKey, isApprovedRoom } from '@/lib/approvedRooms'
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import TimetableEntry from '@/lib/models/TimetableEntry'
-import RoomMeta from '@/lib/models/RoomMeta'
 import { getActiveDataset } from '@/lib/activeDataset'
 
 export default async function handler(req, res) {
@@ -16,33 +16,35 @@ export default async function handler(req, res) {
 
   if (list) {
     const rooms  = await TimetableEntry.distinct('room_no', { dataset })
-    const metas  = await RoomMeta.find({ room_no: { $in: rooms } }).lean()
-    const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
     return res.json({
       success: true,
-      rooms: rooms.filter(Boolean).sort().map(r => ({
+      rooms: [...new Set(rooms.map(approvedRoomKey).filter(Boolean))].sort().map(r => ({
         number: r,
-        block: metaMap[r]?.block || r.match(/^([A-Za-z]+)/)?.[1]?.toUpperCase() || '?',
-        type:  metaMap[r]?.room_type || '-',
-        capacity: metaMap[r]?.capacity || null,
+        block: approvedRoom(r).block,
+        type: approvedRoom(r).room_type,
+        capacity: approvedRoom(r).capacity,
       })),
     })
   }
 
   if (!q) return res.status(400).json({ success: false, message: 'q param required' })
 
+  if (!isApprovedRoom(q)) return res.status(404).json({ success: false, message: 'Room not in approved inventory' })
+
+  const names = await TimetableEntry.distinct('room_no', { dataset })
+  const matchedNames = names.filter(name => approvedRoomKey(name) === approvedRoomKey(q))
   const entries = await TimetableEntry
-    .find({ dataset, room_no: { $regex: `^${q.trim()}$`, $options: 'i' } })
+    .find({ dataset, room_no: { $in: matchedNames } })
     .lean()
 
   if (!entries.length)
     return res.status(404).json({ success: false, message: 'Room not found' })
 
-  const meta = await RoomMeta.findOne({ room_no: entries[0].room_no }).lean()
+  const meta = approvedRoom(entries[0].room_no)
 
   res.json({
     success: true,
-    room: { number: entries[0].room_no, type: meta?.room_type||'-', capacity: meta?.capacity||'-', block: meta?.block||'-' },
+    room: { number: approvedRoomKey(entries[0].room_no), type: meta?.room_type||'-', capacity: meta?.capacity||'-', block: meta?.block||'-' },
     entries,
   })
 }

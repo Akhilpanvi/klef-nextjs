@@ -1,3 +1,4 @@
+import { isApprovedRoom } from '@/lib/approvedRooms'
 import { requireAuth }   from '@/lib/auth'
 import { connectDB }     from '@/lib/mongodb'
 import RoomwiseEntry     from '@/lib/models/RoomwiseEntry'
@@ -68,6 +69,7 @@ export default async function handler(req, res) {
   let maxHour = 0
   let droppedRows = 0
   for (const e of rows) {
+    if (!isApprovedRoom(e.room_no)) continue
     if (isDroppedHour(e.hour)) { droppedRows++; continue }
     const base = baseRoom(e.room_no)
     if (!base) continue

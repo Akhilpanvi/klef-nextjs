@@ -1,7 +1,7 @@
+import { approvedRoom, isApprovedRoom } from '@/lib/approvedRooms'
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import RoomAllocation from '@/lib/models/RoomAllocation'
-import RoomMeta from '@/lib/models/RoomMeta'
 
 export default async function handler(req, res) {
   const user = await requireAuth(req, res)
@@ -12,9 +12,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { block, floor, type, coeMhs, status, q, day } = req.query
     const filter = {}
-    if (block)  filter.block  = block
     if (floor !== undefined && floor !== '') filter.floor = Number(floor)
-    if (type)   filter.type   = type
     if (coeMhs) filter.coeMhs = coeMhs
     if (status) filter.status = status
     const VALID_DAYS = ['mon','tue','wed','thu','fri','sat']
@@ -28,24 +26,21 @@ export default async function handler(req, res) {
         { notes: re },
       ]
     }
-    const rooms = await RoomAllocation.find(filter).sort({ block: 1, floor: 1, slNo: 1 }).lean()
+    const rooms = (await RoomAllocation.find(filter).sort({ block: 1, floor: 1, slNo: 1 }).lean()).filter(r => isApprovedRoom(r.roomNo))
 
-    // Enrich capacity from RoomMeta (KLEF-ERP-RD data)
-    const roomNos = rooms.map(r => r.roomNo)
-    const metas = await RoomMeta.find({ room_no: { $in: roomNos } }, { room_no: 1, capacity: 1 }).lean()
-    const metaMap = {}
-    metas.forEach(m => { metaMap[m.room_no] = m.capacity })
     const enriched = rooms.map(r => ({
       ...r,
-      capacity: metaMap[r.roomNo] ?? r.capacity,
-    }))
+      capacity: approvedRoom(r.roomNo).capacity,
+      block: approvedRoom(r.roomNo).block,
+      type: approvedRoom(r.roomNo).room_type,
+    })).filter(r => (!block || r.block === block) && (!type || r.type === type))
 
-    // Distinct filter options for dropdowns
-    const [blocks, types, wings] = await Promise.all([
-      RoomAllocation.distinct('block'),
-      RoomAllocation.distinct('type'),
-      RoomAllocation.distinct('coeMhs'),
-    ])
+    // Filter options must also come only from approved rooms.
+    const allAllocations = (await RoomAllocation.find({}).lean())
+      .filter(r => isApprovedRoom(r.roomNo))
+    const blocks = [...new Set(allAllocations.map(r => approvedRoom(r.roomNo).block))]
+    const types = [...new Set(allAllocations.map(r => approvedRoom(r.roomNo).room_type))]
+    const wings = [...new Set(allAllocations.map(r => r.coeMhs).filter(Boolean))]
 
     return res.json({ success: true, rooms: enriched, blocks: blocks.sort(), types: types.sort(), wings: wings.sort() })
   }
