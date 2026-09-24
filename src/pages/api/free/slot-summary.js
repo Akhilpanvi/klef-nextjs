@@ -1,8 +1,9 @@
+import { approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }  from '@/lib/auth'
 import { connectDB }    from '@/lib/mongodb'
 import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
-import { parseLabel, resolveRoom, subGroupOf, WINGS } from '@/lib/roomLabel'
+import { parseLabel, subGroupOf, WINGS } from '@/lib/roomLabel'
 import { buildRoomMaster, buildExcludedReport } from '@/lib/roomMaster'
 
 /**
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
     'room_no label day hour').lean()
 
   // Countable rooms, with the wing / sports / no-capacity rules applied.
-  const { room, excluded, knownRooms } = await buildRoomMaster(dayNums)
+  const { room, excluded } = await buildRoomMaster(dayNums)
 
   // ── Walk the slot's entries ────────────────────────────────────────────────
   const cells     = {}   // "wing|sub|programme|year" -> Map(courseKey -> {...})
@@ -56,7 +57,7 @@ export default async function handler(req, res) {
   let unparsed = 0
 
   for (const e of entries) {
-    const r = resolveRoom(e.room_no, knownRooms)
+    const r = approvedRoomKey(e.room_no)
     if (r) {
       busyRooms.add(r)
       if (!room.has(r)) {

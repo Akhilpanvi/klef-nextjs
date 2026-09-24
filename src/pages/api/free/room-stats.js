@@ -1,3 +1,4 @@
+import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }   from '@/lib/auth'
 import { connectDB }     from '@/lib/mongodb'
 import RoomwiseEntry     from '@/lib/models/RoomwiseEntry'
@@ -5,7 +6,7 @@ import RoomwiseSnapshot  from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta          from '@/lib/models/RoomMeta'
 import ErpRoomData       from '@/lib/models/ErpRoomData'
 
-function baseKey(roomNo) { return roomNo.split('-')[0].trim().toUpperCase() }
+const baseKey = approvedRoomKey
 
 const DAY_KEYS   = ['Mon','Tue','Wed','Thu','Fri','Sat']
 const MAX_PERIOD = 11
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
   const roomSections = {}
   for (const sec of allSections) {
     const base = baseKey(sec)
+    if (!base) continue
     if (!roomSections[base]) roomSections[base] = new Set()
     roomSections[base].add(sec)
   }
@@ -43,6 +45,7 @@ export default async function handler(req, res) {
   const allSectionsTotal = await RoomwiseEntry.distinct('room_no', { dataset })
   for (const sec of allSectionsTotal) {
     const base = baseKey(sec)
+    if (!base) continue
     if (!roomSections[base]) roomSections[base] = new Set()
     roomSections[base].add(sec)
   }
@@ -50,6 +53,7 @@ export default async function handler(req, res) {
   const busyLookup = {}
   for (const e of entries) {
     const base = baseKey(e.room_no)
+    if (!base) continue
     if (!busyLookup[base]) busyLookup[base] = {}
     const dk = `${e.day}`
     if (!busyLookup[base][dk]) busyLookup[base][dk] = new Set()
@@ -57,14 +61,14 @@ export default async function handler(req, res) {
   }
 
   const metas   = await RoomMeta.find({}).lean()
-  const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
+  const metaMap = Object.fromEntries(metas.map(m => [approvedRoomKey(m.room_no), m]))
 
   const erpDocs = await ErpRoomData.find({}, 'room_no sections').lean()
-  const erpMap  = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
+  const erpMap  = Object.fromEntries(erpDocs.map(e => [approvedRoomKey(e.room_no), e.sections || []]))
 
   const stats = []
   for (const [base, sectionsSet] of Object.entries(roomSections)) {
-    const meta   = metaMap[base]
+    const meta   = { ...metaMap[base], ...approvedRoom(base) }
     const dayBusy = busyLookup[base] || {}
 
     const dayStats  = {}

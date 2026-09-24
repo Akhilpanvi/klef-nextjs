@@ -1,3 +1,4 @@
+import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }      from '@/lib/auth'
 import { connectDB }        from '@/lib/mongodb'
 import TimetableEntry       from '@/lib/models/TimetableEntry'
@@ -8,7 +9,7 @@ import ErpRoomData          from '@/lib/models/ErpRoomData'
 const LIVE_DATASET = 'gsheet_live'
 
 function baseKey(r) {
-  return (r || '').split('-')[0].trim().toUpperCase()
+  return approvedRoomKey(r)
 }
 
 // No letter → raw ERP room ID (1-digit, 4-digit, any length); has letter → readable room name
@@ -64,8 +65,8 @@ export default async function handler(req, res) {
     RoomMeta.find({}, 'room_no block room_type capacity alloted_to').lean(),
     ErpRoomData.find({}, 'room_no erp_id sections').lean(),
   ])
-  const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
-  const erpMap  = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
+  const metaMap = Object.fromEntries(metas.map(m => [approvedRoomKey(m.room_no), m]))
+  const erpMap  = Object.fromEntries(erpDocs.map(e => [approvedRoomKey(e.room_no), e.sections || []]))
 
   // Reverse map 1: ErpRoomData erp_id/sections → room name (e.g. 3952 → "C019")
   const erpIdToName = {}
@@ -100,8 +101,8 @@ export default async function handler(req, res) {
   function resolve(raw) {
     const s = (raw || '').trim()
     if (hasNoLetter(s)) {
-      if (erpIdToName[s])  return erpIdToName[s]
-      if (classroomMap[s]) return classroomMap[s]
+      if (erpIdToName[s])  return approvedRoomKey(erpIdToName[s])
+      if (classroomMap[s]) return approvedRoomKey(classroomMap[s])
     }
     return baseKey(s)
   }
@@ -110,6 +111,7 @@ export default async function handler(req, res) {
   const resolved = {}
   for (const sec of allRooms) {
     const name = resolve(String(sec))
+    if (!name) continue
     if (!resolved[name]) resolved[name] = []
     resolved[name].push(String(sec))
   }
@@ -121,7 +123,7 @@ export default async function handler(req, res) {
   for (const [name, rawSecs] of Object.entries(resolved)) {
     if (rawSecs.some(s => resolvedBusySet.has(resolve(s)))) continue
 
-    const meta = metaMap[name]
+    const meta = { ...metaMap[name], ...approvedRoom(name) }
     free.push({
       number:       name,
       erp_sections: erpMap[name] ?? [],

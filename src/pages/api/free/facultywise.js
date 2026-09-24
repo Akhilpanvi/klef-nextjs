@@ -1,9 +1,10 @@
+import { approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }     from '@/lib/auth'
 import { connectDB }       from '@/lib/mongodb'
 import FacultywiseEntry    from '@/lib/models/FacultywiseEntry'
 import FacultywiseFaculty  from '@/lib/models/FacultywiseFaculty'
 import FacultywiseSnapshot from '@/lib/models/FacultywiseSnapshot'
-import { resolveRoom, WINGS } from '@/lib/roomLabel'
+import { WINGS } from '@/lib/roomLabel'
 import { buildRoomMaster, buildExcludedReport } from '@/lib/roomMaster'
 
 /**
@@ -95,14 +96,14 @@ export default async function handler(req, res) {
   // ── Rooms, from the same file ─────────────────────────────────────────────
   let roomsPayload = null
   if (wantRooms) {
-    const { room, excluded, knownRooms } = await buildRoomMaster(dayNums)
+    const { room, excluded } = await buildRoomMaster(dayNums)
 
     const busyRooms = new Set()
     const unmatched = new Map()
     const occupants = new Map()   // room -> Set of "name (course)"
     for (const e of entries) {
       if (!e.room_no) continue
-      const r = resolveRoom(e.room_no, knownRooms)
+      const r = approvedRoomKey(e.room_no)
       if (!r) continue
       busyRooms.add(r)
       if (!room.has(r)) {

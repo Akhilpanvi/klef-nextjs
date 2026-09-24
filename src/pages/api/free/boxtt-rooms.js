@@ -1,3 +1,4 @@
+import { isApprovedRoom } from '@/lib/approvedRooms'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import BoxTTEntry      from '@/lib/models/BoxTTEntry'
@@ -18,5 +19,5 @@ export default async function handler(req, res) {
   const rooms = await BoxTTEntry.distinct('room_no', { dataset: snap.snapshotId })
   rooms.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
 
-  res.json({ success: true, active: true, rooms })
+  res.json({ success: true, active: true, rooms: rooms.filter(isApprovedRoom) })
 }

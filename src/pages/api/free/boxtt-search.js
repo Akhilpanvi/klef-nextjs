@@ -1,3 +1,4 @@
+import { isApprovedRoom } from '@/lib/approvedRooms'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import BoxTTEntry      from '@/lib/models/BoxTTEntry'
@@ -21,6 +22,7 @@ export default async function handler(req, res) {
   if (!snap) return res.status(404).json({ success: false, message: 'No Box TT data uploaded' })
 
   const roomName = room.trim().toUpperCase()
+  if (!isApprovedRoom(roomName)) return res.status(404).json({ success: false, message: 'Room not in approved inventory' })
   const entries  = await BoxTTEntry.find(
     { dataset: snap.snapshotId, room_no: roomName },
     'day hour label'

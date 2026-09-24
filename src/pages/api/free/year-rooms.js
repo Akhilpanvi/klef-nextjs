@@ -1,3 +1,4 @@
+import { approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }     from '@/lib/auth'
 import { connectDB }       from '@/lib/mongodb'
 import RoomwiseEntry       from '@/lib/models/RoomwiseEntry'
@@ -6,7 +7,7 @@ import FacultywiseEntry    from '@/lib/models/FacultywiseEntry'
 import FacultywiseFaculty  from '@/lib/models/FacultywiseFaculty'
 import FacultywiseSnapshot from '@/lib/models/FacultywiseSnapshot'
 import User                from '@/lib/models/User'
-import { parseLabel, resolveRoom, normalizeProgram, categoryOf, degreeGroupOf, WINGS }
+import { parseLabel, normalizeProgram, categoryOf, degreeGroupOf, WINGS }
   from '@/lib/roomLabel'
 import { buildRoomMaster, buildExcludedReport } from '@/lib/roomMaster'
 
@@ -68,7 +69,7 @@ export default async function handler(req, res) {
       'uni_id faculty_name campus day hour room_no degree offering_level course_code component section').lean() : [],
   ])
 
-  const { room, excluded, knownRooms } = await buildRoomMaster(dayNums)
+  const { room, excluded } = await buildRoomMaster(dayNums)
 
   const yearSet    = new Set(yearNums)
   const yearsSeen  = new Set()
@@ -85,7 +86,7 @@ export default async function handler(req, res) {
 
   const noteRoom = (raw, sample, year, inScope, day, hour) => {
     if (!raw) return null
-    const r = resolveRoom(raw, knownRooms)
+    const r = approvedRoomKey(raw)
     if (!r) return null
     if (!room.has(r)) {
       const u = unmatched.get(r) || { raws: new Set(), sample: sample || '' }

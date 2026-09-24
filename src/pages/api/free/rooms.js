@@ -1,3 +1,4 @@
+import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }  from '@/lib/auth'
 import { connectDB }    from '@/lib/mongodb'
 import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
@@ -5,9 +6,7 @@ import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta         from '@/lib/models/RoomMeta'
 import ErpRoomData      from '@/lib/models/ErpRoomData'
 
-function baseKey(roomNo) {
-  return roomNo.split('-')[0].trim().toUpperCase()
-}
+const baseKey = approvedRoomKey
 
 export default async function handler(req, res) {
   if (req.method !== 'GET')
@@ -41,17 +40,18 @@ export default async function handler(req, res) {
   const roomSections = {}
   for (const sec of allSections) {
     const base = baseKey(sec)
+    if (!base) continue
     if (!roomSections[base]) roomSections[base] = []
     roomSections[base].push(sec)
   }
 
   // Room metadata
   const metas   = await RoomMeta.find({}).lean()
-  const metaMap = Object.fromEntries(metas.map(m => [m.room_no, m]))
+  const metaMap = Object.fromEntries(metas.map(m => [approvedRoomKey(m.room_no), m]))
 
   // ERP room IDs
   const erpDocs  = await ErpRoomData.find({}, 'room_no sections').lean()
-  const erpMap   = Object.fromEntries(erpDocs.map(e => [e.room_no, e.sections || []]))
+  const erpMap   = Object.fromEntries(erpDocs.map(e => [approvedRoomKey(e.room_no), e.sections || []]))
 
   const free = []
   for (const [base, sections] of Object.entries(roomSections)) {
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const allFree = sections.every(sec => !busySet.has(sec))
     if (!allFree) continue
 
-    const meta = metaMap[base]
+    const meta = { ...metaMap[base], ...approvedRoom(base) }
     free.push({
       number:      base,
       erp_sections: erpMap[base] ?? [],

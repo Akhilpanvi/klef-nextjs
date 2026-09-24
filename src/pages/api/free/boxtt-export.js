@@ -1,3 +1,4 @@
+import { isApprovedRoom } from '@/lib/approvedRooms'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import BoxTTEntry      from '@/lib/models/BoxTTEntry'
@@ -20,5 +21,5 @@ export default async function handler(req, res) {
     'room_no day hour label'
   ).lean()
 
-  res.json({ success: true, label: snap.label, entries })
+  res.json({ success: true, label: snap.label, entries: entries.filter(e => isApprovedRoom(e.room_no)) })
 }
