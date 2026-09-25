@@ -16,6 +16,12 @@ async function load(relative, overrides = {}) {
     let exports = overrides[name]
     if (name === 'auth' && !exports) exports = { requireAuth: async () => ({ role: 'admin' }) }
     if (name === 'mongodb') exports = { connectDB: async () => {} }
+    if (name === 'RoomAssignmentSnapshot' && !exports) exports = {
+      default: { findOne: () => ({ lean: async () => null }) },
+    }
+    if (name === 'RoomAssignment' && !exports) exports = {
+      default: { find: () => ({ lean: async () => [] }) },
+    }
     if (file.endsWith('.json')) exports = { default: JSON.parse(readFileSync(file, 'utf8')) }
     const mod = exports
       ? new vm.SyntheticModule(Object.keys(exports), function () {
@@ -27,6 +33,18 @@ async function load(relative, overrides = {}) {
   }
   const mod = moduleFor(path.resolve(relative))
   await mod.link((specifier, parent) => {
+    if (!specifier.startsWith('.') && !specifier.startsWith('@/')) {
+      const identifier = `external:${specifier}`
+      if (cache.has(identifier)) return cache.get(identifier)
+      const value = require(specifier)
+      const names = [...new Set(['default', ...Object.keys(value)])]
+      const external = new vm.SyntheticModule(names, function () {
+        this.setExport('default', value)
+        for (const name of names.slice(1)) this.setExport(name, value[name])
+      }, { identifier })
+      cache.set(identifier, external)
+      return external
+    }
     let target = specifier.startsWith('@/')
       ? path.resolve('src', specifier.slice(2))
       : path.resolve(path.dirname(parent.identifier), specifier)
@@ -290,4 +308,45 @@ test('free-room API includes the requested day assignment without changing occup
   assert.equal(monday.rooms[0].assigned_for_day, 'II PBL')
   assert.equal(thursday.rooms[0].assigned_for_day, 'I PBL')
   assert.equal(thursday.rooms[0].assigned, 'CLASS')
+})
+
+test('uploaded assignment dataset overrides bundled data immediately', async () => {
+  const snapshot = { dataset: 'uploaded-1', filename: 'latest.xlsx', uploadedAt: new Date('2026-09-25') }
+  const { getRoomAssignmentDataset, roomAssignment } = await load('src/lib/roomAssignments.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => snapshot }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => [{
+      room_no: 'C007', assigned: 'NEW DEPARTMENT',
+      day_assignments: { mon: 'NEW MONDAY', tue: null, wed: null, thu: null, fri: null, sat: null },
+    }] }) } },
+  })
+  const data = await getRoomAssignmentDataset()
+  assert.equal(data.uploaded, true)
+  assert.equal(data.source, 'latest.xlsx')
+  assert.equal(roomAssignment('C007-A', 1, data.records).assigned, 'NEW DEPARTMENT')
+  assert.equal(roomAssignment('C007-A', 1, data.records).assigned_for_day, 'NEW MONDAY')
+  assert.equal(roomAssignment('C008', 1, data.records).has_assignment_data, false)
+})
+
+test('admin assignment parser validates columns, merges duplicates and ignores unapproved rooms', async () => {
+  const XLSX = require('xlsx')
+  const { parseRoomAssignmentBuffer } = await load('src/lib/roomAssignmentParser.js')
+  const sheet = XLSX.utils.json_to_sheet([
+    { 'ROOM NO': 'C007', ASSIGNED: 'CLASS', MON: 'II PBL', TUE: '', WED: '', THU: 'I PBL', FRI: '', SAT: '' },
+    { 'ROOM NO': ' c007 ', ASSIGNED: 'CRT', MON: 'CRT', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
+    { 'ROOM NO': 'CRICKET NETS', ASSIGNED: 'SPORTS', MON: 'SPORTS', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
+  ])
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, sheet, 'Assignments')
+  const parsed = parseRoomAssignmentBuffer(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
+  assert.equal(parsed.docs.length, 1)
+  assert.equal(parsed.docs[0].room_no, 'C007')
+  assert.equal(parsed.docs[0].assigned, 'CLASS / CRT')
+  assert.equal(parsed.docs[0].day_assignments.mon, 'II PBL / CRT')
+  assert.ok(parsed.unmatchedRooms.includes('CRICKET NETS'))
+  assert.ok(parsed.missingRooms.includes('C008'))
+
+  const invalidSheet = XLSX.utils.json_to_sheet([{ 'ROOM NO': 'C007' }])
+  const invalidWorkbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(invalidWorkbook, invalidSheet, 'Assignments')
+  assert.throws(() => parseRoomAssignmentBuffer(XLSX.write(invalidWorkbook, { type: 'buffer', bookType: 'xlsx' })), /Missing columns/)
 })

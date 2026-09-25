@@ -79,6 +79,14 @@ To refresh assignment data from a revised workbook with the same columns:
 node scripts/import-room-assignments.cjs "C:\path\ROOM _DATA NEW.xlsx"
 ```
 
+Administrators can update the same data without a deployment from **Admin >
+Room Department Assignments**. Upload a CSV/XLSX containing `ROOM NO`,
+`ASSIGNED`, and `MON` through `SAT`. The file is validated and saved as a new
+dataset before it becomes active. Free-room cards, Department Assignments,
+Block-wise Utilization details, and their exports use it on the next request.
+The Admin card reports exact matches, approved rooms without matches, and
+ignored workbook names. Clearing an Admin upload restores the bundled data.
+
 Review the reported unmatched rooms and deploy the application. This importer
 does not modify room eligibility, capacity, type, or block.
 

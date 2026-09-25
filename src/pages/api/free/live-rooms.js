@@ -1,4 +1,4 @@
-import { roomAssignment } from '@/lib/roomAssignments'
+import { getRoomAssignmentDataset, roomAssignment } from '@/lib/roomAssignments'
 import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }      from '@/lib/auth'
 import { connectDB }        from '@/lib/mongodb'
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, message: 'day and periods required' })
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
 
   // Prefer gsheet_live; fall back to active BTT snapshot
   let snap = await TimetableSnapshot.findOne({ snapshotId: LIVE_DATASET }).lean()
@@ -126,7 +127,7 @@ export default async function handler(req, res) {
 
     const meta = { ...metaMap[name], ...approvedRoom(name) }
     free.push({
-      ...roomAssignment(name, dayNum),
+      ...roomAssignment(name, dayNum, assignmentData.records),
       number:       name,
       erp_sections: erpMap[name] ?? [],
       type:         meta?.room_type || '?',
