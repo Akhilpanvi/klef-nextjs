@@ -329,7 +329,11 @@ test('uploaded assignment dataset overrides bundled data immediately', async () 
 
 test('admin assignment parser makes every workbook room final and merges duplicates', async () => {
   const XLSX = require('xlsx')
-  const { parseRoomAssignmentBuffer } = await load('src/lib/roomAssignmentParser.js')
+  const { ASSIGNMENT_COLUMNS, parseRoomAssignmentBuffer } = await load('src/lib/roomAssignmentParser.js')
+  assert.deepEqual([...ASSIGNMENT_COLUMNS], [
+    'FLOOR', 'ROOM NO', 'BLOCK', 'ROOM CAPACITY', 'TYPE', 'ASSIGNED',
+    'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT',
+  ])
   const sheet = XLSX.utils.json_to_sheet([
     { 'ROOM NO': 'C007', ASSIGNED: 'CLASS', MON: 'II PBL', TUE: '', WED: '', THU: 'I PBL', FRI: '', SAT: '' },
     { 'ROOM NO': ' c007 ', ASSIGNED: 'CRT', MON: 'CRT', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },

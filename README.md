@@ -78,8 +78,8 @@ node scripts/import-room-assignments.cjs "C:\path\ROOM _DATA NEW.xlsx"
 ```
 
 Administrators can update the same data without a deployment from **Admin >
-Room Department Assignments**. Upload a CSV/XLSX containing `ROOM NO`,
-`ASSIGNED`, and `MON` through `SAT`. The file is validated and saved as a new
+Room Department Assignments**. Upload a CSV/XLSX containing `FLOOR`, `ROOM NO`,
+`BLOCK`, `ROOM CAPACITY`, `TYPE`, `ASSIGNED`, and `MON` through `SAT`. The file is validated and saved as a new
 dataset before it becomes active. Free-room cards, Department Assignments,
 Block-wise Utilization details, and their exports use it on the next request.
 The Admin card reports the final room count and duplicate rows merged. Clearing

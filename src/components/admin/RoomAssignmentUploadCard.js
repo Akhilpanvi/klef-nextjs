@@ -75,7 +75,8 @@ export default function RoomAssignmentUploadCard() {
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Room Department Assignments</div>
         <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
           Upload CSV/XLSX to replace the final room list and update Assigned and Monday–Saturday values throughout Free Rooms.<br />
-          Required columns: <strong>ROOM NO, ASSIGNED, MON, TUE, WED, THU, FRI, SAT</strong>. Optional room details: BLOCK, FLOOR, ROOM CAPACITY, TYPE.
+          Required room columns: <strong>FLOOR, ROOM NO, BLOCK, ROOM CAPACITY, TYPE, ASSIGNED</strong>.<br />
+          Required assignment columns: <strong>MON, TUE, WED, THU, FRI, SAT</strong>. SL NO is optional.
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>

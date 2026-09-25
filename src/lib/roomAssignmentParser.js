@@ -1,7 +1,10 @@
 import * as XLSX from 'xlsx'
 import { approvedRoomKey } from './approvedRooms.js'
 
-export const ASSIGNMENT_COLUMNS = ['ROOM NO', 'ASSIGNED', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+export const ASSIGNMENT_COLUMNS = [
+  'FLOOR', 'ROOM NO', 'BLOCK', 'ROOM CAPACITY', 'TYPE', 'ASSIGNED',
+  'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT',
+]
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const clean = value => String(value ?? '').trim()
 const compact = value => clean(value).toUpperCase().replace(/\s+/g, '')
