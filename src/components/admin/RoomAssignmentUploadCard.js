@@ -2,6 +2,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApi } from '@/components/AuthContext'
 import toast from 'react-hot-toast'
+import * as XLSX from 'xlsx'
+
+const SAMPLE_ROWS = [
+  { 'ROOM NO': 'C007', ASSIGNED: 'CLASS', MON: 'II PBL', TUE: 'II PBL', WED: 'II PBL', THU: 'I PBL', FRI: 'II PBL', SAT: 'II PBL' },
+  { 'ROOM NO': 'C008', ASSIGNED: 'CLASS', MON: 'I PBL', TUE: 'I PBL', WED: 'I PBL', THU: 'I PBL', FRI: 'I PBL', SAT: 'I PBL' },
+  { 'ROOM NO': 'C017', ASSIGNED: 'CLASS', MON: 'II ENGG - P', TUE: 'II ENGG - P', WED: 'II ENGG - P', THU: 'II ENGG - P', FRI: 'II ENGG - P', SAT: 'II ENGG - P' },
+]
 
 export default function RoomAssignmentUploadCard() {
   const { get, postForm, del } = useApi()
@@ -20,6 +27,16 @@ export default function RoomAssignmentUploadCard() {
     finally { setLoading(false) }
   }
   useEffect(() => { fetchStatus() }, [])
+
+  const downloadSample = () => {
+    const worksheet = XLSX.utils.json_to_sheet(SAMPLE_ROWS, {
+      header: ['ROOM NO', 'ASSIGNED', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'],
+    })
+    worksheet['!cols'] = [{ wch: 14 }, { wch: 18 }, ...Array.from({ length: 6 }, () => ({ wch: 18 }))]
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Room Assignments')
+    XLSX.writeFile(workbook, 'room-department-assignments-sample.xlsx')
+  }
 
   const upload = async () => {
     if (!file) return toast.error('Select the room assignment CSV/XLSX file')
@@ -60,10 +77,29 @@ export default function RoomAssignmentUploadCard() {
           Required columns: <strong>ROOM NO, ASSIGNED, MON, TUE, WED, THU, FRI, SAT</strong>.
         </div>
       </div>
-      {status?.active && <button className="btn btn-danger" onClick={clear} disabled={clearing} style={{ alignSelf: 'flex-start' }}>
-        {clearing ? 'Clearing…' : 'Clear upload'}
-      </button>}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <button className="btn btn-ghost" onClick={downloadSample}>Download Sample Excel</button>
+        {status?.active && <button className="btn btn-danger" onClick={clear} disabled={clearing}>
+          {clearing ? 'Clearing…' : 'Clear upload'}
+        </button>}
+      </div>
     </div>
+
+    <details style={{ marginBottom: 14, border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', background: 'var(--surface)' }}>
+      <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>Show sample Excel format and instructions</summary>
+      <div style={{ marginTop: 10, fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
+        Use one row per room. <strong>ROOM NO</strong> must match an approved room number. <strong>ASSIGNED</strong> describes the general use,
+        while MON–SAT contain that day&apos;s department or allocation. Cells may be blank, but do not rename the headers.
+      </div>
+      <div style={{ overflowX: 'auto', marginTop: 10 }}>
+        <table style={{ borderCollapse: 'collapse', minWidth: 850, width: '100%', fontSize: 11 }}>
+          <thead><tr>{Object.keys(SAMPLE_ROWS[0]).map(header => <th key={header} style={{ padding: 7, textAlign: 'left', border: '1px solid var(--border)', background: 'var(--surface-2)' }}>{header}</th>)}</tr></thead>
+          <tbody>{SAMPLE_ROWS.slice(0, 2).map(row => <tr key={row['ROOM NO']}>
+            {Object.keys(SAMPLE_ROWS[0]).map(header => <td key={header} style={{ padding: 7, border: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{row[header]}</td>)}
+          </tr>)}</tbody>
+        </table>
+      </div>
+    </details>
 
     {loading ? <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 14 }}>Checking status…</div>
       : status?.active ? <div style={{ background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.3)', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 14 }}>
