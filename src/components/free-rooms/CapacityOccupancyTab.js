@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx'
 import toast from 'react-hot-toast'
 import { useApi } from '@/components/AuthContext'
 import PeriodPicker from '@/components/ui/PeriodPicker'
+import RoomDataWarning from '@/components/free-rooms/RoomDataWarning'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const th = { padding: '9px 10px', textAlign: 'left', fontSize: 11, background: 'var(--surface-2)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }
@@ -96,6 +97,7 @@ export default function CapacityOccupancyTab() {
     <PeriodPicker selected={periods} onChange={setPeriods} max={24} />
 
     {data?.noData && <p role="status" style={{ marginTop: 18 }}>{data.message}</p>}
+    <RoomDataWarning diagnostics={data?.diagnostics} />
     {data && !data.noData && <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20, marginTop: 20 }}>
       <p style={{ color: 'var(--text-3)', fontSize: 12 }}>Timetable: {data.filename || data.snapshotLabel} · Room details: {data.assignmentSource}</p>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>

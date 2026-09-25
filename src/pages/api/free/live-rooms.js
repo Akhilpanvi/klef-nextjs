@@ -20,9 +20,13 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res)
   if (!user) return
 
-  const { day, periods } = req.query
-  if (!day || !periods)
-    return res.status(400).json({ success: false, message: 'day and periods required' })
+  const dayNum = Number(req.query.day)
+  const periodNums = [...new Set(String(req.query.periods || '').split(',').map(Number)
+    .filter(period => Number.isInteger(period) && period >= 1 && period <= 24))].sort((a, b) => a - b)
+  if (!Number.isInteger(dayNum) || dayNum < 1 || dayNum > 6 || !periodNums.length)
+    return res.status(400).json({ success: false, message: 'Select a valid Monday-Saturday day and at least one period from 1-24' })
+
+  res.setHeader('Cache-Control', 'private, no-store')
 
   await connectDB()
   const assignmentData = await getRoomAssignmentDataset()
@@ -44,9 +48,6 @@ export default async function handler(req, res) {
       success: true, count: 0, rooms: [], noData: true,
       message: 'Live timetable not available. Ask admin to sync Google Sheets or upload a BTT CSV.',
     })
-
-  const dayNum     = parseInt(day)
-  const periodNums = periods.split(',').map(Number).filter(p => p >= 1 && p <= 24)
 
   // All distinct rooms in dataset
   const allRooms = await TimetableEntry.distinct('room_no', {

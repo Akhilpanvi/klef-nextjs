@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx'
 import toast from 'react-hot-toast'
 import { useApi } from '@/components/AuthContext'
 import PeriodPicker from '@/components/ui/PeriodPicker'
+import RoomDataWarning from '@/components/free-rooms/RoomDataWarning'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const cell = { padding: '9px 11px', textAlign: 'left', borderBottom: '1px solid var(--border)', fontSize: 12 }
@@ -78,6 +79,7 @@ export default function BlockFreeRoomsTab() {
 
     {error && <p role="alert" style={{ color: 'var(--brand)' }}>{error}</p>}
     {result?.noData && <p role="status" style={{ marginTop: 18 }}>{result.message}</p>}
+    <RoomDataWarning diagnostics={result?.diagnostics} />
     {result && !result.noData && <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20, marginTop: 20 }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
         <select className="input" aria-label="Block" value={block} onChange={event => setBlock(event.target.value)} style={{ width: 170 }}>

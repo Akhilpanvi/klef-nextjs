@@ -6,12 +6,49 @@ import RoomAssignmentSnapshot from './models/RoomAssignmentSnapshot.js'
 export const assignmentSource = data.source
 const bundledRecords = new Map(data.rooms.map(room => [room.room_no, room]))
 const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+const compact = value => String(value || '').trim().toUpperCase().replace(/\s+/g, '')
+const identity = value => compact(value).replace(/[^A-Z0-9]/g, '') || compact(value)
+
+const mergeText = (left, right) => {
+  const values = [...new Set([left, right].flatMap(value => String(value || '').split(' / '))
+    .map(value => value.trim()).filter(Boolean))]
+  return values.join(' / ') || null
+}
+
+function mergeUploadedRecords(docs) {
+  const merged = new Map()
+  const byIdentity = new Map()
+  for (const source of docs) {
+    const key = identity(source.room_no)
+    let record = byIdentity.get(key)
+    if (!record) {
+      record = {
+        ...source,
+        day_assignments: { ...source.day_assignments },
+        aliases: [source.room_no, source.source_name].filter(Boolean),
+      }
+      byIdentity.set(key, record)
+      merged.set(record.room_no, record)
+      continue
+    }
+    record.aliases.push(source.room_no, source.source_name)
+    record.aliases = [...new Set(record.aliases.filter(Boolean))]
+    record.block ||= source.block || null
+    record.floor ??= source.floor ?? null
+    record.capacity ??= source.capacity ?? null
+    record.room_type ||= source.room_type || null
+    record.assigned = mergeText(record.assigned, source.assigned)
+    for (const day of days)
+      record.day_assignments[day] = mergeText(record.day_assignments[day], source.day_assignments?.[day])
+  }
+  return merged
+}
 
 export async function getRoomAssignmentDataset() {
   const snapshot = await RoomAssignmentSnapshot.findOne({ key: 'active' }).lean()
   if (!snapshot) return { records: bundledRecords, source: assignmentSource, uploaded: false, snapshot: null }
   const docs = await RoomAssignment.find({ dataset: snapshot.dataset }).lean()
-  return { records: new Map(docs.map(room => [room.room_no, room])), source: snapshot.filename,
+  return { records: mergeUploadedRecords(docs), source: snapshot.filename,
     uploaded: true, snapshot }
 }
 
@@ -24,10 +61,10 @@ export function getRoomInventory(data) {
     room_type: room.room_type || '?',
     capacity: room.capacity ?? null,
     floor: room.floor ?? null,
+    aliases: room.aliases || [],
   }))
 }
 
-const compact = value => String(value || '').trim().toUpperCase().replace(/\s+/g, '')
 const SECTION_SUFFIX = /-(MA|AB|CD|[A-F])$/i
 const resolverCache = new WeakMap()
 
@@ -36,16 +73,27 @@ export function createRoomInventoryResolver(inventory) {
   for (const room of inventory) {
     aliases.set(compact(room.room_no), room.room_no)
     aliases.set(compact(room.source_name), room.room_no)
+    for (const alias of room.aliases || []) aliases.set(compact(alias), room.room_no)
   }
+  const looseAliases = new Map()
+  const collisions = new Set()
+  for (const [alias, room] of aliases) {
+    const key = identity(alias)
+    if (looseAliases.has(key) && looseAliases.get(key) !== room) collisions.add(key)
+    else looseAliases.set(key, room)
+  }
+  for (const key of collisions) looseAliases.delete(key)
   return raw => {
     let value = compact(raw)
     if (!value) return ''
     if (aliases.has(value)) return aliases.get(value)
+    const original = value
     while (SECTION_SUFFIX.test(value)) {
       value = value.replace(SECTION_SUFFIX, '')
       if (aliases.has(value)) return aliases.get(value)
+      if (looseAliases.has(identity(value))) return looseAliases.get(identity(value))
     }
-    return ''
+    return looseAliases.get(identity(original)) || ''
   }
 }
 

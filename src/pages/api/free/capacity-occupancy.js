@@ -34,6 +34,7 @@ export default async function handler(req, res) {
     RoomMeta.find({}).lean(),
   ])
   const busy = new Set(busySections.map(resolveRoom).filter(Boolean))
+  const unmatchedRoomLabels = allSections.filter(section => !resolveRoom(section)).map(String).sort()
   const observed = [...new Set(allSections.map(resolveRoom).filter(Boolean))]
   const roomNames = assignmentData.uploaded ? inventory.map(room => room.room_no) : observed
   const metaMap = new Map(metas.map(meta => [resolveRoom(meta.room_no), meta]).filter(([key]) => key))
@@ -91,5 +92,12 @@ export default async function handler(req, res) {
     filename: snapshot.filename || null,
     uploadedAt: snapshot.uploadedAt || null,
     assignmentSource: assignmentData.source,
+    diagnostics: {
+      inventoryRooms: inventory.length,
+      timetableRoomLabels: allSections.length,
+      matchedPhysicalRooms: observed.length,
+      unmatchedRoomCount: unmatchedRoomLabels.length,
+      unmatchedRoomLabels: unmatchedRoomLabels.slice(0, 25),
+    },
   })
 }

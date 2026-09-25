@@ -14,6 +14,7 @@ import BlockFreeRoomsTab from '@/components/free-rooms/BlockFreeRoomsTab'
 import CapacityOccupancyTab from '@/components/free-rooms/CapacityOccupancyTab'
 import DepartmentAssignmentsTab from '@/components/free-rooms/DepartmentAssignmentsTab'
 import RoomAssignmentDetails from '@/components/free-rooms/RoomAssignmentDetails'
+import RoomDataWarning from '@/components/free-rooms/RoomDataWarning'
 import { assignmentExportColumns } from '@/lib/roomAssignmentFormat'
 
 const DAYS     = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -81,15 +82,16 @@ function FindFreeRoomsTab({ onAnalyze }) {
   const [type,    setType]    = useState('')
   const [sort,    setSort]    = useState('NUMBER')
   const [search,  setSearch]  = useState('')
+  const [diagnostics, setDiagnostics] = useState(null)
 
   const check = async () => {
     if (!periods.length) return toast.error('Select at least one period')
-    setBusy(true); setNoData(false)
+    setBusy(true); setNoData(false); setDiagnostics(null)
     try {
       const d = await get(`/api/free/rooms?day=${day}&periods=${periods.join(',')}`)
       if (!d.success) throw new Error(d.message)
       if (d.noData) { setNoData(true); setFetched(false); return }
-      setRooms(d.rooms||[]); setFetched(true); setBlock(''); setType(''); setSearch('')
+      setRooms(d.rooms||[]); setDiagnostics(d.diagnostics || null); setFetched(true); setBlock(''); setType(''); setSearch('')
       toast.success(`Found ${d.count} free rooms`)
     } catch (err) { toast.error(err.message) }
     finally { setBusy(false) }
@@ -130,6 +132,8 @@ function FindFreeRoomsTab({ onAnalyze }) {
       <PeriodPicker selected={periods} onChange={setPeriods} max={24} />
 
       {noData && <div style={{marginTop:20,padding:16,background:'var(--surface-2)',borderRadius:10,border:'1px solid var(--border)',color:'var(--text-2)',fontSize:14}}>⚠️ No Roomwise timetable uploaded yet. Ask admin to upload Roomwise-TT CSV.</div>}
+
+      <RoomDataWarning diagnostics={diagnostics} />
 
       {fetched && (
         <div style={{borderTop:'1px solid var(--border)',paddingTop:20,marginTop:20}}>

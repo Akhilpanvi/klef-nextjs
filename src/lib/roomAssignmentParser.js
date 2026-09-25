@@ -8,6 +8,7 @@ export const ASSIGNMENT_COLUMNS = [
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const clean = value => String(value ?? '').trim()
 const compact = value => clean(value).toUpperCase().replace(/\s+/g, '')
+const identity = value => compact(value).replace(/[^A-Z0-9]/g, '') || compact(value)
 const numberOrNull = value => {
   const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''))
   return Number.isFinite(parsed) && String(value ?? '').trim() ? parsed : null
@@ -39,9 +40,9 @@ export function parseRoomAssignmentBuffer(buffer) {
     const sourceName = clean(row['ROOM NO'])
     if (!sourceName) continue
     const roomNo = approvedRoomKey(sourceName) || clean(sourceName).toUpperCase().replace(/\s+/g, ' ')
-    const identity = compact(roomNo)
-    if (matches.has(identity)) duplicateCount++
-    if (!matches.has(identity)) matches.set(identity, {
+    const roomIdentity = identity(roomNo)
+    if (matches.has(roomIdentity)) duplicateCount++
+    if (!matches.has(roomIdentity)) matches.set(roomIdentity, {
       room_no: roomNo,
       source_name: sourceName,
       block: clean(row.BLOCK) || null,
@@ -51,7 +52,7 @@ export function parseRoomAssignmentBuffer(buffer) {
       assigned: new Set(),
       day_assignments: Object.fromEntries(DAYS.map(day => [day, new Set()])),
     })
-    const record = matches.get(identity)
+    const record = matches.get(roomIdentity)
     record.block ||= clean(row.BLOCK) || null
     record.floor ??= numberOrNull(row.FLOOR)
     record.capacity ??= capacityOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP)

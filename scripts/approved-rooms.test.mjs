@@ -93,6 +93,24 @@ test('free rooms exclude unapproved rooms and remain busy if any section is occu
   assert.equal(result.count, 1)
   assert.equal(result.rooms[0].capacity, 72)
   assert.equal(result.rooms[0].type, 'CR')
+  assert.equal(result.diagnostics.unmatchedRoomCount, 1)
+  assert.deepEqual(result.diagnostics.unmatchedRoomLabels, ['UNWANTED-A'])
+})
+
+test('free-room API rejects invalid days and periods before reading the database', async () => {
+  let readDatabase = false
+  const { default: handler } = await load('src/pages/api/free/rooms.js', {
+    mongodb: { connectDB: async () => { readDatabase = true } },
+  })
+  for (const query of [
+    { day: '7', periods: '1' }, { day: '1.5', periods: '1' },
+    { day: '1', periods: '0,25' }, { day: 'Monday', periods: '1' },
+  ]) {
+    const result = await request(handler, query)
+    assert.equal(result.success, false)
+    assert.match(result.message, /valid Monday-Saturday/)
+  }
+  assert.equal(readDatabase, false)
 })
 
 test('statistics omit unwanted rooms and merge whitespace variants', async () => {
@@ -329,6 +347,26 @@ test('uploaded assignment dataset overrides bundled data immediately', async () 
   assert.equal(roomAssignment('C008', 1, data.records).has_assignment_data, false)
 })
 
+test('uploaded punctuation variants merge immediately and section suffixes still prefer the base room', async () => {
+  const docs = [
+    { room_no: 'F001-ELECTRICAL M/C LAB', source_name: 'F001-ELECTRICAL M/C LAB', block: 'FED', floor: 0, capacity: 72, room_type: 'HLAB', assigned: 'CLASS', day_assignments: { mon: null } },
+    { room_no: 'F001ELECTRICAL M/C LAB', source_name: 'F001ELECTRICAL M/C LAB', capacity: 72, assigned: 'CLASS', day_assignments: { mon: 'CLASS' } },
+    { room_no: 'C123', source_name: 'C123', capacity: 72, day_assignments: {} },
+    { room_no: 'C123A', source_name: 'C123A', capacity: 24, day_assignments: {} },
+  ]
+  const { getRoomAssignmentDataset, getRoomInventory, createRoomInventoryResolver, roomAssignment } = await load('src/lib/roomAssignments.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => docs }) } },
+  })
+  const data = await getRoomAssignmentDataset()
+  assert.equal(data.records.size, 3)
+  assert.equal(roomAssignment('F001ELECTRICAL M/C LAB', 1, data.records).assigned_for_day, 'CLASS')
+  const resolve = createRoomInventoryResolver(getRoomInventory(data))
+  assert.equal(resolve('F001ELECTRICAL M/C LAB'), 'F001-ELECTRICAL M/C LAB')
+  assert.equal(resolve('C123-A'), 'C123')
+  assert.equal(resolve('C123A'), 'C123A')
+})
+
 test('admin assignment parser makes every workbook room final and merges duplicates', async () => {
   const XLSX = require('xlsx')
   const { ASSIGNMENT_COLUMNS, parseRoomAssignmentBuffer } = await load('src/lib/roomAssignmentParser.js')
@@ -353,6 +391,18 @@ test('admin assignment parser makes every workbook room final and merges duplica
   assert.equal(sports.capacity, 80)
   assert.equal(sports.room_type, 'GROUND')
   assert.equal(parsed.duplicateCount, 1)
+
+  const punctuationSheet = XLSX.utils.json_to_sheet([
+    { FLOOR: 0, 'ROOM NO': 'F001-ELECTRICAL M/C LAB', BLOCK: 'FED', 'ROOM CAPACITY': 72, TYPE: 'HLAB', ASSIGNED: 'CLASS', MON: '', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
+    { FLOOR: '', 'ROOM NO': 'F001ELECTRICAL M/C LAB', BLOCK: '', 'ROOM CAPACITY': 72, TYPE: '', ASSIGNED: 'CLASS', MON: 'CLASS', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
+  ])
+  const punctuationWorkbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(punctuationWorkbook, punctuationSheet, 'Assignments')
+  const punctuation = parseRoomAssignmentBuffer(XLSX.write(punctuationWorkbook, { type: 'buffer', bookType: 'xlsx' }))
+  assert.equal(punctuation.docs.length, 1)
+  assert.equal(punctuation.duplicateCount, 1)
+  assert.equal(punctuation.docs[0].room_no, 'F001-ELECTRICAL M/C LAB')
+  assert.equal(punctuation.docs[0].day_assignments.mon, 'CLASS')
 
   const invalidSheet = XLSX.utils.json_to_sheet([{ 'ROOM NO': 'C007' }])
   const invalidWorkbook = XLSX.utils.book_new()

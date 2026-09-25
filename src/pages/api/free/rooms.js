@@ -13,9 +13,13 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res)
   if (!user) return
 
-  const { day, periods } = req.query
-  if (!day || !periods)
-    return res.status(400).json({ success: false, message: 'day and periods required' })
+  const dayNum = Number(req.query.day)
+  const periodNums = [...new Set(String(req.query.periods || '').split(',').map(Number)
+    .filter(period => Number.isInteger(period) && period >= 1 && period <= 24))].sort((a, b) => a - b)
+  if (!Number.isInteger(dayNum) || dayNum < 1 || dayNum > 6 || !periodNums.length)
+    return res.status(400).json({ success: false, message: 'Select a valid Monday-Saturday day and at least one period from 1-24' })
+
+  res.setHeader('Cache-Control', 'private, no-store')
 
   await connectDB()
   const assignmentData = await getRoomAssignmentDataset()
@@ -29,9 +33,6 @@ export default async function handler(req, res) {
       message: 'No roomwise timetable uploaded yet.' })
 
   const dataset    = snap.snapshotId
-  const dayNum     = parseInt(day)
-  const periodNums = periods.split(',').map(Number).filter(p => p >= 1 && p <= 24)
-
   const allSections  = await RoomwiseEntry.distinct('room_no', { dataset })
   const busySections = await RoomwiseEntry.distinct('room_no', {
     dataset, day: dayNum, hour: { $in: periodNums },
@@ -41,9 +42,12 @@ export default async function handler(req, res) {
   // Group sections by base room
   const roomSections = {}
   if (assignmentData.uploaded) for (const room of inventory) roomSections[room.room_no] = []
+  const unmatchedRoomLabels = []
+  const coveredRooms = new Set()
   for (const sec of allSections) {
     const base = resolveRoom(sec)
-    if (!base) continue
+    if (!base) { unmatchedRoomLabels.push(String(sec)); continue }
+    coveredRooms.add(base)
     if (!roomSections[base]) roomSections[base] = []
     roomSections[base].push(sec)
   }
@@ -77,5 +81,15 @@ export default async function handler(req, res) {
 
   free.sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }))
 
-  res.json({ success: true, count: free.length, rooms: free })
+  res.json({ success: true, count: free.length, rooms: free,
+    diagnostics: {
+      inventoryRooms: inventory.length,
+      timetableRoomLabels: allSections.length,
+      matchedPhysicalRooms: coveredRooms.size,
+      unmatchedRoomCount: unmatchedRoomLabels.length,
+      unmatchedRoomLabels: unmatchedRoomLabels.sort().slice(0, 25),
+      timetableSource: snap.filename || snap.label || dataset,
+      roomSource: assignmentData.source,
+    },
+  })
 }
