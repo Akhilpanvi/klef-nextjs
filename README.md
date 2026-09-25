@@ -86,6 +86,8 @@ dataset before it becomes active. Free-room cards, Department Assignments,
 Block-wise Utilization details, and their exports use it on the next request.
 The Admin card reports exact matches, approved rooms without matches, and
 ignored workbook names. Clearing an Admin upload restores the bundled data.
+The Admin card also provides a downloadable `room-department-assignments-sample.xlsx`
+and an inline format preview with example values.
 
 Review the reported unmatched rooms and deploy the application. This importer
 does not modify room eligibility, capacity, type, or block.
