@@ -1,10 +1,14 @@
 import * as XLSX from 'xlsx'
-import { approvedRooms } from './approvedRooms.js'
+import { approvedRoomKey } from './approvedRooms.js'
 
 export const ASSIGNMENT_COLUMNS = ['ROOM NO', 'ASSIGNED', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const clean = value => String(value ?? '').trim()
 const compact = value => clean(value).toUpperCase().replace(/\s+/g, '')
+const numberOrNull = value => {
+  const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''))
+  return Number.isFinite(parsed) && String(value ?? '').trim() ? parsed : null
+}
 
 export function parseRoomAssignmentBuffer(buffer) {
   const workbook = XLSX.read(buffer, { type: 'buffer' })
@@ -15,24 +19,32 @@ export function parseRoomAssignmentBuffer(buffer) {
   const missingColumns = ASSIGNMENT_COLUMNS.filter(column => !headers.includes(column))
   if (missingColumns.length) throw new Error(`Missing columns: ${missingColumns.join(', ')}`)
 
-  const approvedNames = new Map(approvedRooms.flatMap(room =>
-    [room.room_no, room.source_name].map(name => [compact(name), room.room_no])))
   const matches = new Map()
-  const unmatched = new Set()
   const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+  let duplicateCount = 0
 
   for (const raw of rows) {
     const row = Object.fromEntries(Object.entries(raw).map(([key, value]) => [clean(key).toUpperCase(), value]))
     const sourceName = clean(row['ROOM NO'])
     if (!sourceName) continue
-    const roomNo = approvedNames.get(compact(sourceName))
-    if (!roomNo) { unmatched.add(sourceName); continue }
-    if (!matches.has(roomNo)) matches.set(roomNo, {
+    const roomNo = approvedRoomKey(sourceName) || clean(sourceName).toUpperCase().replace(/\s+/g, ' ')
+    const identity = compact(roomNo)
+    if (matches.has(identity)) duplicateCount++
+    if (!matches.has(identity)) matches.set(identity, {
       room_no: roomNo,
+      source_name: sourceName,
+      block: clean(row.BLOCK) || null,
+      floor: numberOrNull(row.FLOOR),
+      capacity: numberOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP),
+      room_type: clean(row.TYPE) || null,
       assigned: new Set(),
       day_assignments: Object.fromEntries(DAYS.map(day => [day, new Set()])),
     })
-    const record = matches.get(roomNo)
+    const record = matches.get(identity)
+    record.block ||= clean(row.BLOCK) || null
+    record.floor ??= numberOrNull(row.FLOOR)
+    record.capacity ??= numberOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP)
+    record.room_type ||= clean(row.TYPE) || null
     if (clean(row.ASSIGNED)) record.assigned.add(clean(row.ASSIGNED))
     for (const day of DAYS) {
       const value = clean(row[day.toUpperCase()])
@@ -40,17 +52,21 @@ export function parseRoomAssignmentBuffer(buffer) {
     }
   }
 
-  if (!matches.size) throw new Error('No approved room names matched the workbook')
+  if (!matches.size) throw new Error('No room rows were found in the workbook')
   const join = values => [...values].join(' / ') || null
   const docs = [...matches.values()].map(record => ({
     room_no: record.room_no,
+    source_name: record.source_name,
+    block: record.block,
+    floor: record.floor,
+    capacity: record.capacity,
+    room_type: record.room_type,
     assigned: join(record.assigned),
     day_assignments: Object.fromEntries(DAYS.map(day => [day, join(record.day_assignments[day])])),
   })).sort((a, b) => a.room_no.localeCompare(b.room_no, undefined, { numeric: true }))
 
   return {
     docs,
-    missingRooms: approvedRooms.filter(room => !matches.has(room.room_no)).map(room => room.room_no),
-    unmatchedRooms: [...unmatched].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    duplicateCount,
   }
 }

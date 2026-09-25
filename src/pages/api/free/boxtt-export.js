@@ -1,4 +1,4 @@
-import { isApprovedRoom } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory } from '@/lib/roomAssignments'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import BoxTTEntry      from '@/lib/models/BoxTTEntry'
@@ -12,6 +12,8 @@ export default async function handler(req, res) {
   if (!user) return
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
+  const resolveRoom = createRoomInventoryResolver(getRoomInventory(assignmentData))
 
   const snap = await BoxTTSnapshot.findOne().lean()
   if (!snap) return res.status(404).json({ success: false, message: 'No Box TT data uploaded' })
@@ -21,5 +23,7 @@ export default async function handler(req, res) {
     'room_no day hour label'
   ).lean()
 
-  res.json({ success: true, label: snap.label, entries: entries.filter(e => isApprovedRoom(e.room_no)) })
+  res.json({ success: true, label: snap.label, entries: entries
+    .map(entry => ({ ...entry, room_no: resolveRoom(entry.room_no) }))
+    .filter(entry => entry.room_no) })
 }

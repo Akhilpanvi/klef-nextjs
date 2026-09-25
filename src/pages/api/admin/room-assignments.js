@@ -14,8 +14,9 @@ export default async function handler(req, res) {
     await connectDB()
     const snapshot = await RoomAssignmentSnapshot.findOne({ key: 'active' }).lean()
     return res.json({ success: true, active: Boolean(snapshot),
-      ...(snapshot ? { filename: snapshot.filename, matchedCount: snapshot.matchedCount,
-        missingCount: snapshot.missingRooms.length, unmatchedCount: snapshot.unmatchedRooms.length,
+      ...(snapshot ? { filename: snapshot.filename,
+        roomCount: snapshot.roomCount ?? snapshot.matchedCount,
+        duplicateCount: snapshot.duplicateCount ?? 0,
         uploadedAt: snapshot.uploadedAt } : {}) })
   }
 
@@ -38,8 +39,9 @@ export default async function handler(req, res) {
     try {
       await RoomAssignmentSnapshot.findOneAndUpdate({ key: 'active' }, {
         key: 'active', dataset, filename: file.originalFilename || file.newFilename,
-        matchedCount: parsed.docs.length, missingRooms: parsed.missingRooms,
-        unmatchedRooms: parsed.unmatchedRooms, uploadedAt: new Date(),
+        matchedCount: parsed.docs.length, roomCount: parsed.docs.length,
+        duplicateCount: parsed.duplicateCount,
+        missingRooms: [], unmatchedRooms: [], uploadedAt: new Date(),
       }, { upsert: true, new: true })
     } catch (error) {
       await RoomAssignment.deleteMany({ dataset })
@@ -47,8 +49,7 @@ export default async function handler(req, res) {
     }
     await RoomAssignment.deleteMany({ dataset: { $ne: dataset } })
     return res.json({ success: true, inserted: parsed.docs.length,
-      missingCount: parsed.missingRooms.length, unmatchedCount: parsed.unmatchedRooms.length,
-      missingRooms: parsed.missingRooms, unmatchedRooms: parsed.unmatchedRooms })
+      roomCount: parsed.docs.length, duplicateCount: parsed.duplicateCount })
   }
 
   if (req.method === 'DELETE') {

@@ -1,13 +1,10 @@
-import { getRoomAssignmentDataset, roomAssignment } from '@/lib/roomAssignments'
-import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory, roomAssignment } from '@/lib/roomAssignments'
 import { requireAuth }  from '@/lib/auth'
 import { connectDB }    from '@/lib/mongodb'
 import RoomwiseEntry    from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta         from '@/lib/models/RoomMeta'
 import ErpRoomData      from '@/lib/models/ErpRoomData'
-
-const baseKey = approvedRoomKey
 
 export default async function handler(req, res) {
   if (req.method !== 'GET')
@@ -22,6 +19,9 @@ export default async function handler(req, res) {
 
   await connectDB()
   const assignmentData = await getRoomAssignmentDataset()
+  const inventory = getRoomInventory(assignmentData)
+  const resolveRoom = createRoomInventoryResolver(inventory)
+  const inventoryMap = new Map(inventory.map(room => [room.room_no, room]))
 
   const snap = await RoomwiseSnapshot.findOne().lean()
   if (!snap)
@@ -36,12 +36,13 @@ export default async function handler(req, res) {
   const busySections = await RoomwiseEntry.distinct('room_no', {
     dataset, day: dayNum, hour: { $in: periodNums },
   })
-  const busySet = new Set(busySections.map(String))
+  const busySet = new Set(busySections.map(resolveRoom).filter(Boolean))
 
   // Group sections by base room
   const roomSections = {}
+  if (assignmentData.uploaded) for (const room of inventory) roomSections[room.room_no] = []
   for (const sec of allSections) {
-    const base = baseKey(sec)
+    const base = resolveRoom(sec)
     if (!base) continue
     if (!roomSections[base]) roomSections[base] = []
     roomSections[base].push(sec)
@@ -49,19 +50,19 @@ export default async function handler(req, res) {
 
   // Room metadata
   const metas   = await RoomMeta.find({}).lean()
-  const metaMap = Object.fromEntries(metas.map(m => [approvedRoomKey(m.room_no), m]))
+  const metaMap = Object.fromEntries(metas.map(m => [resolveRoom(m.room_no), m]).filter(([key]) => key))
 
   // ERP room IDs
   const erpDocs  = await ErpRoomData.find({}, 'room_no sections').lean()
-  const erpMap   = Object.fromEntries(erpDocs.map(e => [approvedRoomKey(e.room_no), e.sections || []]))
+  const erpMap   = Object.fromEntries(erpDocs.map(e => [resolveRoom(e.room_no), e.sections || []]).filter(([key]) => key))
 
   const free = []
   for (const [base, sections] of Object.entries(roomSections)) {
     // Room is free only if ALL sections are free
-    const allFree = sections.every(sec => !busySet.has(sec))
+    const allFree = !busySet.has(base)
     if (!allFree) continue
 
-    const meta = { ...metaMap[base], ...approvedRoom(base) }
+    const meta = { ...metaMap[base], ...inventoryMap.get(base) }
     free.push({
       ...roomAssignment(base, dayNum, assignmentData.records),
       number:      base,

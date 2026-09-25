@@ -1,5 +1,4 @@
-import { approvedRooms } from '@/lib/approvedRooms'
-import { getRoomAssignmentDataset, roomAssignment } from '@/lib/roomAssignments'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory, roomAssignment } from '@/lib/roomAssignments'
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import RoomwiseEntry from '@/lib/models/RoomwiseEntry'
@@ -26,11 +25,14 @@ export default async function handler(req, res) {
       RoomwiseEntry.distinct('room_no', { dataset }),
       getRoomAssignmentDataset(),
     ])
+    const inventory = getRoomInventory(assignmentData)
+    const resolveRoom = createRoomInventoryResolver(inventory)
+    const coverage = assignmentData.uploaded ? inventory.map(room => room.room_no) : observedRooms
     res.setHeader('Cache-Control', 'private, no-store')
-    return res.json({ success: true, ...buildBlockUtilization(entries, observedRooms),
+    return res.json({ success: true, ...buildBlockUtilization(entries, coverage, inventory, resolveRoom),
       snapshotLabel: snapshot.label, filename: snapshot.filename, uploadedAt: snapshot.uploadedAt,
       dataset, source: 'roomwise',
-      roomAssignments: Object.fromEntries(approvedRooms.map(room => [room.room_no, {
+      roomAssignments: Object.fromEntries(inventory.map(room => [room.room_no, {
         number: room.room_no, block: room.block, ...roomAssignment(room.room_no, null, assignmentData.records),
       }])),
       assignmentSource: assignmentData.source,

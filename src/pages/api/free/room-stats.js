@@ -1,12 +1,10 @@
-import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory } from '@/lib/roomAssignments'
 import { requireAuth }   from '@/lib/auth'
 import { connectDB }     from '@/lib/mongodb'
 import RoomwiseEntry     from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot  from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta          from '@/lib/models/RoomMeta'
 import ErpRoomData       from '@/lib/models/ErpRoomData'
-
-const baseKey = approvedRoomKey
 
 const DAY_KEYS   = ['Mon','Tue','Wed','Thu','Fri','Sat']
 const MAX_PERIOD = 11
@@ -20,6 +18,10 @@ export default async function handler(req, res) {
   if (!user) return
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
+  const inventory = getRoomInventory(assignmentData)
+  const baseKey = createRoomInventoryResolver(inventory)
+  const inventoryMap = new Map(inventory.map(room => [room.room_no, room]))
 
   const snap = await RoomwiseSnapshot.findOne().lean()
   if (!snap) return res.json({ success: true, stats: [], noData: true })
@@ -34,6 +36,7 @@ export default async function handler(req, res) {
 
   const allSections = [...new Set(entries.map(e => e.room_no))]
   const roomSections = {}
+  if (assignmentData.uploaded) for (const room of inventory) roomSections[room.room_no] = new Set()
   for (const sec of allSections) {
     const base = baseKey(sec)
     if (!base) continue
@@ -61,14 +64,14 @@ export default async function handler(req, res) {
   }
 
   const metas   = await RoomMeta.find({}).lean()
-  const metaMap = Object.fromEntries(metas.map(m => [approvedRoomKey(m.room_no), m]))
+  const metaMap = Object.fromEntries(metas.map(m => [baseKey(m.room_no), m]).filter(([key]) => key))
 
   const erpDocs = await ErpRoomData.find({}, 'room_no sections').lean()
-  const erpMap  = Object.fromEntries(erpDocs.map(e => [approvedRoomKey(e.room_no), e.sections || []]))
+  const erpMap  = Object.fromEntries(erpDocs.map(e => [baseKey(e.room_no), e.sections || []]).filter(([key]) => key))
 
   const stats = []
   for (const [base, sectionsSet] of Object.entries(roomSections)) {
-    const meta   = { ...metaMap[base], ...approvedRoom(base) }
+    const meta   = { ...metaMap[base], ...inventoryMap.get(base) }
     const dayBusy = busyLookup[base] || {}
 
     const dayStats  = {}

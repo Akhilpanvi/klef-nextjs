@@ -60,12 +60,10 @@ zero utilization during periods 1-11. Refresh reloads the latest uploaded data.
 
 ### Department assignments
 
-`ROOM _DATA NEW.xlsx` supplies the Assigned field and Monday-Saturday department
-assignments. The approved inventory remains the original 311 rooms. Exact
-room-name matches (ignoring whitespace and case) provide 287 assignment records;
-24 approved rooms have no matching row and display **Not specified**. We do not
-infer that differently numbered physical rooms are the same room. Duplicate
-rows merge nonblank values; distinct values are preserved together.
+`ROOM _DATA NEW.xlsx` supplies the final room inventory, the Assigned field and
+Monday-Saturday department assignments. After an Admin upload, every nonblank
+`ROOM NO` is available throughout Free Rooms. Duplicate rows merge nonblank
+values; distinct assignment values are preserved together.
 
 Free-room cards show Assigned and the selected day's assignment. **Free Rooms >
 Department Assignments** lists the full week, with room/department search, block
@@ -84,13 +82,13 @@ Room Department Assignments**. Upload a CSV/XLSX containing `ROOM NO`,
 `ASSIGNED`, and `MON` through `SAT`. The file is validated and saved as a new
 dataset before it becomes active. Free-room cards, Department Assignments,
 Block-wise Utilization details, and their exports use it on the next request.
-The Admin card reports exact matches, approved rooms without matches, and
-ignored workbook names. Clearing an Admin upload restores the bundled data.
+The Admin card reports the final room count and duplicate rows merged. Clearing
+an Admin upload restores the bundled 311-room fallback.
 The Admin card also provides a downloadable `room-department-assignments-sample.xlsx`
 and an inline format preview with example values.
 
-Review the reported unmatched rooms and deploy the application. This importer
-does not modify room eligibility, capacity, type, or block.
+Optional `BLOCK`, `FLOOR`, `ROOM CAPACITY`, and `TYPE` columns supply room details
+to Free Rooms. An Admin upload takes effect without a deployment.
 
 ### 1. Prerequisites
 - Node.js 18+

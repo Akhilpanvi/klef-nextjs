@@ -6,11 +6,11 @@ const pct = (busy, total) => total ? Math.round(busy / total * 1000) / 10 : null
 const byRoom = (a, b) => a.localeCompare(b, undefined, { numeric: true })
 
 /** One occupied physical room counts once per slot, regardless of ERP sections. */
-export function buildBlockUtilization(entries, observedRooms) {
-  const covered = new Set(observedRooms.map(approvedRoomKey).filter(Boolean))
+export function buildBlockUtilization(entries, observedRooms, inventory = approvedRooms, resolveRoom = approvedRoomKey) {
+  const covered = new Set(observedRooms.map(resolveRoom).filter(Boolean))
   const busy = new Map()
   for (const entry of entries) {
-    const room = approvedRoomKey(entry.room_no)
+    const room = resolveRoom(entry.room_no)
     const day = Number(entry.day), hour = Number(entry.hour)
     if (!room || !covered.has(room) || !Number.isInteger(day) || !Number.isInteger(hour) ||
         day < 1 || day > 6 || hour < 1 || hour > 11) continue
@@ -20,7 +20,7 @@ export function buildBlockUtilization(entries, observedRooms) {
   }
 
   const grouped = new Map()
-  for (const room of approvedRooms) {
+  for (const room of inventory) {
     if (!grouped.has(room.block)) grouped.set(room.block, [])
     grouped.get(room.block).push(room.room_no)
   }
@@ -49,8 +49,8 @@ export function buildBlockUtilization(entries, observedRooms) {
   const occupiedSlots = blocks.reduce((sum, block) => sum + block.occupiedSlots, 0)
   const totalSlots = covered.size * 66
   return { blocks, totals: {
-    roomCount: approvedRooms.length, coveredRooms: covered.size,
-    missingRooms: approvedRooms.length - covered.size, occupiedSlots,
+    roomCount: inventory.length, coveredRooms: covered.size,
+    missingRooms: inventory.length - covered.size, occupiedSlots,
     freeSlots: totalSlots - occupiedSlots, totalSlots,
     utilization: pct(occupiedSlots, totalSlots),
   } }

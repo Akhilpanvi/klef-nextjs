@@ -1,4 +1,4 @@
-import { isApprovedRoom } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory } from '@/lib/roomAssignments'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import BoxTTEntry      from '@/lib/models/BoxTTEntry'
@@ -17,23 +17,26 @@ export default async function handler(req, res) {
   if (!room) return res.status(400).json({ success: false, message: 'room required' })
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
+  const resolveRoom = createRoomInventoryResolver(getRoomInventory(assignmentData))
 
   const snap = await BoxTTSnapshot.findOne().lean()
   if (!snap) return res.status(404).json({ success: false, message: 'No Box TT data uploaded' })
 
-  const roomName = room.trim().toUpperCase()
-  if (!isApprovedRoom(roomName)) return res.status(404).json({ success: false, message: 'Room not in approved inventory' })
+  const roomName = resolveRoom(room)
+  if (!roomName) return res.status(404).json({ success: false, message: 'Room not in final inventory' })
   const entries  = await BoxTTEntry.find(
-    { dataset: snap.snapshotId, room_no: roomName },
-    'day hour label'
+    { dataset: snap.snapshotId },
+    'room_no day hour label'
   ).lean()
+  const roomEntries = entries.filter(entry => resolveRoom(entry.room_no) === roomName)
 
-  if (!entries.length)
+  if (!roomEntries.length)
     return res.status(404).json({ success: false, message: `Room ${roomName} not found in Box TT` })
 
   // Build schedule: { Mon: { 1: 'label', 3: 'label' }, ... }
   const schedule = {}
-  for (const e of entries) {
+  for (const e of roomEntries) {
     const dk = DAY_KEYS[e.day - 1]
     if (!dk) continue
     if (!schedule[dk]) schedule[dk] = {}

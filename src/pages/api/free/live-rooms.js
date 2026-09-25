@@ -1,5 +1,4 @@
-import { getRoomAssignmentDataset, roomAssignment } from '@/lib/roomAssignments'
-import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory, roomAssignment } from '@/lib/roomAssignments'
 import { requireAuth }      from '@/lib/auth'
 import { connectDB }        from '@/lib/mongodb'
 import TimetableEntry       from '@/lib/models/TimetableEntry'
@@ -8,10 +7,6 @@ import RoomMeta             from '@/lib/models/RoomMeta'
 import ErpRoomData          from '@/lib/models/ErpRoomData'
 
 const LIVE_DATASET = 'gsheet_live'
-
-function baseKey(r) {
-  return approvedRoomKey(r)
-}
 
 // No letter → raw ERP room ID (1-digit, 4-digit, any length); has letter → readable room name
 function hasNoLetter(r) {
@@ -31,6 +26,9 @@ export default async function handler(req, res) {
 
   await connectDB()
   const assignmentData = await getRoomAssignmentDataset()
+  const inventory = getRoomInventory(assignmentData)
+  const resolveInventoryRoom = createRoomInventoryResolver(inventory)
+  const inventoryMap = new Map(inventory.map(room => [room.room_no, room]))
 
   // Prefer gsheet_live; fall back to active BTT snapshot
   let snap = await TimetableSnapshot.findOne({ snapshotId: LIVE_DATASET }).lean()
@@ -67,8 +65,8 @@ export default async function handler(req, res) {
     RoomMeta.find({}, 'room_no block room_type capacity alloted_to').lean(),
     ErpRoomData.find({}, 'room_no erp_id sections').lean(),
   ])
-  const metaMap = Object.fromEntries(metas.map(m => [approvedRoomKey(m.room_no), m]))
-  const erpMap  = Object.fromEntries(erpDocs.map(e => [approvedRoomKey(e.room_no), e.sections || []]))
+  const metaMap = Object.fromEntries(metas.map(m => [resolveInventoryRoom(m.room_no), m]).filter(([key]) => key))
+  const erpMap  = Object.fromEntries(erpDocs.map(e => [resolveInventoryRoom(e.room_no), e.sections || []]).filter(([key]) => key))
 
   // Reverse map 1: ErpRoomData erp_id/sections → room name (e.g. 3952 → "C019")
   const erpIdToName = {}
@@ -103,14 +101,15 @@ export default async function handler(req, res) {
   function resolve(raw) {
     const s = (raw || '').trim()
     if (hasNoLetter(s)) {
-      if (erpIdToName[s])  return approvedRoomKey(erpIdToName[s])
-      if (classroomMap[s]) return approvedRoomKey(classroomMap[s])
+      if (erpIdToName[s])  return resolveInventoryRoom(erpIdToName[s])
+      if (classroomMap[s]) return resolveInventoryRoom(classroomMap[s])
     }
-    return baseKey(s)
+    return resolveInventoryRoom(s)
   }
 
   // Re-group using resolved names (in case some room_no values were numeric ERP IDs)
   const resolved = {}
+  if (assignmentData.uploaded) for (const room of inventory) resolved[room.room_no] = []
   for (const sec of allRooms) {
     const name = resolve(String(sec))
     if (!name) continue
@@ -122,10 +121,10 @@ export default async function handler(req, res) {
   const resolvedBusySet = new Set(busyRooms.map(r => resolve(String(r))))
 
   const free = []
-  for (const [name, rawSecs] of Object.entries(resolved)) {
-    if (rawSecs.some(s => resolvedBusySet.has(resolve(s)))) continue
+  for (const [name] of Object.entries(resolved)) {
+    if (resolvedBusySet.has(name)) continue
 
-    const meta = { ...metaMap[name], ...approvedRoom(name) }
+    const meta = { ...metaMap[name], ...inventoryMap.get(name) }
     free.push({
       ...roomAssignment(name, dayNum, assignmentData.records),
       number:       name,

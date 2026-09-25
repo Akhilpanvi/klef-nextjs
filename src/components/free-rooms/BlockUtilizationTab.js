@@ -117,7 +117,7 @@ export default function BlockUtilizationTab() {
         {visible.map(item => <article key={item.block} className="card" style={{ padding: 16, marginBottom: 20, minWidth: 0 }}>
           <h4 style={{ margin: '0 0 8px' }}>Block {item.block} · {percent(item.utilization)} weekly utilization</h4>
           <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--text-3)' }}>
-            {item.coveredRooms} of {item.roomCount} approved rooms have timetable data · {item.occupiedSlots} occupied / {item.totalSlots} room-periods
+            {item.coveredRooms} of {item.roomCount} final rooms are included · {item.occupiedSlots} occupied / {item.totalSlots} room-periods
           </p>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
@@ -138,7 +138,7 @@ export default function BlockUtilizationTab() {
             </table>
           </div>
           {!!item.missingRooms.length && <details style={{ marginTop: 12, fontSize: 12 }}>
-            <summary style={{ cursor: 'pointer' }}>{item.missingRooms.length} approved rooms without timetable data</summary>
+            <summary style={{ cursor: 'pointer' }}>{item.missingRooms.length} final rooms without timetable data</summary>
             <p style={{ overflowWrap: 'anywhere', color: 'var(--text-3)' }}>{item.missingRooms.join(', ')}</p>
           </details>}
         </article>)}

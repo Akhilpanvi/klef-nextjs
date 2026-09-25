@@ -1,4 +1,4 @@
-import { approvedRoom, approvedRoomKey } from './approvedRooms.js'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory } from './roomAssignments.js'
 import RoomMeta       from './models/RoomMeta.js'
 import RoomAllocation from './models/RoomAllocation.js'
 import { WING_BY_ALLOTMENT, DAY_FIELDS }
@@ -10,10 +10,14 @@ import { WING_BY_ALLOTMENT, DAY_FIELDS }
  * Wing-based reports still require a known wing from the uploaded metadata.
  */
 export async function buildRoomMaster(dayNums = []) {
-  const [metas, allocs] = await Promise.all([
+  const [metas, allocs, assignmentData] = await Promise.all([
     RoomMeta.find({}, 'room_no alloted_to room_type capacity block').lean(),
     RoomAllocation.find({}).lean(),
+    getRoomAssignmentDataset(),
   ])
+  const inventory = getRoomInventory(assignmentData)
+  const resolveRoom = createRoomInventoryResolver(inventory)
+  const inventoryMap = new Map(inventory.map(item => [item.room_no, item]))
 
   const room = new Map()
   const put = (key, patch) => {
@@ -28,7 +32,7 @@ export async function buildRoomMaster(dayNums = []) {
   }
 
   for (const m of metas) {
-    const key       = approvedRoomKey(m.room_no)
+    const key       = resolveRoom(m.room_no)
     const allotment = String(m.alloted_to || '').toUpperCase()
     const wing      = WING_BY_ALLOTMENT[allotment]
     if (!key || !wing) continue
@@ -38,7 +42,7 @@ export async function buildRoomMaster(dayNums = []) {
   }
 
   for (const a of allocs) {
-    const key = approvedRoomKey(a.roomNo)
+    const key = resolveRoom(a.roomNo)
     if (!key) continue
 
     const existing  = room.get(key)
@@ -67,16 +71,16 @@ export async function buildRoomMaster(dayNums = []) {
 
   // Capacity is only final once both sources are merged, hence a pass here.
   for (const [key, info] of room) {
-    const approved = approvedRoom(key)
-    info.capacity = approved.capacity
-    info.type = approved.room_type
-    info.block = approved.block
+    const finalRoom = inventoryMap.get(key)
+    info.capacity = finalRoom?.capacity ?? info.capacity
+    info.type = finalRoom?.room_type || info.type
+    info.block = finalRoom?.block || info.block
     if (info.capacity) continue
     exclude(key, { ...info, reason: 'No capacity recorded' })
     room.delete(key)
   }
 
-  return { room, excluded, knownRooms: new Set(room.keys()) }
+  return { room, excluded, knownRooms: new Set(room.keys()), resolveRoom }
 }
 
 /**
@@ -88,7 +92,6 @@ export async function buildRoomMaster(dayNums = []) {
 export function buildExcludedReport(excluded, unmatched = new Map()) {
   const report = []
   for (const [key, u] of unmatched) {
-    if (!approvedRoom(key)) continue
     const ex = excluded.get(key)
     report.push({
       room: key, reason: ex?.reason || 'Not in room master', occupied: true,

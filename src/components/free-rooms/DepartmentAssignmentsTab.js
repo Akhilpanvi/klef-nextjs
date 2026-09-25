@@ -53,13 +53,13 @@ export default function DepartmentAssignmentsTab() {
   return <section aria-label="Department assignments">
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
       <div><h3 style={{ margin: '0 0 8px' }}>Room Department Assignments</h3>
-        <p style={{ color: 'var(--text-3)', fontSize: 13 }}>Assigned use and Monday–Saturday department assignments for the approved rooms.</p></div>
+        <p style={{ color: 'var(--text-3)', fontSize: 13 }}>Assigned use and Monday–Saturday department assignments for the final uploaded rooms.</p></div>
       <button className="btn btn-primary" onClick={() => setReload(value => value + 1)} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
     </div>
     {loading && <p role="status">Loading assignments…</p>}
     {error && <p role="alert">{error}</p>}
     {data && <>
-      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Source: {data.source} · {matched} of {rooms.length} approved rooms matched · {rooms.length - matched} without a matching assignment record.</p>
+      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Source: {data.source} · {rooms.length} final rooms · {matched} with assignment details.</p>
       <p style={{ fontSize: 13 }}>Assignments describe planned use. Free-room availability is calculated from the uploaded timetable. Blank or unmatched assignments are shown as “Not specified”.</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, margin: '16px 0' }}>
         <input className="input" aria-label="Search room or department" placeholder="Search room or department…" value={search} onChange={event => setSearch(event.target.value)} style={{ flex: '1 1 230px' }} />
@@ -70,7 +70,7 @@ export default function DepartmentAssignmentsTab() {
           <option value="">All assigned uses</option>{assignments.map(value => <option key={value}>{value}</option>)}
         </select>
         <select className="input" aria-label="Assignment coverage" value={coverage} onChange={event => setCoverage(event.target.value)} style={{ width: 200 }}>
-          <option value="">All approved rooms</option><option value="matched">With assignment records</option><option value="missing">Without matching records</option>
+          <option value="">All final rooms</option><option value="matched">With assignment records</option><option value="missing">Without assignment details</option>
         </select>
         <button className="btn btn-success" onClick={download} disabled={!filtered.length}>Export Excel</button>
       </div>

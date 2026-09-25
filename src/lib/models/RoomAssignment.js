@@ -3,6 +3,11 @@ import mongoose from 'mongoose'
 const schema = new mongoose.Schema({
   dataset:  { type: String, required: true, index: true },
   room_no:  { type: String, required: true, trim: true, index: true },
+  source_name: { type: String, required: true, trim: true },
+  block:       { type: String, default: null },
+  floor:       { type: Number, default: null },
+  capacity:    { type: Number, default: null },
+  room_type:   { type: String, default: null },
   assigned: { type: String, default: null },
   day_assignments: {
     mon: { type: String, default: null },

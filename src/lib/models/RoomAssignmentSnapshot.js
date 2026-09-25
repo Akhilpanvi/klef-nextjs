@@ -5,6 +5,8 @@ const schema = new mongoose.Schema({
   dataset:        { type: String, required: true },
   filename:       { type: String, required: true },
   matchedCount:   { type: Number, required: true },
+  roomCount:      { type: Number, required: true },
+  duplicateCount: { type: Number, default: 0 },
   missingRooms:   [{ type: String }],
   unmatchedRooms: [{ type: String }],
   uploadedAt:     { type: Date, default: Date.now },

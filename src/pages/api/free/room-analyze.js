@@ -1,12 +1,10 @@
-import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory } from '@/lib/roomAssignments'
 import { requireAuth }   from '@/lib/auth'
 import { connectDB }     from '@/lib/mongodb'
 import RoomwiseEntry     from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot  from '@/lib/models/RoomwiseSnapshot'
 import RoomMeta          from '@/lib/models/RoomMeta'
 import ErpRoomData       from '@/lib/models/ErpRoomData'
-
-const baseKey = approvedRoomKey
 
 const DAY_KEYS   = ['Mon','Tue','Wed','Thu','Fri','Sat']
 const MAX_PERIOD = 11
@@ -23,17 +21,21 @@ export default async function handler(req, res) {
   if (!room) return res.status(400).json({ success: false, message: 'room required' })
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
+  const inventory = getRoomInventory(assignmentData)
+  const baseKey = createRoomInventoryResolver(inventory)
+  const inventoryMap = new Map(inventory.map(item => [item.room_no, item]))
 
   const snap = await RoomwiseSnapshot.findOne().lean()
   if (!snap) return res.status(404).json({ success: false, message: 'No roomwise data uploaded' })
 
   const dataset  = snap.snapshotId
-  const roomName = approvedRoomKey(room)
-  if (!roomName) return res.status(404).json({ success: false, message: 'Room not in approved inventory' })
+  const roomName = baseKey(room)
+  if (!roomName) return res.status(404).json({ success: false, message: 'Room not in final inventory' })
 
   const allSections = await RoomwiseEntry.distinct('room_no', { dataset })
   const sections = allSections.filter(s => baseKey(s) === roomName)
-  if (!sections.length)
+  if (!sections.length && !assignmentData.uploaded)
     return res.status(404).json({ success: false, message: `Room ${roomName} not found` })
 
   // Only periods 1-11
@@ -76,7 +78,7 @@ export default async function handler(req, res) {
     success: true,
     room:         roomName,
     erp_sections: erpDoc?.sections ?? [],
-    capacity:   approvedRoom(roomName)?.capacity || null,
+    capacity:   inventoryMap.get(roomName)?.capacity || meta?.capacity || null,
     weeklyPct,
     totalBusy,
     totalSlots: TOTAL_SLOTS,

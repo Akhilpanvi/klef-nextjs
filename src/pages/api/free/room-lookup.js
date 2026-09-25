@@ -1,4 +1,4 @@
-import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
+import { createRoomInventoryResolver, getRoomAssignmentDataset, getRoomInventory } from '@/lib/roomAssignments'
 import { requireAuth } from '@/lib/auth'
 import { connectDB }   from '@/lib/mongodb'
 import RoomMeta        from '@/lib/models/RoomMeta'
@@ -16,6 +16,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, message: 'Query required' })
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
+  const inventory = getRoomInventory(assignmentData)
+  const resolveRoom = createRoomInventoryResolver(inventory)
+  const inventoryMap = new Map(inventory.map(room => [room.room_no, room]))
 
   const query = q.trim()
   const isErpId = /^\d+$/.test(query)
@@ -37,16 +41,16 @@ export default async function handler(req, res) {
     metaDoc  = await RoomMeta.findOne({ room_no: { $regex: new RegExp(`^${roomName}$`, 'i') } }).lean()
     erpDoc   = await ErpRoomData.findOne({ room_no: { $regex: new RegExp(`^${roomName}$`, 'i') } }).lean()
 
-    if (!metaDoc && !erpDoc && !approvedRoom(roomName))
+    if (!metaDoc && !erpDoc && !resolveRoom(roomName))
       return res.status(404).json({ success: false, message: `Room ${roomName} not found` })
 
     if (metaDoc) roomName = metaDoc.room_no
     else if (erpDoc) roomName = erpDoc.room_no
   }
 
-  roomName = approvedRoomKey(roomName)
-  if (!roomName) return res.status(404).json({ success: false, message: 'Room not in approved inventory' })
-  metaDoc = { ...metaDoc, ...approvedRoom(roomName) }
+  roomName = resolveRoom(roomName)
+  if (!roomName) return res.status(404).json({ success: false, message: 'Room not in final inventory' })
+  metaDoc = { ...metaDoc, ...inventoryMap.get(roomName) }
 
   res.json({
     success:      true,

@@ -327,26 +327,48 @@ test('uploaded assignment dataset overrides bundled data immediately', async () 
   assert.equal(roomAssignment('C008', 1, data.records).has_assignment_data, false)
 })
 
-test('admin assignment parser validates columns, merges duplicates and ignores unapproved rooms', async () => {
+test('admin assignment parser makes every workbook room final and merges duplicates', async () => {
   const XLSX = require('xlsx')
   const { parseRoomAssignmentBuffer } = await load('src/lib/roomAssignmentParser.js')
   const sheet = XLSX.utils.json_to_sheet([
     { 'ROOM NO': 'C007', ASSIGNED: 'CLASS', MON: 'II PBL', TUE: '', WED: '', THU: 'I PBL', FRI: '', SAT: '' },
     { 'ROOM NO': ' c007 ', ASSIGNED: 'CRT', MON: 'CRT', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
-    { 'ROOM NO': 'CRICKET NETS', ASSIGNED: 'SPORTS', MON: 'SPORTS', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
+    { 'ROOM NO': 'CRICKET NETS', BLOCK: 'Sports', FLOOR: 0, 'ROOM CAPACITY': 100, TYPE: 'GROUND', ASSIGNED: 'SPORTS', MON: 'SPORTS', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
   ])
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, sheet, 'Assignments')
   const parsed = parseRoomAssignmentBuffer(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
-  assert.equal(parsed.docs.length, 1)
+  assert.equal(parsed.docs.length, 2)
   assert.equal(parsed.docs[0].room_no, 'C007')
   assert.equal(parsed.docs[0].assigned, 'CLASS / CRT')
   assert.equal(parsed.docs[0].day_assignments.mon, 'II PBL / CRT')
-  assert.ok(parsed.unmatchedRooms.includes('CRICKET NETS'))
-  assert.ok(parsed.missingRooms.includes('C008'))
+  const sports = parsed.docs.find(room => room.room_no === 'CRICKET NETS')
+  assert.equal(sports.block, 'Sports')
+  assert.equal(sports.capacity, 100)
+  assert.equal(sports.room_type, 'GROUND')
+  assert.equal(parsed.duplicateCount, 1)
 
   const invalidSheet = XLSX.utils.json_to_sheet([{ 'ROOM NO': 'C007' }])
   const invalidWorkbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(invalidWorkbook, invalidSheet, 'Assignments')
   assert.throws(() => parseRoomAssignmentBuffer(XLSX.write(invalidWorkbook, { type: 'buffer', bookType: 'xlsx' })), /Missing columns/)
+})
+
+test('uploaded assignment rooms replace the fallback inventory in Free Rooms', async () => {
+  const uploaded = [
+    { room_no: 'C007', source_name: 'C007', block: 'C', capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: {} },
+    { room_no: 'CRICKET NETS', source_name: 'CRICKET NETS', block: 'Sports', capacity: 100, room_type: 'GROUND', assigned: 'SPORTS', day_assignments: {} },
+  ]
+  const { default: handler } = await load('src/pages/api/free/rooms.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => uploaded }) } },
+    RoomwiseSnapshot: snapshot,
+    RoomwiseEntry: { default: { distinct: async (_, query) => query.day ? ['C007-A'] : ['C007-A'] } },
+    RoomMeta: model([]), ErpRoomData: model([]),
+  })
+  const result = await request(handler, { day: '1', periods: '1' })
+  assert.deepEqual(result.rooms.map(room => room.number), ['CRICKET NETS'])
+  assert.equal(result.rooms[0].block, 'Sports')
+  assert.equal(result.rooms[0].type, 'GROUND')
+  assert.equal(result.rooms[0].assigned, 'SPORTS')
 })
