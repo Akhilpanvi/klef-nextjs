@@ -362,8 +362,8 @@ test('admin assignment parser makes every workbook room final and merges duplica
 
 test('uploaded assignment rooms replace the fallback inventory in Free Rooms', async () => {
   const uploaded = [
-    { room_no: 'C007', source_name: 'C007', block: 'C', capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: {} },
-    { room_no: 'CRICKET NETS', source_name: 'CRICKET NETS', block: 'Sports', capacity: 100, room_type: 'GROUND', assigned: 'SPORTS', day_assignments: {} },
+    { room_no: 'C007', source_name: 'C007', block: 'C', floor: 0, capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: {} },
+    { room_no: 'CRICKET NETS', source_name: 'CRICKET NETS', block: 'Sports', floor: 1, capacity: 100, room_type: 'GROUND', assigned: 'SPORTS', day_assignments: {} },
   ]
   const { default: handler } = await load('src/pages/api/free/rooms.js', {
     RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
@@ -376,5 +376,6 @@ test('uploaded assignment rooms replace the fallback inventory in Free Rooms', a
   assert.deepEqual(result.rooms.map(room => room.number), ['CRICKET NETS'])
   assert.equal(result.rooms[0].block, 'Sports')
   assert.equal(result.rooms[0].type, 'GROUND')
+  assert.equal(result.rooms[0].floor, 1)
   assert.equal(result.rooms[0].assigned, 'SPORTS')
 })

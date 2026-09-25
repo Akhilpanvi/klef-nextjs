@@ -43,7 +43,7 @@ on the live website. Uploading an ERP CSV alone does not change the approved lis
 
 ### Block-wise room utilization
 
-Open **Free Rooms > Block-wise Free Rooms** to select one day and period and
+Open **Free Rooms > Block-wise Free Rooms** to select one day and one or more periods (1-24) and
 view all free rooms grouped by block. Each row includes floor, type, capacity,
 general assignment and the selected day's department assignment. Results can
 be filtered by block or room type, searched and exported to Excel.

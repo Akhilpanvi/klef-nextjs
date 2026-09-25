@@ -69,6 +69,7 @@ export default async function handler(req, res) {
       erp_sections: erpMap[base] ?? [],
       type:     meta?.room_type  || '?',
       capacity: meta?.capacity   || null,
+      floor:    meta?.floor      ?? null,
       block:    meta?.block      || base.match(/^[A-Za-z]+/)?.[0]?.toUpperCase() || '?',
       dept:     meta?.alloted_to || 'General',
     })
