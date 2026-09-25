@@ -225,6 +225,8 @@ test('block API reads only the active snapshot and periods 1–11, with source d
   assert.deepEqual(query, { dataset: 'active-roomwise', day: { $gte: 1, $lte: 6 }, hour: { $gte: 1, $lte: 11 } })
   assert.deepEqual(distinctQuery, { dataset: 'active-roomwise' })
   assert.equal(result.totals.occupiedSlots, 1)
+  assert.equal(result.roomAssignments.C007.type, 'CR')
+  assert.equal(result.roomAssignments.C007.capacity, 72)
 })
 
 test('block API returns a no-data state when no roomwise upload exists', async () => {

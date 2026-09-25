@@ -33,7 +33,9 @@ export default async function handler(req, res) {
       snapshotLabel: snapshot.label, filename: snapshot.filename, uploadedAt: snapshot.uploadedAt,
       dataset, source: 'roomwise',
       roomAssignments: Object.fromEntries(inventory.map(room => [room.room_no, {
-        number: room.room_no, block: room.block, ...roomAssignment(room.room_no, null, assignmentData.records),
+        number: room.room_no, block: room.block, floor: room.floor,
+        type: room.room_type, capacity: room.capacity,
+        ...roomAssignment(room.room_no, null, assignmentData.records),
       }])),
       assignmentSource: assignmentData.source,
     })

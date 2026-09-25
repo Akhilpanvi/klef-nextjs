@@ -69,7 +69,7 @@ export default function BlockUtilizationTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div>
           <h3 style={{ margin: '0 0 6px' }}>Block-wise Room Utilization</h3>
-          <p style={{ color: 'var(--text-3)', margin: '0 0 12px', fontSize: 13 }}>Monday–Saturday · Periods 1–11 · Approved rooms only</p>
+          <p style={{ color: 'var(--text-3)', margin: '0 0 12px', fontSize: 13 }}>Monday–Saturday · Periods 1–11 · Final room inventory</p>
         </div>
         <button className="btn btn-primary" disabled={loading} onClick={() => setReload(value => value + 1)}>{loading ? 'Loading…' : 'Refresh'}</button>
       </div>
@@ -91,7 +91,7 @@ export default function BlockUtilizationTab() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginBottom: 16 }}>
           {[
-            ['Approved rooms', totals.roomCount], ['Rooms with timetable data', totals.coveredRooms],
+            ['Final rooms', totals.roomCount], ['Rooms with timetable data', totals.coveredRooms],
             ['Rooms without data', totals.roomCount - totals.coveredRooms], ['Weekly utilization', percent(weekly)],
           ].map(([label, value]) => <div key={label} className="card" style={{ padding: 16 }}>
             <div style={{ color: 'var(--text-3)', fontSize: 12 }}>{label}</div>
