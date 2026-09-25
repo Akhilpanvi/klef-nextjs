@@ -1,0 +1,3449 @@
+{
+  "source": "ROOM _DATA NEW.xlsx",
+  "rooms": [
+    {
+      "room_no": "C007",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "I PBL",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C008",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C009",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C011",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "I PBL",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C017",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C018",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C019",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C107",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "I PBL",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C108",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C109",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C110",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "I PBL",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C111",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "I PBL",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C117A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG - P",
+        "tue": "I ENGG - P",
+        "wed": "I ENGG - P",
+        "thu": "I ENGG - P",
+        "fri": "I ENGG - P",
+        "sat": "I ENGG - P"
+      }
+    },
+    {
+      "room_no": "C118A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG - P",
+        "tue": "I ENGG - P",
+        "wed": "I ENGG - P",
+        "thu": "I ENGG - P",
+        "fri": "I ENGG - P",
+        "sat": "I ENGG - P"
+      }
+    },
+    {
+      "room_no": "C118B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG - P",
+        "tue": "I ENGG - P",
+        "wed": "I ENGG - P",
+        "thu": "I ENGG - P",
+        "fri": "I ENGG - P",
+        "sat": "I ENGG - P"
+      }
+    },
+    {
+      "room_no": "C121",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "C122",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C123A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CLASS",
+        "tue": "CLASS",
+        "wed": "CLASS",
+        "thu": "CLASS",
+        "fri": "CLASS",
+        "sat": "CLASS"
+      }
+    },
+    {
+      "room_no": "C123B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CLASS",
+        "tue": "CLASS",
+        "wed": "CLASS",
+        "thu": "CLASS",
+        "fri": "CLASS",
+        "sat": "CLASS"
+      }
+    },
+    {
+      "room_no": "C207",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "I PBL",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C208",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "IV ENGG",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C209",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C210",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "IV ENGG",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C211",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "IV ENGG",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C217",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C218",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C219",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C221B1",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "IV ENGG",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C221B2",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "IV ENGG",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C225",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "C307",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "IV ENGG",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C308",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C309",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C317A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C317B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C318A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C321B1",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "IV ENGG",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C321B2",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "IV ENGG",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C322A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "EEE",
+        "tue": "EEE",
+        "wed": "EEE",
+        "thu": "EEE",
+        "fri": "EEE",
+        "sat": "EEE"
+      }
+    },
+    {
+      "room_no": "C322B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CLASS",
+        "tue": "CLASS",
+        "wed": "CLASS",
+        "thu": "CLASS",
+        "fri": "CLASS",
+        "sat": "CLASS"
+      }
+    },
+    {
+      "room_no": "C325",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "C406",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "IV ENGG",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C407",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "IV ENGG",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C408",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C409",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I PBL",
+        "tue": "I PBL",
+        "wed": "I PBL",
+        "thu": "I PBL",
+        "fri": "I PBL",
+        "sat": "I PBL"
+      }
+    },
+    {
+      "room_no": "C410",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II PBL",
+        "tue": "II PBL",
+        "wed": "II PBL",
+        "thu": "IV ENGG",
+        "fri": "II PBL",
+        "sat": "II PBL"
+      }
+    },
+    {
+      "room_no": "C411",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C419A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C419B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C420A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "II ENGG - P"
+      }
+    },
+    {
+      "room_no": "C420B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CLASS",
+        "tue": "CLASS",
+        "wed": "CLASS",
+        "thu": "CLASS",
+        "fri": "CLASS",
+        "sat": "CLASS"
+      }
+    },
+    {
+      "room_no": "C421A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C421B1",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C421B2",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C422",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C423",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C425",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "C506",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C507",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C510",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C511",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C521A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C521B1",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "BT",
+        "tue": "BT",
+        "wed": "BT",
+        "thu": "BT",
+        "fri": "BT",
+        "sat": "BT"
+      }
+    },
+    {
+      "room_no": "C521B2",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "BT",
+        "tue": "BT",
+        "wed": "BT",
+        "thu": "BT",
+        "fri": "BT",
+        "sat": "BT"
+      }
+    },
+    {
+      "room_no": "C522A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "FT",
+        "tue": "FT",
+        "wed": "FT",
+        "thu": "FT",
+        "fri": "FT",
+        "sat": "FT"
+      }
+    },
+    {
+      "room_no": "C522B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "FT",
+        "tue": "FT",
+        "wed": "FT",
+        "thu": "FT",
+        "fri": "FT",
+        "sat": "FT"
+      }
+    },
+    {
+      "room_no": "C523",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "II ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "II ENGG"
+      }
+    },
+    {
+      "room_no": "C525",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "C607",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "C608",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "C609",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "C617",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "III ENGG - P"
+      }
+    },
+    {
+      "room_no": "C618",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "III ENGG - P"
+      }
+    },
+    {
+      "room_no": "C619",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG - P",
+        "tue": "II ENGG - P",
+        "wed": "II ENGG - P",
+        "thu": "II ENGG - P",
+        "fri": "II ENGG - P",
+        "sat": "III ENGG - P"
+      }
+    },
+    {
+      "room_no": "C620",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CLASS",
+        "tue": "CLASS",
+        "wed": "CLASS",
+        "thu": "CLASS",
+        "fri": "CLASS",
+        "sat": "CLASS"
+      }
+    },
+    {
+      "room_no": "C622",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "FT",
+        "tue": "FT",
+        "wed": "FT",
+        "thu": "FT",
+        "fri": "FT",
+        "sat": "FT"
+      }
+    },
+    {
+      "room_no": "C623",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "C624A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "C624B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "C625",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "E005",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IOT",
+        "tue": "IOT",
+        "wed": "IOT",
+        "thu": "IOT",
+        "fri": "IOT",
+        "sat": "IOT"
+      }
+    },
+    {
+      "room_no": "E007",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": null,
+        "wed": null,
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "E101",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "A&G",
+        "tue": "A&G",
+        "wed": "A&G",
+        "thu": "A&G",
+        "fri": "A&G",
+        "sat": "A&G"
+      }
+    },
+    {
+      "room_no": "E102",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "A&G",
+        "tue": "A&G",
+        "wed": "A&G",
+        "thu": "A&G",
+        "fri": "A&G",
+        "sat": "A&G"
+      }
+    },
+    {
+      "room_no": "E103",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "A&G",
+        "tue": "A&G",
+        "wed": "A&G",
+        "thu": "A&G",
+        "fri": "A&G",
+        "sat": "A&G"
+      }
+    },
+    {
+      "room_no": "E105",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "E201",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "E207",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ARCH/A&G",
+        "tue": "ARCH/A&G",
+        "wed": "ARCH/A&G",
+        "thu": "ARCH/A&G",
+        "fri": "ARCH/A&G",
+        "sat": "ARCH/A&G"
+      }
+    },
+    {
+      "room_no": "F002",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG - P",
+        "tue": "I ENGG - P",
+        "wed": "I ENGG - P",
+        "thu": "I ENGG - P",
+        "fri": "I ENGG - P",
+        "sat": "I ENGG - P"
+      }
+    },
+    {
+      "room_no": "F103",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F105",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F107",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F108",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F109",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F202",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG - P",
+        "tue": "I ENGG - P",
+        "wed": "I ENGG - P",
+        "thu": "I ENGG - P",
+        "fri": "I ENGG - P",
+        "sat": "I ENGG - P"
+      }
+    },
+    {
+      "room_no": "F203",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F205",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F207",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F208",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F209",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F301",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG - P",
+        "tue": "I ENGG - P",
+        "wed": "I ENGG - P",
+        "thu": "I ENGG - P",
+        "fri": "I ENGG - P",
+        "sat": "I ENGG - P"
+      }
+    },
+    {
+      "room_no": "F303",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F305",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F306",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F307",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F308",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F309",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F406",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F407",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F506",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F507",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F606",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F607",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "F707",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "I ENGG",
+        "tue": "I ENGG",
+        "wed": "I ENGG",
+        "thu": "I ENGG",
+        "fri": "I ENGG",
+        "sat": "I ENGG"
+      }
+    },
+    {
+      "room_no": "L214",
+      "assigned": "PROJECT",
+      "day_assignments": {
+        "mon": "PROJECT",
+        "tue": "PROJECT",
+        "wed": "PROJECT",
+        "thu": "PROJECT",
+        "fri": "PROJECT",
+        "sat": null
+      }
+    },
+    {
+      "room_no": "L302",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L303",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L306",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L307",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L308",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L309",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L311",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L312",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "L501",
+      "assigned": "CLASS(CRT-MON,TUE,WED,THU)",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "L502",
+      "assigned": "CLASS(CRT-WED,THU)",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "L615",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG - P",
+        "sat": "III ENGG - P"
+      }
+    },
+    {
+      "room_no": "M002A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M008",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "M101",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M102",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M114",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M121",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M122",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M123",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "M124",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": null,
+        "wed": null,
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M125",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "EEE",
+        "tue": "EEE",
+        "wed": "EEE",
+        "thu": "EEE",
+        "fri": "EEE",
+        "sat": "EEE"
+      }
+    },
+    {
+      "room_no": "M126",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ME",
+        "tue": "ME",
+        "wed": "ME",
+        "thu": "ME",
+        "fri": "ME",
+        "sat": "ME"
+      }
+    },
+    {
+      "room_no": "M127",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M128",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "M129",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M130",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "M201",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M202",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M203",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M204",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M206",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M207",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M208",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ME",
+        "tue": "ME",
+        "wed": "ME",
+        "thu": "ME",
+        "fri": "ME",
+        "sat": "ME"
+      }
+    },
+    {
+      "room_no": "M213",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "M302",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "M304",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M305",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M306",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "M310",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CE",
+        "tue": "CE",
+        "wed": "CE",
+        "thu": "CE",
+        "fri": "CE",
+        "sat": "CE"
+      }
+    },
+    {
+      "room_no": "M311",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "CE",
+        "tue": "CE",
+        "wed": "CE",
+        "thu": "CE",
+        "fri": "CE",
+        "sat": "CE"
+      }
+    },
+    {
+      "room_no": "R101",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R106",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG - P",
+        "tue": "III ENGG - P",
+        "wed": "III ENGG - P",
+        "thu": "III ENGG - P",
+        "fri": "III ENGG - P",
+        "sat": "III ENGG - P"
+      }
+    },
+    {
+      "room_no": "R201A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "II ENGG",
+        "wed": "II ENGG",
+        "thu": "II ENGG",
+        "fri": "II ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R201B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R201C",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R201D",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R205A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ECE",
+        "tue": "ECE",
+        "wed": "ECE",
+        "thu": "ECE",
+        "fri": "ECE",
+        "sat": "ECE"
+      }
+    },
+    {
+      "room_no": "R205B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG - P",
+        "tue": "III ENGG - P",
+        "wed": "III ENGG - P",
+        "thu": "III ENGG - P",
+        "fri": "III ENGG - P",
+        "sat": "III ENGG - P"
+      }
+    },
+    {
+      "room_no": "R209A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R209B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R209C",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R209D",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R210A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R210B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R210C",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R210D",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R211",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IOT",
+        "tue": "IOT",
+        "wed": "IOT",
+        "thu": "IOT",
+        "fri": "IOT",
+        "sat": "IOT"
+      }
+    },
+    {
+      "room_no": "R301A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R301B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "R302A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R302B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R306A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R306B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R307A",
+      "assigned": "PHARMA",
+      "day_assignments": {
+        "mon": "PHARMA",
+        "tue": "PHARMA",
+        "wed": "PHARMA",
+        "thu": "PHARMA",
+        "fri": "PHARMA",
+        "sat": "PHARMA"
+      }
+    },
+    {
+      "room_no": "R307B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R309D",
+      "assigned": "PHARMA",
+      "day_assignments": {
+        "mon": "PHARMA",
+        "tue": "PHARMA",
+        "wed": "PHARMA",
+        "thu": "PHARMA",
+        "fri": "PHARMA",
+        "sat": "PHARMA"
+      }
+    },
+    {
+      "room_no": "R310A",
+      "assigned": "PHARMA",
+      "day_assignments": {
+        "mon": "PHARMA",
+        "tue": "PHARMA",
+        "wed": "PHARMA",
+        "thu": "PHARMA",
+        "fri": "PHARMA",
+        "sat": "PHARMA"
+      }
+    },
+    {
+      "room_no": "R310B",
+      "assigned": "PHARMA",
+      "day_assignments": {
+        "mon": "PHARMA",
+        "tue": "PHARMA",
+        "wed": "PHARMA",
+        "thu": "PHARMA",
+        "fri": "PHARMA",
+        "sat": "PHARMA"
+      }
+    },
+    {
+      "room_no": "R310C",
+      "assigned": "PHARMA",
+      "day_assignments": {
+        "mon": "PHARMA",
+        "tue": "PHARMA",
+        "wed": "PHARMA",
+        "thu": "PHARMA",
+        "fri": "PHARMA",
+        "sat": "PHARMA"
+      }
+    },
+    {
+      "room_no": "R310D",
+      "assigned": "PHARMA",
+      "day_assignments": {
+        "mon": "PHARMA",
+        "tue": "PHARMA",
+        "wed": "PHARMA",
+        "thu": "PHARMA",
+        "fri": "PHARMA",
+        "sat": "PHARMA"
+      }
+    },
+    {
+      "room_no": "R404A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R404B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R405A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R405B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "R406A",
+      "assigned": "CLASS(FRI-SAT_CRT)",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R406B",
+      "assigned": "CLASS(FRI-SAT_CRT)",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R407A",
+      "assigned": "CLASS(FRI-SAT_CRT)",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R407B",
+      "assigned": "CLASS(FRI-SAT_CRT)",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R504A",
+      "assigned": "CRT(FRI,SAT)",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R504B",
+      "assigned": "CRT(FRI,SAT)",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R505A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R505B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R506A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R506B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R507A",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R507B",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R607",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R609",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R610",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "III CRT",
+        "tue": "III CRT",
+        "wed": "III CRT",
+        "thu": "III CRT",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "R704A",
+      "assigned": "PLACEMENT",
+      "day_assignments": {
+        "mon": "PLACEMENT",
+        "tue": "PLACEMENT",
+        "wed": "PLACEMENT",
+        "thu": "PLACEMENT",
+        "fri": "PLACEMENT",
+        "sat": "PLACEMENT"
+      }
+    },
+    {
+      "room_no": "R704B",
+      "assigned": "PLACEMENT",
+      "day_assignments": {
+        "mon": "PLACEMENT",
+        "tue": "PLACEMENT",
+        "wed": "PLACEMENT",
+        "thu": "PLACEMENT",
+        "fri": "PLACEMENT",
+        "sat": "PLACEMENT"
+      }
+    },
+    {
+      "room_no": "R705A",
+      "assigned": "PLACEMENT",
+      "day_assignments": {
+        "mon": "PLACEMENT",
+        "tue": "PLACEMENT",
+        "wed": "PLACEMENT",
+        "thu": "PLACEMENT",
+        "fri": "PLACEMENT",
+        "sat": "PLACEMENT"
+      }
+    },
+    {
+      "room_no": "R705B",
+      "assigned": "PLACEMENT",
+      "day_assignments": {
+        "mon": "PLACEMENT",
+        "tue": "PLACEMENT",
+        "wed": "PLACEMENT",
+        "thu": "PLACEMENT",
+        "fri": "PLACEMENT",
+        "sat": "PLACEMENT"
+      }
+    },
+    {
+      "room_no": "R706A",
+      "assigned": "PLACEMENT",
+      "day_assignments": {
+        "mon": "PLACEMENT",
+        "tue": "PLACEMENT",
+        "wed": "PLACEMENT",
+        "thu": "PLACEMENT",
+        "fri": "PLACEMENT",
+        "sat": "PLACEMENT"
+      }
+    },
+    {
+      "room_no": "R707A",
+      "assigned": "PLACEMENT",
+      "day_assignments": {
+        "mon": "PLACEMENT",
+        "tue": "PLACEMENT",
+        "wed": "PLACEMENT",
+        "thu": "PLACEMENT",
+        "fri": "PLACEMENT",
+        "sat": "PLACEMENT"
+      }
+    },
+    {
+      "room_no": "S402A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-AGRI",
+        "tue": "2-AGRI",
+        "wed": "WEEKOFF",
+        "thu": "2-AGRI",
+        "fri": "2-AGRI",
+        "sat": "2-AGRI"
+      }
+    },
+    {
+      "room_no": "S402B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-MCA",
+        "tue": "1-MCA",
+        "wed": "1-MCA",
+        "thu": "1-MCA",
+        "fri": "WEEKOFF",
+        "sat": "1-MCA"
+      }
+    },
+    {
+      "room_no": "S403",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "S407",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-AGRI",
+        "tue": "2-AGRI",
+        "wed": "WEEKOFF",
+        "thu": "2-AGRI",
+        "fri": "2-AGRI",
+        "sat": "2-AGRI"
+      }
+    },
+    {
+      "room_no": "S409A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-AGRI",
+        "tue": "1-AGRI",
+        "wed": "WEEKOFF",
+        "thu": "1-AGRI",
+        "fri": "1-AGRI",
+        "sat": "1-AGRI"
+      }
+    },
+    {
+      "room_no": "S409B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "4-AGRI",
+        "tue": "4-AGRI",
+        "wed": "4-AGRI",
+        "thu": "4-AGRI",
+        "fri": "4-AGRI",
+        "sat": "4-AGRI"
+      }
+    },
+    {
+      "room_no": "S412A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-AGRI",
+        "tue": "1-AGRI",
+        "wed": "WEEKOFF",
+        "thu": "1-AGRI",
+        "fri": "1-AGRI",
+        "sat": "1-AGRI"
+      }
+    },
+    {
+      "room_no": "S412B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "4-AGRI",
+        "tue": "4-AGRI",
+        "wed": "4-AGRI",
+        "thu": "4-AGRI",
+        "fri": "4-AGRI",
+        "sat": "4-AGRI"
+      }
+    },
+    {
+      "room_no": "S414",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-AGRI",
+        "tue": "3-AGRI",
+        "wed": "COMMON COURSE",
+        "thu": "3-AGRI",
+        "fri": "3-AGRI",
+        "sat": "3-AGRI"
+      }
+    },
+    {
+      "room_no": "S418",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-MCA",
+        "tue": "1-MCA",
+        "wed": "1-MCA",
+        "thu": "1-MCA",
+        "fri": "WEEKOFF",
+        "sat": "1-MCA"
+      }
+    },
+    {
+      "room_no": "S419A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-MCA",
+        "tue": "2-MCA",
+        "wed": "2-MCA",
+        "thu": "2-MCA",
+        "fri": "WEEKOFF",
+        "sat": "2-MCA"
+      }
+    },
+    {
+      "room_no": "S419B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-MCA",
+        "tue": "2-MCA",
+        "wed": "2-MCA",
+        "thu": "2-MCA",
+        "fri": "WEEKOFF",
+        "sat": "2-MCA"
+      }
+    },
+    {
+      "room_no": "S502",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S503",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BCA",
+        "tue": "1-BCA",
+        "wed": "1-BCA",
+        "thu": "IV ENGG",
+        "fri": "1-BCA",
+        "sat": "1-BCA"
+      }
+    },
+    {
+      "room_no": "S507",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-BCA",
+        "tue": "2-BCA",
+        "wed": "2-BCA & ENGG",
+        "thu": "WEEKOFF",
+        "fri": "2-BCA",
+        "sat": "2-BCA"
+      }
+    },
+    {
+      "room_no": "S508",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S509A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "FLOAT",
+        "tue": "FLOAT",
+        "wed": "FLOAT",
+        "thu": "FLOAT",
+        "fri": "FLOAT",
+        "sat": "FLOAT"
+      }
+    },
+    {
+      "room_no": "S509B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BCA",
+        "tue": "3-BCA",
+        "wed": "3-BCA",
+        "thu": "WEEKOFF",
+        "fri": "3-BCA",
+        "sat": "3-BCA"
+      }
+    },
+    {
+      "room_no": "S512A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BCA",
+        "tue": "3-BCA",
+        "wed": "3-BCA",
+        "thu": "WEEKOFF",
+        "fri": "3-BCA",
+        "sat": "3-BCA"
+      }
+    },
+    {
+      "room_no": "S512B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "FLOAT",
+        "tue": "FLOAT",
+        "wed": "FLOAT",
+        "thu": "FLOAT",
+        "fri": "FLOAT",
+        "sat": "FLOAT"
+      }
+    },
+    {
+      "room_no": "S513",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "DTI",
+        "tue": "DTI",
+        "wed": "DTI",
+        "thu": "DTI",
+        "fri": "DTI",
+        "sat": "DTI"
+      }
+    },
+    {
+      "room_no": "S514",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BCA",
+        "tue": "1-BCA",
+        "wed": "1-BCA",
+        "thu": "IV ENGG",
+        "fri": "1-BCA",
+        "sat": "1-BCA"
+      }
+    },
+    {
+      "room_no": "S518",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S519",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S602",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "S603",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-LAW",
+        "tue": "1-LAW",
+        "wed": "1-LAW",
+        "thu": "1-LAW",
+        "fri": "1-LAW",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S607",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "5-LAW",
+        "tue": "5-LAW",
+        "wed": "5-LAW",
+        "thu": "5-LAW",
+        "fri": "5-LAW",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S608",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-MBA",
+        "tue": "2-MBA",
+        "wed": "2-MBA & ENGG",
+        "thu": "IV ENGG",
+        "fri": "2-MBA",
+        "sat": "2-MBA"
+      }
+    },
+    {
+      "room_no": "S609",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-MBA",
+        "tue": "2-MBA",
+        "wed": "2-MBA",
+        "thu": "IV ENGG",
+        "fri": "2-MBA",
+        "sat": "2-MBA"
+      }
+    },
+    {
+      "room_no": "S612",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-MBA",
+        "tue": "2-MBA",
+        "wed": "2-MBA",
+        "thu": "IV ENGG",
+        "fri": "2-MBA",
+        "sat": "2-MBA"
+      }
+    },
+    {
+      "room_no": "S618",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-LAW",
+        "tue": "2-LAW",
+        "wed": "2-LAW",
+        "thu": "2-LAW",
+        "fri": "2-LAW",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "S619A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-LAW",
+        "tue": "3-LAW",
+        "wed": "3-LAW",
+        "thu": "3-LAW",
+        "fri": "3-LAW",
+        "sat": "WEEKOFF"
+      }
+    },
+    {
+      "room_no": "S619B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "4-LAW",
+        "tue": "4-LAW",
+        "wed": "4-LAW",
+        "thu": "4-LAW",
+        "fri": "4-LAW",
+        "sat": "WEEKOFF"
+      }
+    },
+    {
+      "room_no": "S702",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "S703",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-MBA",
+        "tue": "1-MBA",
+        "wed": "1-MBA",
+        "thu": "IV ENGG",
+        "fri": "1-MBA",
+        "sat": "1-MBA"
+      }
+    },
+    {
+      "room_no": "S707",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-MBA",
+        "tue": "1-MBA",
+        "wed": "1-MBA & ENGG",
+        "thu": "IV ENGG",
+        "fri": "1-MBA",
+        "sat": "1-MBA"
+      }
+    },
+    {
+      "room_no": "S709A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ENGG",
+        "tue": "3-BA IAS",
+        "wed": "3-BA IAS",
+        "thu": "3-BA IAS",
+        "fri": "3-BA IAS",
+        "sat": "3-BA IAS"
+      }
+    },
+    {
+      "room_no": "S709B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BCOM",
+        "tue": "1-BCOM",
+        "wed": "1-BCOM",
+        "thu": "1-BCOM",
+        "fri": "WEEKOFF",
+        "sat": "1-BCOM"
+      }
+    },
+    {
+      "room_no": "S712A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-BCOM",
+        "tue": "2-BCOM",
+        "wed": "2-BCOM",
+        "thu": "2-BCOM",
+        "fri": "WEEKOFF",
+        "sat": "2-BCOM"
+      }
+    },
+    {
+      "room_no": "S712B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BCOM",
+        "tue": "3-BCOM",
+        "wed": "3-BCOM",
+        "thu": "3-BCOM",
+        "fri": "WEEKOFF",
+        "sat": "3-BCOM"
+      }
+    },
+    {
+      "room_no": "S714",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-MBA",
+        "tue": "1-MBA",
+        "wed": "1-MBA",
+        "thu": "IV ENGG",
+        "fri": "1-MBA",
+        "sat": "1-MBA"
+      }
+    },
+    {
+      "room_no": "S718",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-MBA",
+        "tue": "1-MBA",
+        "wed": "1-MBA",
+        "thu": "IV ENGG",
+        "fri": "1-MBA",
+        "sat": "1-MBA"
+      }
+    },
+    {
+      "room_no": "S719A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ENGG",
+        "tue": "1-BA IAS",
+        "wed": "1-BA IAS",
+        "thu": "1-BA IAS",
+        "fri": "1-BA IAS",
+        "sat": "1-BA IAS"
+      }
+    },
+    {
+      "room_no": "S719B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "ENGG",
+        "tue": "2-BA IAS",
+        "wed": "2-BA IAS",
+        "thu": "2-BA IAS",
+        "fri": "2-BA IAS",
+        "sat": "2-BA IAS"
+      }
+    },
+    {
+      "room_no": "S802A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-BBA",
+        "tue": "2-BBA",
+        "wed": "WEEKOFF",
+        "thu": "2-BBA",
+        "fri": "2-BBA",
+        "sat": "2-BBA"
+      }
+    },
+    {
+      "room_no": "S802B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BBA",
+        "tue": "3-BBA",
+        "wed": "3-BBA",
+        "thu": "WEEKOFF",
+        "fri": "3-BBA",
+        "sat": "3-BBA"
+      }
+    },
+    {
+      "room_no": "S803",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BBA",
+        "tue": "3-BBA",
+        "wed": "3-BBA",
+        "thu": "IV ENGG",
+        "fri": "3-BBA",
+        "sat": "3-BBA"
+      }
+    },
+    {
+      "room_no": "S807",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BBA",
+        "tue": "3-BBA",
+        "wed": "3-BBA",
+        "thu": "IV ENGG",
+        "fri": "3-BBA",
+        "sat": "3-BBA"
+      }
+    },
+    {
+      "room_no": "S808",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BBA",
+        "tue": "COMMON COURSE",
+        "wed": "1-BBA",
+        "thu": "1-BBA",
+        "fri": "1-BBA & COMMON COURSE",
+        "sat": "1-BBA"
+      }
+    },
+    {
+      "room_no": "S809A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BBA",
+        "tue": "WEEKOFF",
+        "wed": "1-BBA",
+        "thu": "1-BBA",
+        "fri": "1-BBA",
+        "sat": "1-BBA"
+      }
+    },
+    {
+      "room_no": "S809B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BBA",
+        "tue": "WEEKOFF",
+        "wed": "1-BBA",
+        "thu": "1-BBA",
+        "fri": "1-BBA",
+        "sat": "1-BBA"
+      }
+    },
+    {
+      "room_no": "S812A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BBA",
+        "tue": "ENGG",
+        "wed": "1-BBA",
+        "thu": "1-BBA",
+        "fri": "1-BBA",
+        "sat": "1-BBA"
+      }
+    },
+    {
+      "room_no": "S812B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "1-BBA",
+        "tue": "ENGG",
+        "wed": "1-BBA",
+        "thu": "1-BBA",
+        "fri": "1-BBA",
+        "sat": "1-BBA"
+      }
+    },
+    {
+      "room_no": "S813",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BBA",
+        "tue": "3-BBA",
+        "wed": "3-BBA",
+        "thu": "IV ENGG",
+        "fri": "3-BBA",
+        "sat": "3-BBA"
+      }
+    },
+    {
+      "room_no": "S814",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "3-BBA",
+        "tue": "3-BBA",
+        "wed": "3-BBA",
+        "thu": "IV ENGG",
+        "fri": "3-BBA",
+        "sat": "3-BBA"
+      }
+    },
+    {
+      "room_no": "S818",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-BBA",
+        "tue": "2-BBA",
+        "wed": "WEEKOFF",
+        "thu": "2-BBA",
+        "fri": "2-BBA",
+        "sat": "2-BBA"
+      }
+    },
+    {
+      "room_no": "S819A",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-BBA",
+        "tue": "2-BBA",
+        "wed": "ENGG",
+        "thu": "2-BBA",
+        "fri": "2-BBA",
+        "sat": "2-BBA"
+      }
+    },
+    {
+      "room_no": "S819B",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "2-BBA",
+        "tue": "2-BBA",
+        "wed": "ENGG",
+        "thu": "2-BBA",
+        "fri": "2-BBA",
+        "sat": "2-BBA"
+      }
+    },
+    {
+      "room_no": "S902",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S903",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S907",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S908",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S909",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S912",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S913",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S914",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S918",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "S919",
+      "assigned": "CRT",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "IV ENGG",
+        "wed": "IV ENGG",
+        "thu": "IV ENGG",
+        "fri": "IV CRT",
+        "sat": "IV CRT"
+      }
+    },
+    {
+      "room_no": "SK006",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "SK007",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "SK009",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "M.Sc (Chem)",
+        "tue": "M.Sc (Chem)",
+        "wed": "M.Sc (Chem)",
+        "thu": "M.Sc (Chem)",
+        "fri": "M.Sc (Chem)",
+        "sat": "M.Sc (Chem)"
+      }
+    },
+    {
+      "room_no": "SK010",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": null,
+        "tue": null,
+        "wed": null,
+        "thu": null,
+        "fri": null,
+        "sat": null
+      }
+    },
+    {
+      "room_no": "SK011",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "SK014",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "IV ENGG"
+      }
+    },
+    {
+      "room_no": "SK015",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "IV ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "III ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "SK016",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    },
+    {
+      "room_no": "SK017",
+      "assigned": "CLASS",
+      "day_assignments": {
+        "mon": "III ENGG",
+        "tue": "III ENGG",
+        "wed": "III ENGG",
+        "thu": "IV ENGG",
+        "fri": "III ENGG",
+        "sat": "III ENGG"
+      }
+    }
+  ]
+}

@@ -58,6 +58,30 @@ timetable are listed as having no data, excluded from the denominator, and never
 assumed free. Rooms with bookings only after period 11 remain covered and have
 zero utilization during periods 1-11. Refresh reloads the latest uploaded data.
 
+### Department assignments
+
+`ROOM _DATA NEW.xlsx` supplies the Assigned field and Monday-Saturday department
+assignments. The approved inventory remains the original 311 rooms. Exact
+room-name matches (ignoring whitespace and case) provide 287 assignment records;
+24 approved rooms have no matching row and display **Not specified**. We do not
+infer that differently numbered physical rooms are the same room. Duplicate
+rows merge nonblank values; distinct values are preserved together.
+
+Free-room cards show Assigned and the selected day's assignment. **Free Rooms >
+Department Assignments** lists the full week, with room/department search, block
+and assigned-use filters, and Excel export. Block-wise Utilization slot details
+and exports also include assignments. These are planned allocations, not
+occupancy records, and do not change whether a room is free.
+
+To refresh assignment data from a revised workbook with the same columns:
+
+```powershell
+node scripts/import-room-assignments.cjs "C:\path\ROOM _DATA NEW.xlsx"
+```
+
+Review the reported unmatched rooms and deploy the application. This importer
+does not modify room eligibility, capacity, type, or block.
+
 ### 1. Prerequisites
 - Node.js 18+
 - MongoDB running locally or a MongoDB Atlas URI

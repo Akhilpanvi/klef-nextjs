@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
+import { ASSIGNMENT_DAYS, assignmentExportColumns } from '@/lib/roomAssignmentFormat'
 import { useApi } from '@/components/AuthContext'
 
 const periods = Array.from({ length: 11 }, (_, index) => index + 1)
@@ -57,6 +58,9 @@ export default function BlockUtilizationTab() {
     })))), 'Day and Period')
     const missing = visible.flatMap(item => item.missingRooms.map(room => ({ Block: item.block, Room: room, Status: 'No timetable data' })))
     if (missing.length) addSheet(missing, 'Rooms without data')
+    const visibleBlocks = new Set(visible.map(item => item.block))
+    const assignments = Object.values(data.roomAssignments || {}).filter(room => visibleBlocks.has(room.block))
+    if (assignments.length) addSheet(assignments.map(room => ({ Room: room.number, Block: room.block, ...assignmentExportColumns(room) })), 'Department Assignments')
     XLSX.writeFile(workbook, 'block-room-utilization-Mon-Sat-P1-11.xlsx')
   }
 
@@ -106,8 +110,8 @@ export default function BlockUtilizationTab() {
             <button className="btn" onClick={() => setSelected(null)} aria-label="Close room details">Close</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 }}>
-            <div><strong>Occupied ({selected.occupied})</strong><p style={{ overflowWrap: 'anywhere' }}>{selected.occupiedRooms.join(', ') || 'None'}</p></div>
-            <div><strong>Free ({selected.free})</strong><p style={{ overflowWrap: 'anywhere' }}>{selected.freeRooms.join(', ') || 'None'}</p></div>
+            <div><strong>Occupied ({selected.occupied})</strong><AssignmentList rooms={selected.occupiedRooms} day={selected.dayNumber} assignments={data.roomAssignments} /></div>
+            <div><strong>Free ({selected.free})</strong><AssignmentList rooms={selected.freeRooms} day={selected.dayNumber} assignments={data.roomAssignments} /></div>
           </div>
         </div>}
         {visible.map(item => <article key={item.block} className="card" style={{ padding: 16, marginBottom: 20, minWidth: 0 }}>
@@ -123,7 +127,7 @@ export default function BlockUtilizationTab() {
                 <th scope="row" style={{ ...td, textAlign: 'left', fontSize: 12 }}>{day.name}</th>
                 {day.periods.map(slot => <td key={slot.hour} style={td}>
                   <button disabled={!item.coveredRooms}
-                    onClick={() => setSelected({ ...slot, block: item.block, day: day.name })}
+                    onClick={() => setSelected({ ...slot, block: item.block, day: day.name, dayNumber: day.day })}
                     aria-label={`Block ${item.block}, ${day.name}, period ${slot.hour}: ${slot.occupied} occupied, ${slot.free} free, ${percent(slot.utilization)}`}
                     style={{ width: '100%', padding: '10px 4px', borderRadius: 6, border: '1px solid var(--border)', color: 'var(--text)', background: heat(slot.utilization), cursor: item.coveredRooms ? 'pointer' : 'default' }}>
                     {item.coveredRooms ? <><strong>{slot.occupied}/{item.coveredRooms}</strong><br /><span style={{ fontSize: 11 }}>{percent(slot.utilization)}</span></> : <span style={{ fontSize: 11 }}>No data</span>}
@@ -141,4 +145,14 @@ export default function BlockUtilizationTab() {
       </>}
     </section>
   )
+}
+
+function AssignmentList({ rooms, day, assignments = {} }) {
+  if (!rooms.length) return <p>None</p>
+  return <ul style={{ paddingLeft: 18, lineHeight: 1.7, overflowWrap: 'anywhere' }}>
+    {rooms.map(room => <li key={room}>
+      <strong>{room}</strong> ? Assigned: {assignments[room]?.assigned || 'Not specified'}
+      <br />Day assignment: {assignments[room]?.day_assignments?.[ASSIGNMENT_DAYS[day - 1]] || 'Not specified'}
+    </li>)}
+  </ul>
 }

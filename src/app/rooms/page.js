@@ -1,4 +1,6 @@
 'use client'
+import RoomAssignmentDetails from '@/components/free-rooms/RoomAssignmentDetails'
+import { assignmentExportColumns } from '@/lib/roomAssignmentFormat'
 import { useState, useEffect } from 'react'
 import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useAuth, useApi } from '@/components/AuthContext'
@@ -159,6 +161,7 @@ function LiveFreeRoomsTab() {
   const download = () => {
     if (!filtered.length) return toast.error('Nothing to export')
     const ws = XLSX.utils.json_to_sheet(filtered.map(r => ({
+      ...assignmentExportColumns(r),
       'Room No': r.number,
       'ERP Sections': r.erp_sections?.map(s => `${s.assoc}:${s.erp_id}`).join(' | ') || '—',
       'Block': r.block || '?', 'Type': r.type || '?',
@@ -255,6 +258,7 @@ function LiveFreeRoomsTab() {
                   <ErpBadges sections={r.erp_sections} />
                   <div style={{ fontSize:12, color:'var(--text-3)' }}>{r.type || '?'} · Cap: {r.capacity || '?'}</div>
                   <div style={{ fontSize:11, color:'var(--text-3)' }}>Block {r.block}</div>
+                  <RoomAssignmentDetails room={r} />
                 </div>
               ))}
             </div>
