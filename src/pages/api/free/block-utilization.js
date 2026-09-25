@@ -1,3 +1,5 @@
+import { approvedRooms } from '@/lib/approvedRooms'
+import { roomAssignment } from '@/lib/roomAssignments'
 import { requireAuth } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import RoomwiseEntry from '@/lib/models/RoomwiseEntry'
@@ -27,6 +29,7 @@ export default async function handler(req, res) {
     return res.json({ success: true, ...buildBlockUtilization(entries, observedRooms),
       snapshotLabel: snapshot.label, filename: snapshot.filename, uploadedAt: snapshot.uploadedAt,
       dataset, source: 'roomwise',
+      roomAssignments: Object.fromEntries(approvedRooms.map(room => [room.room_no, { number: room.room_no, block: room.block, ...roomAssignment(room.room_no) }])),
     })
   } catch {
     return res.status(500).json({ success: false, message: 'Unable to load block utilization. Please try again.' })

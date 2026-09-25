@@ -3,11 +3,14 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import vm from 'node:vm'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
 
 // Load the actual API modules with database/auth fixtures; no live DB is touched.
 async function load(relative, overrides = {}) {
   const cache = new Map()
-  async function moduleFor(file) {
+  function moduleFor(file) {
     if (cache.has(file)) return cache.get(file)
     const name = path.basename(file, '.js')
     let exports = overrides[name]
@@ -20,16 +23,16 @@ async function load(relative, overrides = {}) {
       }, { identifier: file })
       : new vm.SourceTextModule(readFileSync(file, 'utf8'), { identifier: file })
     cache.set(file, mod)
-    await mod.link(async (specifier, parent) => {
-      let target = specifier.startsWith('@/')
-        ? path.resolve('src', specifier.slice(2))
-        : path.resolve(path.dirname(parent.identifier), specifier)
-      if (!existsSync(target)) target += '.js'
-      return moduleFor(target)
-    })
     return mod
   }
-  const mod = await moduleFor(path.resolve(relative))
+  const mod = moduleFor(path.resolve(relative))
+  await mod.link((specifier, parent) => {
+    let target = specifier.startsWith('@/')
+      ? path.resolve('src', specifier.slice(2))
+      : path.resolve(path.dirname(parent.identifier), specifier)
+    if (!existsSync(target)) target += '.js'
+    return moduleFor(target)
+  })
   await mod.evaluate()
   return mod.namespace
 }
@@ -230,4 +233,61 @@ test('block API requires authentication and rejects writes', async () => {
   assert.equal(readDatabase, false)
   await handler({ method: 'POST', query: {} }, res)
   assert.equal(status, 405)
+})
+
+test('assignment workbook supplies daily allocations without expanding approved rooms', async () => {
+  const { roomAssignment } = await load('src/lib/roomAssignments.js')
+  const monday = roomAssignment('C007-A', 1)
+  const thursday = roomAssignment('C007', 4)
+  assert.equal(monday.assigned, 'CLASS')
+  assert.equal(monday.assigned_for_day, 'II PBL')
+  assert.equal(thursday.assigned_for_day, 'I PBL')
+  assert.equal(thursday.assignment_day, 4)
+  assert.equal(roomAssignment('C007', 6).assigned_for_day, 'II PBL')
+  assert.equal(roomAssignment('C007', 7).assigned_for_day, null)
+  assert.equal(roomAssignment('C124', 1).has_assignment_data, false)
+  assert.equal(roomAssignment('UNWANTED', 1).assigned, null)
+  assert.equal(roomAssignment('C322 B', 1).assigned_for_day, 'CLASS')
+})
+
+test('assignment importer combines duplicate rows but does not guess physical room names', () => {
+  const { importAssignments } = require('./import-room-assignments.cjs')
+  const result = importAssignments([
+    { 'ROOM NO': 'C007', ASSIGNED: 'CLASS', MON: 'II PBL', THU: '' },
+    { 'ROOM NO': ' c007 ', ASSIGNED: 'CLASS', MON: 'II PBL', THU: 'I PBL' },
+    { 'ROOM NO': 'C007', ASSIGNED: 'CRT', MON: 'CRT' },
+    { 'ROOM NO': 'C124A', ASSIGNED: 'CLASS', MON: 'Do not guess C124' },
+    { 'ROOM NO': 'CRICKET NETS', ASSIGNED: 'SPORTS', MON: 'SPORTS' },
+  ])
+  assert.equal(result.rooms.length, 1)
+  assert.equal(result.rooms[0].assigned, 'CLASS / CRT')
+  assert.equal(result.rooms[0].day_assignments.mon, 'II PBL / CRT')
+  assert.equal(result.rooms[0].day_assignments.thu, 'I PBL')
+  assert.ok(result.unmatchedRooms.includes('C124A'))
+})
+
+test('weekly assignment API contains 311 approved rooms, including 24 unmatched records', async () => {
+  const { default: handler } = await load('src/pages/api/free/room-assignments.js')
+  const result = await request(handler, {})
+  assert.equal(result.rooms.length, 311)
+  assert.equal(result.rooms.filter(room => room.has_assignment_data).length, 287)
+  assert.equal(result.rooms.filter(room => !room.has_assignment_data).length, 24)
+  assert.ok(!result.rooms.some(room => room.number === 'CRICKET NETS'))
+  assert.equal(result.rooms.find(room => room.number === 'C007').day_assignments.thu, 'I PBL')
+  assert.equal(result.rooms.find(room => room.number === 'C008').capacity, 72)
+})
+
+test('free-room API includes the requested day assignment without changing occupancy', async () => {
+  const { default: handler } = await load('src/pages/api/free/rooms.js', {
+    RoomwiseSnapshot: snapshot,
+    RoomwiseEntry: { default: { distinct: async (_, query) => query.day ? [] : ['C007-A'] } },
+    RoomMeta: model([]), ErpRoomData: model([]),
+  })
+  const monday = await request(handler, { day: '1', periods: '1' })
+  const thursday = await request(handler, { day: '4', periods: '1' })
+  assert.equal(monday.count, 1)
+  assert.equal(thursday.count, 1)
+  assert.equal(monday.rooms[0].assigned_for_day, 'II PBL')
+  assert.equal(thursday.rooms[0].assigned_for_day, 'I PBL')
+  assert.equal(thursday.rooms[0].assigned, 'CLASS')
 })

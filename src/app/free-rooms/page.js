@@ -10,6 +10,9 @@ import RoomAllocationTab from '@/components/free-rooms/RoomAllocationTab'
 import SlotSummaryTab from '@/components/free-rooms/SlotSummaryTab'
 import YearRoomsTab from '@/components/free-rooms/YearRoomsTab'
 import BlockUtilizationTab from '@/components/free-rooms/BlockUtilizationTab'
+import DepartmentAssignmentsTab from '@/components/free-rooms/DepartmentAssignmentsTab'
+import RoomAssignmentDetails from '@/components/free-rooms/RoomAssignmentDetails'
+import { assignmentExportColumns } from '@/lib/roomAssignmentFormat'
 
 const DAYS     = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const DAY_KEYS = ['Mon','Tue','Wed','Thu','Fri','Sat']
@@ -108,7 +111,7 @@ function FindFreeRoomsTab({ onAnalyze }) {
 
   const download = () => {
     if (!filtered.length) return toast.error('Nothing to export')
-    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({'Room No':r.number,'ERP Sections':r.erp_sections?.map(s=>`${s.assoc}:${s.erp_id}`).join(' | ')||'—','Block':r.block||'?','Type':r.type||'?','Capacity':r.capacity||'?','Dept':r.dept||'—'})))
+    const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({...assignmentExportColumns(r),'Room No':r.number,'ERP Sections':r.erp_sections?.map(s=>`${s.assoc}:${s.erp_id}`).join(' | ')||'—','Block':r.block||'?','Type':r.type||'?','Capacity':r.capacity||'?','Dept':r.dept||'—'})))
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Free_Rooms')
     XLSX.writeFile(wb,`free-rooms-${DAYS[+day-1]}-P${periods.join('')}.xlsx`)
   }
@@ -156,6 +159,7 @@ function FindFreeRoomsTab({ onAnalyze }) {
                 <ErpBadges sections={r.erp_sections}/>
                 <div style={{fontSize:12,color:'var(--text-3)'}}>{r.type||'?'} · Cap: {r.capacity||'?'}</div>
                 <div style={{fontSize:11,color:'var(--text-3)'}}>Block {r.block}</div>
+                <RoomAssignmentDetails room={r}/>
                 <button className="btn btn-primary" style={{marginTop:6,padding:'4px 10px',fontSize:12,width:'100%'}} onClick={()=>onAnalyze(r.number)}>Analyze</button>
               </div>
             ))}
@@ -855,7 +859,7 @@ function FreeRoomsContent() {
       <h2 style={{margin:'0 0 16px',fontFamily:"'DM Serif Display',serif",fontSize:'1.25rem'}}>Room Availability</h2>
 
       <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'2px solid var(--border)',flexWrap:'wrap'}}>
-        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'block',label:'Block-wise Utilization'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'},{id:'allocation',label:'🏢 Room Allocation'},{id:'slot',label:'🧩 Slot Summary'},{id:'year',label:'🎓 Year-wise Rooms'}].map(t=>(
+        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'assignments',label:'Department Assignments'},{id:'block',label:'Block-wise Utilization'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'},{id:'allocation',label:'🏢 Room Allocation'},{id:'slot',label:'🧩 Slot Summary'},{id:'year',label:'🎓 Year-wise Rooms'}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
             padding:'8px 18px',fontSize:13,fontWeight:700,border:'none',background:'none',cursor:'pointer',
             borderBottom:tab===t.id?'2px solid var(--brand)':'2px solid transparent',
@@ -865,6 +869,7 @@ function FreeRoomsContent() {
       </div>
 
       {tab==='find'       && <FindFreeRoomsTab onAnalyze={goAnalyze}/>}
+      {tab==='assignments' && <DepartmentAssignmentsTab/>}
       {tab==='block'      && <BlockUtilizationTab/>}
       {tab==='stats'      && <AllRoomsTab onAnalyze={goAnalyze}/>}
       {tab==='analytics'  && <AnalyticsTab initialRoom={analyzeRoom} onClear={()=>setAnalyzeRoom(null)}/>}

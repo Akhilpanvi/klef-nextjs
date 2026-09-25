@@ -1,3 +1,4 @@
+import { roomAssignment } from '@/lib/roomAssignments'
 import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }      from '@/lib/auth'
 import { connectDB }        from '@/lib/mongodb'
@@ -125,6 +126,7 @@ export default async function handler(req, res) {
 
     const meta = { ...metaMap[name], ...approvedRoom(name) }
     free.push({
+      ...roomAssignment(name, dayNum),
       number:       name,
       erp_sections: erpMap[name] ?? [],
       type:         meta?.room_type || '?',
