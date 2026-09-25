@@ -379,3 +379,39 @@ test('uploaded assignment rooms replace the fallback inventory in Free Rooms', a
   assert.equal(result.rooms[0].floor, 1)
   assert.equal(result.rooms[0].assigned, 'SPORTS')
 })
+
+test('capacity occupancy reports day and period occupancy from the final uploaded room inventory', async () => {
+  const uploaded = [
+    { room_no: 'C007', source_name: 'C007', block: 'C', floor: 0, capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: { mon: 'CSE' } },
+    { room_no: 'C008', source_name: 'C008', block: 'C', floor: 0, capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: { mon: 'ECE' } },
+    { room_no: 'E110', source_name: 'E110', block: 'E', floor: 1, capacity: 80, room_type: 'STUDIO', assigned: 'CLASS', day_assignments: { mon: 'ARCH' } },
+  ]
+  let busyQuery
+  const { default: handler } = await load('src/pages/api/free/capacity-occupancy.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => uploaded }) } },
+    RoomwiseSnapshot: { default: { findOne: () => ({ lean: async () => ({ snapshotId: 'roomwise', filename: 'Roomwise.csv' }) }) } },
+    RoomwiseEntry: { default: { distinct: async (_, query) => {
+      if (query.day) { busyQuery = query; return ['C007-A', 'E110'] }
+      return ['C007-A', 'C008', 'E110']
+    } } },
+    RoomMeta: model([]),
+  })
+  const result = await request(handler, { day: '1', periods: '1,2' })
+  assert.equal(result.success, true)
+  assert.deepEqual(busyQuery, { dataset: 'roomwise', day: 1, hour: { $in: [1, 2] } })
+  assert.deepEqual(result.totals, {
+    rooms: 3, occupiedRooms: 2, freeRooms: 1, roomsWithoutCapacity: 0,
+    totalCapacity: 224, occupiedCapacity: 152, freeCapacity: 72,
+    roomOccupancy: 66.7, capacityOccupancy: 67.9,
+  })
+  assert.deepEqual(result.capacityGroups.find(group => group.capacity === 72), {
+    capacity: 72, rooms: 2, occupied: 1, free: 1,
+    totalSeats: 144, occupiedSeats: 72, freeSeats: 72, occupancy: 50,
+  })
+  const e110 = result.rooms.find(room => room.number === 'E110')
+  assert.equal(e110.status, 'occupied')
+  assert.equal(e110.capacity, 80)
+  assert.equal(e110.type, 'STUDIO')
+  assert.equal(e110.assigned_for_day, 'ARCH')
+})

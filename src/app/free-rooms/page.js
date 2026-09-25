@@ -11,6 +11,7 @@ import SlotSummaryTab from '@/components/free-rooms/SlotSummaryTab'
 import YearRoomsTab from '@/components/free-rooms/YearRoomsTab'
 import BlockUtilizationTab from '@/components/free-rooms/BlockUtilizationTab'
 import BlockFreeRoomsTab from '@/components/free-rooms/BlockFreeRoomsTab'
+import CapacityOccupancyTab from '@/components/free-rooms/CapacityOccupancyTab'
 import DepartmentAssignmentsTab from '@/components/free-rooms/DepartmentAssignmentsTab'
 import RoomAssignmentDetails from '@/components/free-rooms/RoomAssignmentDetails'
 import { assignmentExportColumns } from '@/lib/roomAssignmentFormat'
@@ -860,7 +861,7 @@ function FreeRoomsContent() {
       <h2 style={{margin:'0 0 16px',fontFamily:"'DM Serif Display',serif",fontSize:'1.25rem'}}>Room Availability</h2>
 
       <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'2px solid var(--border)',flexWrap:'wrap'}}>
-        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'block-free',label:'Block-wise Free Rooms'},{id:'assignments',label:'Department Assignments'},{id:'block',label:'Block-wise Utilization'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'},{id:'allocation',label:'🏢 Room Allocation'},{id:'slot',label:'🧩 Slot Summary'},{id:'year',label:'🎓 Year-wise Rooms'}].map(t=>(
+        {[{id:'find',label:'🔍 Find Free Rooms'},{id:'block-free',label:'Block-wise Free Rooms'},{id:'capacity',label:'Capacity Occupancy'},{id:'assignments',label:'Department Assignments'},{id:'block',label:'Block-wise Utilization'},{id:'stats',label:'📊 All Rooms Stats'},{id:'analytics',label:'🔬 Analytics Search'},{id:'lookup',label:'🏷️ Room Search'},{id:'boxtt',label:'📋 Box TT Converter'},{id:'allocation',label:'🏢 Room Allocation'},{id:'slot',label:'🧩 Slot Summary'},{id:'year',label:'🎓 Year-wise Rooms'}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
             padding:'8px 18px',fontSize:13,fontWeight:700,border:'none',background:'none',cursor:'pointer',
             borderBottom:tab===t.id?'2px solid var(--brand)':'2px solid transparent',
@@ -871,6 +872,7 @@ function FreeRoomsContent() {
 
       {tab==='find'       && <FindFreeRoomsTab onAnalyze={goAnalyze}/>}
       {tab==='block-free' && <BlockFreeRoomsTab/>}
+      {tab==='capacity'   && <CapacityOccupancyTab/>}
       {tab==='assignments' && <DepartmentAssignmentsTab/>}
       {tab==='block'      && <BlockUtilizationTab/>}
       {tab==='stats'      && <AllRoomsTab onAnalyze={goAnalyze}/>}

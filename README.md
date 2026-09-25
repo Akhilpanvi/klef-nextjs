@@ -48,6 +48,10 @@ view all free rooms grouped by block. Each row includes floor, type, capacity,
 general assignment and the selected day's department assignment. Results can
 be filtered by block or room type, searched and exported to Excel.
 
+Open **Free Rooms > Capacity Occupancy** for day/hour room and seat occupancy.
+It reports occupied/free rooms, occupied/free seating capacity, exact-capacity
+groups and room details, with block/type/status/capacity filters and Excel export.
+
 Open **Free Rooms > Block-wise Utilization** for a Monday-Saturday, periods 1-11
 report from the currently uploaded Roomwise Timetable CSV (the same source as
 Find Free Rooms). The ERP Room Data mapping alone does not contain bookings.
