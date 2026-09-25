@@ -9,6 +9,14 @@ const numberOrNull = value => {
   const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''))
   return Number.isFinite(parsed) && String(value ?? '').trim() ? parsed : null
 }
+const capacityOrNull = value => {
+  const raw = clean(value)
+  if (!raw) return null
+  const parts = raw.split('+').map(part => part.trim())
+  if (parts.length > 1 && parts.every(part => /^\d+(?:\.\d+)?$/.test(part)))
+    return parts.reduce((total, part) => total + Number(part), 0)
+  return numberOrNull(raw)
+}
 
 export function parseRoomAssignmentBuffer(buffer) {
   const workbook = XLSX.read(buffer, { type: 'buffer' })
@@ -35,7 +43,7 @@ export function parseRoomAssignmentBuffer(buffer) {
       source_name: sourceName,
       block: clean(row.BLOCK) || null,
       floor: numberOrNull(row.FLOOR),
-      capacity: numberOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP),
+      capacity: capacityOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP),
       room_type: clean(row.TYPE) || null,
       assigned: new Set(),
       day_assignments: Object.fromEntries(DAYS.map(day => [day, new Set()])),
@@ -43,7 +51,7 @@ export function parseRoomAssignmentBuffer(buffer) {
     const record = matches.get(identity)
     record.block ||= clean(row.BLOCK) || null
     record.floor ??= numberOrNull(row.FLOOR)
-    record.capacity ??= numberOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP)
+    record.capacity ??= capacityOrNull(row['ROOM CAPACITY'] ?? row.CAPACITY ?? row.CAP)
     record.room_type ||= clean(row.TYPE) || null
     if (clean(row.ASSIGNED)) record.assigned.add(clean(row.ASSIGNED))
     for (const day of DAYS) {

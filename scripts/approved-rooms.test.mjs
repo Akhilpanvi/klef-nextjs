@@ -333,7 +333,7 @@ test('admin assignment parser makes every workbook room final and merges duplica
   const sheet = XLSX.utils.json_to_sheet([
     { 'ROOM NO': 'C007', ASSIGNED: 'CLASS', MON: 'II PBL', TUE: '', WED: '', THU: 'I PBL', FRI: '', SAT: '' },
     { 'ROOM NO': ' c007 ', ASSIGNED: 'CRT', MON: 'CRT', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
-    { 'ROOM NO': 'CRICKET NETS', BLOCK: 'Sports', FLOOR: 0, 'ROOM CAPACITY': 100, TYPE: 'GROUND', ASSIGNED: 'SPORTS', MON: 'SPORTS', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
+    { 'ROOM NO': 'CRICKET NETS', BLOCK: 'Sports', FLOOR: 0, 'ROOM CAPACITY': '40+40', TYPE: 'GROUND', ASSIGNED: 'SPORTS', MON: 'SPORTS', TUE: '', WED: '', THU: '', FRI: '', SAT: '' },
   ])
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, sheet, 'Assignments')
@@ -344,7 +344,7 @@ test('admin assignment parser makes every workbook room final and merges duplica
   assert.equal(parsed.docs[0].day_assignments.mon, 'II PBL / CRT')
   const sports = parsed.docs.find(room => room.room_no === 'CRICKET NETS')
   assert.equal(sports.block, 'Sports')
-  assert.equal(sports.capacity, 100)
+  assert.equal(sports.capacity, 80)
   assert.equal(sports.room_type, 'GROUND')
   assert.equal(parsed.duplicateCount, 1)
 
