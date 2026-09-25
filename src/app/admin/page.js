@@ -11,6 +11,7 @@ import RoomwiseUploadCard from '@/components/admin/RoomwiseUploadCard'
 import FacultywiseUploadCard from '@/components/admin/FacultywiseUploadCard'
 import ErpRoomUploadCard from '@/components/admin/ErpRoomUploadCard'
 import RoomAllocationUploadCard from '@/components/admin/RoomAllocationUploadCard'
+import RoomAssignmentUploadCard from '@/components/admin/RoomAssignmentUploadCard'
 
 const ALL_PERMISSIONS = [
   { key: 'view_clash',          label: 'View Clash Detection' },
@@ -781,6 +782,7 @@ function AdminContent() {
           <RoomwiseUploadCard />
           <FacultywiseUploadCard />
           <ErpRoomUploadCard />
+          <RoomAssignmentUploadCard />
         </div>
 
         {/* Room Allocation Upload */}

@@ -1,4 +1,4 @@
-import { roomAssignment } from '@/lib/roomAssignments'
+import { getRoomAssignmentDataset, roomAssignment } from '@/lib/roomAssignments'
 import { approvedRoom, approvedRoomKey } from '@/lib/approvedRooms'
 import { requireAuth }  from '@/lib/auth'
 import { connectDB }    from '@/lib/mongodb'
@@ -21,6 +21,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, message: 'day and periods required' })
 
   await connectDB()
+  const assignmentData = await getRoomAssignmentDataset()
 
   const snap = await RoomwiseSnapshot.findOne().lean()
   if (!snap)
@@ -62,7 +63,7 @@ export default async function handler(req, res) {
 
     const meta = { ...metaMap[base], ...approvedRoom(base) }
     free.push({
-      ...roomAssignment(base, dayNum),
+      ...roomAssignment(base, dayNum, assignmentData.records),
       number:      base,
       erp_sections: erpMap[base] ?? [],
       type:     meta?.room_type  || '?',
