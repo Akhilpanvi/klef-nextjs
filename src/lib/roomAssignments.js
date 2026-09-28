@@ -7,7 +7,8 @@ export const assignmentSource = data.source
 const bundledRecords = new Map(data.rooms.map(room => [room.room_no, room]))
 const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const compact = value => String(value || '').trim().toUpperCase().replace(/\s+/g, '')
-const identity = value => compact(value).replace(/[^A-Z0-9]/g, '') || compact(value)
+const normalizedRoomName = value => String(value || '').trim().toUpperCase().replace(/\s+/g, ' ')
+const looseIdentity = value => compact(value).replace(/[^A-Z0-9]/g, '') || compact(value)
 
 const mergeText = (left, right) => {
   const values = [...new Set([left, right].flatMap(value => String(value || '').split(' / '))
@@ -19,27 +20,32 @@ function mergeUploadedRecords(docs) {
   const merged = new Map()
   const byIdentity = new Map()
   for (const source of docs) {
-    const key = identity(source.room_no)
+    // source_name preserves what the admin uploaded. Older importer versions
+    // could rewrite R105A to R105 in room_no; restore the original name here so
+    // existing uploads are corrected without requiring another upload.
+    const authoritativeName = normalizedRoomName(source.source_name || source.room_no)
+    const normalizedSource = { ...source, room_no: authoritativeName, source_name: authoritativeName }
+    const key = compact(authoritativeName)
     let record = byIdentity.get(key)
     if (!record) {
       record = {
-        ...source,
-        day_assignments: { ...source.day_assignments },
-        aliases: [source.room_no, source.source_name].filter(Boolean),
+        ...normalizedSource,
+        day_assignments: { ...normalizedSource.day_assignments },
+        aliases: [authoritativeName],
       }
       byIdentity.set(key, record)
       merged.set(record.room_no, record)
       continue
     }
-    record.aliases.push(source.room_no, source.source_name)
+    record.aliases.push(authoritativeName)
     record.aliases = [...new Set(record.aliases.filter(Boolean))]
-    record.block ||= source.block || null
-    record.floor ??= source.floor ?? null
-    record.capacity ??= source.capacity ?? null
-    record.room_type ||= source.room_type || null
-    record.assigned = mergeText(record.assigned, source.assigned)
+    record.block ||= normalizedSource.block || null
+    record.floor ??= normalizedSource.floor ?? null
+    record.capacity ??= normalizedSource.capacity ?? null
+    record.room_type ||= normalizedSource.room_type || null
+    record.assigned = mergeText(record.assigned, normalizedSource.assigned)
     for (const day of days)
-      record.day_assignments[day] = mergeText(record.day_assignments[day], source.day_assignments?.[day])
+      record.day_assignments[day] = mergeText(record.day_assignments[day], normalizedSource.day_assignments?.[day])
   }
   return merged
 }
@@ -78,7 +84,7 @@ export function createRoomInventoryResolver(inventory) {
   const looseAliases = new Map()
   const collisions = new Set()
   for (const [alias, room] of aliases) {
-    const key = identity(alias)
+    const key = looseIdentity(alias)
     if (looseAliases.has(key) && looseAliases.get(key) !== room) collisions.add(key)
     else looseAliases.set(key, room)
   }
@@ -88,12 +94,17 @@ export function createRoomInventoryResolver(inventory) {
     if (!value) return ''
     if (aliases.has(value)) return aliases.get(value)
     const original = value
+    let removedSectionSuffix = false
     while (SECTION_SUFFIX.test(value)) {
+      removedSectionSuffix = true
       value = value.replace(SECTION_SUFFIX, '')
       if (aliases.has(value)) return aliases.get(value)
-      if (looseAliases.has(identity(value))) return looseAliases.get(identity(value))
+      if (looseAliases.has(looseIdentity(value))) return looseAliases.get(looseIdentity(value))
     }
-    return looseAliases.get(identity(original)) || ''
+    // Do not erase a section hyphen as a loose match. R105-A is a section of
+    // R105 and must never be treated as the distinct uploaded room R105A.
+    if (removedSectionSuffix) return ''
+    return looseAliases.get(looseIdentity(original)) || ''
   }
 }
 

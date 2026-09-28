@@ -347,10 +347,12 @@ test('uploaded assignment dataset overrides bundled data immediately', async () 
   assert.equal(roomAssignment('C008', 1, data.records).has_assignment_data, false)
 })
 
-test('uploaded punctuation variants merge immediately and section suffixes still prefer the base room', async () => {
+test('uploaded original names override legacy stored names and section suffixes remain unambiguous', async () => {
   const docs = [
     { room_no: 'F001-ELECTRICAL M/C LAB', source_name: 'F001-ELECTRICAL M/C LAB', block: 'FED', floor: 0, capacity: 72, room_type: 'HLAB', assigned: 'CLASS', day_assignments: { mon: null } },
     { room_no: 'F001ELECTRICAL M/C LAB', source_name: 'F001ELECTRICAL M/C LAB', capacity: 72, assigned: 'CLASS', day_assignments: { mon: 'CLASS' } },
+    { room_no: 'M001', source_name: 'M001A', capacity: 72, day_assignments: { mon: 'MECH' } },
+    { room_no: 'R105', source_name: 'R105A', capacity: 72, day_assignments: {} },
     { room_no: 'C123', source_name: 'C123', capacity: 72, day_assignments: {} },
     { room_no: 'C123A', source_name: 'C123A', capacity: 24, day_assignments: {} },
   ]
@@ -359,10 +361,14 @@ test('uploaded punctuation variants merge immediately and section suffixes still
     RoomAssignment: { default: { find: () => ({ lean: async () => docs }) } },
   })
   const data = await getRoomAssignmentDataset()
-  assert.equal(data.records.size, 3)
-  assert.equal(roomAssignment('F001ELECTRICAL M/C LAB', 1, data.records).assigned_for_day, 'CLASS')
+  assert.equal(data.records.size, 6)
+  assert.equal(roomAssignment('M001A', 1, data.records).assigned_for_day, 'MECH')
+  assert.equal(roomAssignment('M001', 1, data.records).has_assignment_data, false)
   const resolve = createRoomInventoryResolver(getRoomInventory(data))
-  assert.equal(resolve('F001ELECTRICAL M/C LAB'), 'F001-ELECTRICAL M/C LAB')
+  assert.equal(resolve('F001ELECTRICAL M/C LAB'), 'F001ELECTRICAL M/C LAB')
+  assert.equal(resolve('M001A'), 'M001A')
+  assert.equal(resolve('R105A'), 'R105A')
+  assert.equal(resolve('R105-A'), '')
   assert.equal(resolve('C123-A'), 'C123')
   assert.equal(resolve('C123A'), 'C123A')
 })
@@ -399,10 +405,19 @@ test('admin assignment parser makes every workbook room final and merges duplica
   const punctuationWorkbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(punctuationWorkbook, punctuationSheet, 'Assignments')
   const punctuation = parseRoomAssignmentBuffer(XLSX.write(punctuationWorkbook, { type: 'buffer', bookType: 'xlsx' }))
-  assert.equal(punctuation.docs.length, 1)
-  assert.equal(punctuation.duplicateCount, 1)
-  assert.equal(punctuation.docs[0].room_no, 'F001-ELECTRICAL M/C LAB')
-  assert.equal(punctuation.docs[0].day_assignments.mon, 'CLASS')
+  assert.equal(punctuation.docs.length, 2)
+  assert.equal(punctuation.duplicateCount, 0)
+
+  const authoritativeSheet = XLSX.utils.json_to_sheet(['C124A', 'M001A', 'R106', 'R106A', 'R107A', 'R107B'].map(room => ({
+    FLOOR: 1, 'ROOM NO': room, BLOCK: room[0], 'ROOM CAPACITY': 72, TYPE: 'LAB', ASSIGNED: 'CLASS',
+    MON: 'CLASS', TUE: '', WED: '', THU: '', FRI: '', SAT: '',
+  })))
+  const authoritativeWorkbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(authoritativeWorkbook, authoritativeSheet, 'Assignments')
+  const authoritative = parseRoomAssignmentBuffer(XLSX.write(authoritativeWorkbook, { type: 'buffer', bookType: 'xlsx' }))
+  assert.equal(authoritative.docs.length, 6)
+  assert.equal(authoritative.duplicateCount, 0)
+  assert.deepEqual(authoritative.docs.map(room => room.room_no), ['C124A', 'M001A', 'R106', 'R106A', 'R107A', 'R107B'])
 
   const invalidSheet = XLSX.utils.json_to_sheet([{ 'ROOM NO': 'C007' }])
   const invalidWorkbook = XLSX.utils.book_new()
@@ -428,6 +443,26 @@ test('uploaded assignment rooms replace the fallback inventory in Free Rooms', a
   assert.equal(result.rooms[0].type, 'GROUND')
   assert.equal(result.rooms[0].floor, 1)
   assert.equal(result.rooms[0].assigned, 'SPORTS')
+})
+
+test('free rooms preserve distinct uploaded names that end in section-like letters', async () => {
+  const uploaded = ['R106', 'R106A', 'R107A', 'R107B'].map(room_no => ({
+    room_no, source_name: room_no, block: 'R', floor: 1, capacity: 72,
+    room_type: 'LAB', assigned: 'CLASS', day_assignments: {},
+  }))
+  const { default: handler } = await load('src/pages/api/free/rooms.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => uploaded }) } },
+    RoomwiseSnapshot: snapshot,
+    RoomwiseEntry: { default: { distinct: async (_, query) => query.day
+      ? ['R106A-A', 'R107B-MA']
+      : ['R106', 'R106A-A', 'R107A', 'R107B-MA'] } },
+    RoomMeta: model([]), ErpRoomData: model([]),
+  })
+  const result = await request(handler, { day: '1', periods: '1' })
+  assert.deepEqual(result.rooms.map(room => room.number), ['R106', 'R107A'])
+  assert.equal(result.diagnostics.inventoryRooms, 4)
+  assert.equal(result.diagnostics.unmatchedRoomCount, 0)
 })
 
 test('capacity occupancy reports day and period occupancy from the final uploaded room inventory', async () => {

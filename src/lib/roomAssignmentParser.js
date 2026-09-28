@@ -1,5 +1,4 @@
 import * as XLSX from 'xlsx'
-import { approvedRoomKey } from './approvedRooms.js'
 
 export const ASSIGNMENT_COLUMNS = [
   'FLOOR', 'ROOM NO', 'BLOCK', 'ROOM CAPACITY', 'TYPE', 'ASSIGNED',
@@ -8,7 +7,7 @@ export const ASSIGNMENT_COLUMNS = [
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const clean = value => String(value ?? '').trim()
 const compact = value => clean(value).toUpperCase().replace(/\s+/g, '')
-const identity = value => compact(value).replace(/[^A-Z0-9]/g, '') || compact(value)
+const normalizedRoomName = value => clean(value).toUpperCase().replace(/\s+/g, ' ')
 const numberOrNull = value => {
   const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''))
   return Number.isFinite(parsed) && String(value ?? '').trim() ? parsed : null
@@ -39,8 +38,11 @@ export function parseRoomAssignmentBuffer(buffer) {
     const row = Object.fromEntries(Object.entries(raw).map(([key, value]) => [clean(key).toUpperCase(), value]))
     const sourceName = clean(row['ROOM NO'])
     if (!sourceName) continue
-    const roomNo = approvedRoomKey(sourceName) || clean(sourceName).toUpperCase().replace(/\s+/g, ' ')
-    const roomIdentity = identity(roomNo)
+    // ROOM NO is the authoritative final name. Never rewrite it through the
+    // older bundled inventory because valid rooms such as R105A and M001A can
+    // otherwise be collapsed to the different rooms R105 and M001.
+    const roomNo = normalizedRoomName(sourceName)
+    const roomIdentity = compact(roomNo)
     if (matches.has(roomIdentity)) duplicateCount++
     if (!matches.has(roomIdentity)) matches.set(roomIdentity, {
       room_no: roomNo,
