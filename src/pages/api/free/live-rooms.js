@@ -110,7 +110,6 @@ export default async function handler(req, res) {
 
   // Re-group using resolved names (in case some room_no values were numeric ERP IDs)
   const resolved = {}
-  if (assignmentData.uploaded) for (const room of inventory) resolved[room.room_no] = []
   for (const sec of allRooms) {
     const name = resolve(String(sec))
     if (!name) continue

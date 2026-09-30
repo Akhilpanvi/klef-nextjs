@@ -36,7 +36,6 @@ export default async function handler(req, res) {
 
   const allSections = [...new Set(entries.map(e => e.room_no))]
   const roomSections = {}
-  if (assignmentData.uploaded) for (const room of inventory) roomSections[room.room_no] = new Set()
   for (const sec of allSections) {
     const base = baseKey(sec)
     if (!base) continue

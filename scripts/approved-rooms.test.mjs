@@ -434,7 +434,7 @@ test('uploaded assignment rooms replace the fallback inventory in Free Rooms', a
     RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
     RoomAssignment: { default: { find: () => ({ lean: async () => uploaded }) } },
     RoomwiseSnapshot: snapshot,
-    RoomwiseEntry: { default: { distinct: async (_, query) => query.day ? ['C007-A'] : ['C007-A'] } },
+    RoomwiseEntry: { default: { distinct: async (_, query) => query.day ? ['C007-A'] : ['C007-A', 'CRICKET NETS'] } },
     RoomMeta: model([]), ErpRoomData: model([]),
   })
   const result = await request(handler, { day: '1', periods: '1' })
@@ -443,6 +443,24 @@ test('uploaded assignment rooms replace the fallback inventory in Free Rooms', a
   assert.equal(result.rooms[0].type, 'GROUND')
   assert.equal(result.rooms[0].floor, 1)
   assert.equal(result.rooms[0].assigned, 'SPORTS')
+})
+
+test('final rooms absent from Roomwise are No data and never reported free', async () => {
+  const uploaded = [
+    { room_no: 'C007', source_name: 'C007', block: 'C', capacity: 72, room_type: 'CR', day_assignments: {} },
+    { room_no: 'R706B', source_name: 'R706B', block: 'R', capacity: 72, room_type: 'LAB', day_assignments: {} },
+  ]
+  const { default: handler } = await load('src/pages/api/free/rooms.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => uploaded }) } },
+    RoomwiseSnapshot: snapshot,
+    RoomwiseEntry: { default: { distinct: async (_, query) => query.day ? [] : ['C007-A'] } },
+    RoomMeta: model([]), ErpRoomData: model([]),
+  })
+  const result = await request(handler, { day: '1', periods: '1' })
+  assert.deepEqual(result.rooms.map(room => room.number), ['C007'])
+  assert.equal(result.diagnostics.uncoveredInventoryRoomCount, 1)
+  assert.deepEqual(result.diagnostics.uncoveredInventoryRooms, ['R706B'])
 })
 
 test('free rooms preserve distinct uploaded names that end in section-like letters', async () => {
@@ -470,6 +488,7 @@ test('capacity occupancy reports day and period occupancy from the final uploade
     { room_no: 'C007', source_name: 'C007', block: 'C', floor: 0, capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: { mon: 'CSE' } },
     { room_no: 'C008', source_name: 'C008', block: 'C', floor: 0, capacity: 72, room_type: 'CR', assigned: 'CLASS', day_assignments: { mon: 'ECE' } },
     { room_no: 'E110', source_name: 'E110', block: 'E', floor: 1, capacity: 80, room_type: 'STUDIO', assigned: 'CLASS', day_assignments: { mon: 'ARCH' } },
+    { room_no: 'R706B', source_name: 'R706B', block: 'R', floor: 7, capacity: 72, room_type: 'LAB', assigned: 'CLASS', day_assignments: { mon: 'CSE' } },
   ]
   let busyQuery
   const { default: handler } = await load('src/pages/api/free/capacity-occupancy.js', {
@@ -499,4 +518,6 @@ test('capacity occupancy reports day and period occupancy from the final uploade
   assert.equal(e110.capacity, 80)
   assert.equal(e110.type, 'STUDIO')
   assert.equal(e110.assigned_for_day, 'ARCH')
+  assert.equal(result.diagnostics.uncoveredInventoryRoomCount, 1)
+  assert.deepEqual(result.diagnostics.uncoveredInventoryRooms, ['R706B'])
 })

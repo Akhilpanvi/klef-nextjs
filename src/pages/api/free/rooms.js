@@ -41,7 +41,6 @@ export default async function handler(req, res) {
 
   // Group sections by base room
   const roomSections = {}
-  if (assignmentData.uploaded) for (const room of inventory) roomSections[room.room_no] = []
   const unmatchedRoomLabels = []
   const coveredRooms = new Set()
   for (const sec of allSections) {
@@ -51,6 +50,8 @@ export default async function handler(req, res) {
     if (!roomSections[base]) roomSections[base] = []
     roomSections[base].push(sec)
   }
+  const uncoveredInventoryRooms = inventory.map(room => room.room_no)
+    .filter(room => !coveredRooms.has(room)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
 
   // Room metadata
   const metas   = await RoomMeta.find({}).lean()
@@ -88,6 +89,8 @@ export default async function handler(req, res) {
       matchedPhysicalRooms: coveredRooms.size,
       unmatchedRoomCount: unmatchedRoomLabels.length,
       unmatchedRoomLabels: unmatchedRoomLabels.sort().slice(0, 25),
+      uncoveredInventoryRoomCount: uncoveredInventoryRooms.length,
+      uncoveredInventoryRooms: uncoveredInventoryRooms.slice(0, 25),
       timetableSource: snap.filename || snap.label || dataset,
       roomSource: assignmentData.source,
     },

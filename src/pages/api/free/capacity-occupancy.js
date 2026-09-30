@@ -36,7 +36,12 @@ export default async function handler(req, res) {
   const busy = new Set(busySections.map(resolveRoom).filter(Boolean))
   const unmatchedRoomLabels = allSections.filter(section => !resolveRoom(section)).map(String).sort()
   const observed = [...new Set(allSections.map(resolveRoom).filter(Boolean))]
-  const roomNames = assignmentData.uploaded ? inventory.map(room => room.room_no) : observed
+  // Sparse Roomwise data can prove availability only for rooms represented in
+  // that upload. A final-inventory room absent from Roomwise is "No data", not free.
+  const roomNames = observed
+  const observedSet = new Set(observed)
+  const uncoveredInventoryRooms = inventory.map(room => room.room_no)
+    .filter(room => !observedSet.has(room)).sort((a, b) => byRoom(a, b))
   const metaMap = new Map(metas.map(meta => [resolveRoom(meta.room_no), meta]).filter(([key]) => key))
 
   const rooms = roomNames.map(number => {
@@ -98,6 +103,8 @@ export default async function handler(req, res) {
       matchedPhysicalRooms: observed.length,
       unmatchedRoomCount: unmatchedRoomLabels.length,
       unmatchedRoomLabels: unmatchedRoomLabels.slice(0, 25),
+      uncoveredInventoryRoomCount: uncoveredInventoryRooms.length,
+      uncoveredInventoryRooms: uncoveredInventoryRooms.slice(0, 25),
     },
   })
 }

@@ -27,7 +27,9 @@ export default async function handler(req, res) {
     ])
     const inventory = getRoomInventory(assignmentData)
     const resolveRoom = createRoomInventoryResolver(inventory)
-    const coverage = assignmentData.uploaded ? inventory.map(room => room.room_no) : observedRooms
+    // Only rooms represented by the sparse Roomwise upload have known free/busy
+    // status. Final-inventory rooms absent from it remain "No data".
+    const coverage = observedRooms
     res.setHeader('Cache-Control', 'private, no-store')
     return res.json({ success: true, ...buildBlockUtilization(entries, coverage, inventory, resolveRoom),
       snapshotLabel: snapshot.label, filename: snapshot.filename, uploadedAt: snapshot.uploadedAt,
