@@ -32,10 +32,10 @@ function ClassTimetableContent() {
   useEffect(() => { if (!loading && !user) router.replace('/login') }, [user, loading, router])
 
   const load = async () => {
-    if (!hours.length) return toast.error('Select one hour')
+    if (!hours.length) return toast.error('Select one or two hours')
     setBusy(true)
     try {
-      const data = await get(`/api/free/class-timetable?day=${day}&hour=${hours[0]}`)
+      const data = await get(`/api/free/class-timetable?day=${day}&hours=${hours.join(',')}`)
       if (!data.success) throw new Error(data.message)
       if (data.noData) { setRooms([]); setCounts(null); setFetched(true); return toast.error(data.message) }
       setRooms(data.rooms || [])
@@ -50,7 +50,7 @@ function ClassTimetableContent() {
   const filtered = rooms.filter(room =>
     (!block || room.block === block) &&
     (!status || room.status === status) &&
-    (!search || room.number.toLowerCase().includes(search.toLowerCase()) || room.classes.some(item => item.toLowerCase().includes(search.toLowerCase())))
+    (!search || room.number.toLowerCase().includes(search.toLowerCase()) || room.classes.some(item => item.label.toLowerCase().includes(search.toLowerCase())))
   )
 
   if (loading || !user) return null
@@ -68,7 +68,8 @@ function ClassTimetableContent() {
           <button className="btn btn-primary" onClick={load} disabled={busy}>{busy ? 'Checking…' : 'Check Availability'}</button>
         </div>
       </div>
-      <PeriodPicker selected={hours} onChange={values=>setHours(values.length ? [values[values.length-1]] : [])} max={24} />
+      <PeriodPicker selected={hours} onChange={values=>setHours(values.slice(-2))} max={24} />
+      <div style={{fontSize:12,color:'var(--text-3)',marginTop:7}}>Select one hour or a two-hour pair. Selected: {hours.length ? hours.join(' and ') : 'none'}</div>
 
       {counts && <div style={{display:'flex',gap:10,flexWrap:'wrap',margin:'16px 0'}}>
         {[['Total',counts.total],['Free',counts.free],['Occupied',counts.occupied],['Clashes',counts.clashes],['No Data',counts.noData]].map(([label,value])=><div key={label} style={{padding:'8px 14px',border:'1px solid var(--border)',borderRadius:8,background:'var(--surface)',fontSize:13}}><b>{value}</b> {label}</div>)}
@@ -92,7 +93,7 @@ function ClassTimetableContent() {
               <div style={{fontSize:11,color:'var(--text-3)',marginTop:3}}>Block {room.block} · {room.type || '?'} · Capacity {room.capacity || '?'}</div>
               {room.classes.length === 0
                 ? <div style={{fontSize:14,fontWeight:700,color:style.color,marginTop:12}}>{room.status === 'free' ? 'Free for this slot' : 'Roomwise Timetable has no entry for this room'}</div>
-                : <div style={{marginTop:10,display:'grid',gap:7}}>{room.classes.map((item,index)=><div key={`${item}-${index}`} style={{fontSize:12,lineHeight:1.4,padding:'7px 8px',background:'rgba(255,255,255,.72)',border:'1px solid rgba(0,0,0,.08)',borderRadius:6}}>{item}</div>)}</div>}
+                : <div style={{marginTop:10,display:'grid',gap:7}}>{room.classes.map((item,index)=><div key={`${item.hour}-${item.label}-${index}`} style={{fontSize:12,lineHeight:1.4,padding:'7px 8px',background:'rgba(255,255,255,.72)',border:'1px solid rgba(0,0,0,.08)',borderRadius:6}}><b>Hour {item.hour}:</b> {item.label}</div>)}</div>}
             </div>
           })}
         </div>

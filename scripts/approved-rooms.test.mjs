@@ -471,9 +471,9 @@ test('class timetable shows free, occupied, clashes, and no-data rooms for one s
     { room_no: 'R706B', source_name: 'R706B', block: 'R', capacity: 40, room_type: 'LAB', day_assignments: {} },
   ]
   const entries = [
-    { room_no: 'C008-A', label: 'Btech CSE-4-23CS001- SEC:1' },
-    { room_no: 'C009-A', label: 'Btech ECE-4-23EC001- SEC:2' },
-    { room_no: 'C009-MA', label: 'Btech ME-4-23ME001- SEC:3' },
+    { room_no: 'C008-A', hour: 4, label: 'Btech CSE-4-23CS001- SEC:1' },
+    { room_no: 'C009-A', hour: 4, label: 'Btech ECE-4-23EC001- SEC:2' },
+    { room_no: 'C009-MA', hour: 4, label: 'Btech ME-4-23ME001- SEC:3' },
   ]
   const { default: handler } = await load('src/pages/api/free/class-timetable.js', {
     RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
@@ -484,12 +484,13 @@ test('class timetable shows free, occupied, clashes, and no-data rooms for one s
       find: () => ({ lean: async () => entries }),
     } },
   })
-  const result = await request(handler, { day: '1', hour: '4' })
+  const result = await request(handler, { day: '1', hours: '4,5' })
   assert.deepEqual(result.rooms.map(room => [room.number, room.status]), [
     ['C007', 'free'], ['C008', 'occupied'], ['C009', 'clash'], ['R706B', 'no_data'],
   ])
   assert.deepEqual(result.rooms.find(room => room.number === 'C009').classes, [
-    'Btech ECE-4-23EC001- SEC:2', 'Btech ME-4-23ME001- SEC:3',
+    { hour: 4, label: 'Btech ECE-4-23EC001- SEC:2' },
+    { hour: 4, label: 'Btech ME-4-23ME001- SEC:3' },
   ])
   assert.deepEqual(result.counts, { total: 4, free: 1, occupied: 1, clashes: 1, noData: 1 })
 })

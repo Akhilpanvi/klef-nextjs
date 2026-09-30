@@ -12,9 +12,10 @@ export default async function handler(req, res) {
   if (!user) return
 
   const day = Number(req.query.day)
-  const hour = Number(req.query.hour)
-  if (!Number.isInteger(day) || day < 1 || day > 6 || !Number.isInteger(hour) || hour < 1 || hour > 24)
-    return res.status(400).json({ success: false, message: 'Select a valid Monday-Saturday day and hour from 1-24' })
+  const hours = [...new Set(String(req.query.hours || req.query.hour || '').split(',').map(Number)
+    .filter(hour => Number.isInteger(hour) && hour >= 1 && hour <= 24))].sort((a, b) => a - b)
+  if (!Number.isInteger(day) || day < 1 || day > 6 || !hours.length || hours.length > 2)
+    return res.status(400).json({ success: false, message: 'Select a valid Monday-Saturday day and one or two hours from 1-24' })
 
   res.setHeader('Cache-Control', 'private, no-store')
   await connectDB()
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
   const resolveRoom = createRoomInventoryResolver(inventory)
   const [roomLabels, slotEntries] = await Promise.all([
     RoomwiseEntry.distinct('room_no', { dataset: snapshot.snapshotId }),
-    RoomwiseEntry.find({ dataset: snapshot.snapshotId, day, hour }, 'room_no label').lean(),
+    RoomwiseEntry.find({ dataset: snapshot.snapshotId, day, hour: { $in: hours } }, 'room_no hour label').lean(),
   ])
 
   const covered = new Set(roomLabels.map(resolveRoom).filter(Boolean))
@@ -40,12 +41,17 @@ export default async function handler(req, res) {
     if (!room) continue
     const label = String(entry.label || '').trim()
     if (!label) continue
-    if (!classesByRoom.has(room)) classesByRoom.set(room, new Set())
-    classesByRoom.get(room).add(label)
+    if (!classesByRoom.has(room)) classesByRoom.set(room, new Map())
+    const byHour = classesByRoom.get(room)
+    if (!byHour.has(entry.hour)) byHour.set(entry.hour, new Set())
+    byHour.get(entry.hour).add(label)
   }
 
   const rooms = inventory.map(meta => {
-    const classes = [...(classesByRoom.get(meta.room_no) || [])]
+    const byHour = classesByRoom.get(meta.room_no) || new Map()
+    const classes = [...byHour.entries()].flatMap(([hour, labels]) => [...labels].map(label => ({ hour, label })))
+      .sort((a, b) => a.hour - b.hour || a.label.localeCompare(b.label))
+    const hasClash = [...byHour.values()].some(labels => labels.size > 1)
     const hasCoverage = covered.has(meta.room_no)
     return {
       ...roomAssignment(meta.room_no, day, assignmentData.records),
@@ -55,14 +61,14 @@ export default async function handler(req, res) {
       type: meta.room_type || '?',
       capacity: meta.capacity || null,
       classes,
-      status: !hasCoverage ? 'no_data' : classes.length > 1 ? 'clash' : classes.length === 1 ? 'occupied' : 'free',
+      status: !hasCoverage ? 'no_data' : hasClash ? 'clash' : classes.length ? 'occupied' : 'free',
     }
   }).sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }))
 
   res.json({
     success: true,
     day,
-    hour,
+    hours,
     rooms,
     counts: {
       total: rooms.length,
