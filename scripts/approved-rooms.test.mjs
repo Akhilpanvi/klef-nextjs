@@ -472,6 +472,7 @@ test('class timetable shows free, occupied, clashes, and no-data rooms for one s
   ]
   const entries = [
     { room_no: 'C008-A', hour: 4, label: 'Btech CSE-4-23CS001- SEC:1' },
+    { room_no: 'C008-A', hour: 5, label: 'Btech CSE-4-23CS001- SEC:1' },
     { room_no: 'C009-A', hour: 4, label: 'Btech ECE-4-23EC001- SEC:2' },
     { room_no: 'C009-MA', hour: 4, label: 'Btech ME-4-23ME001- SEC:3' },
   ]
@@ -489,8 +490,11 @@ test('class timetable shows free, occupied, clashes, and no-data rooms for one s
     ['C007', 'free'], ['C008', 'occupied'], ['C009', 'clash'], ['R706B', 'no_data'],
   ])
   assert.deepEqual(result.rooms.find(room => room.number === 'C009').classes, [
-    { hour: 4, label: 'Btech ECE-4-23EC001- SEC:2' },
-    { hour: 4, label: 'Btech ME-4-23ME001- SEC:3' },
+    { hours: [4], label: 'Btech ECE-4-23EC001- SEC:2' },
+    { hours: [4], label: 'Btech ME-4-23ME001- SEC:3' },
+  ])
+  assert.deepEqual(result.rooms.find(room => room.number === 'C008').classes, [
+    { hours: [4, 5], label: 'Btech CSE-4-23CS001- SEC:1' },
   ])
   assert.deepEqual(result.counts, { total: 4, free: 1, occupied: 1, clashes: 1, noData: 1 })
 })

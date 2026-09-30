@@ -49,8 +49,17 @@ export default async function handler(req, res) {
 
   const rooms = inventory.map(meta => {
     const byHour = classesByRoom.get(meta.room_no) || new Map()
-    const classes = [...byHour.entries()].flatMap(([hour, labels]) => [...labels].map(label => ({ hour, label })))
-      .sort((a, b) => a.hour - b.hour || a.label.localeCompare(b.label))
+    const hoursByClass = new Map()
+    for (const [hour, labels] of byHour.entries()) {
+      for (const label of labels) {
+        if (!hoursByClass.has(label)) hoursByClass.set(label, [])
+        hoursByClass.get(label).push(hour)
+      }
+    }
+    const classes = [...hoursByClass.entries()].map(([label, classHours]) => ({
+      label,
+      hours: [...new Set(classHours)].sort((a, b) => a - b),
+    })).sort((a, b) => a.hours[0] - b.hours[0] || a.label.localeCompare(b.label))
     const hasClash = [...byHour.values()].some(labels => labels.size > 1)
     const hasCoverage = covered.has(meta.room_no)
     return {

@@ -93,7 +93,7 @@ function ClassTimetableContent() {
               <div style={{fontSize:11,color:'var(--text-3)',marginTop:3}}>Block {room.block} · {room.type || '?'} · Capacity {room.capacity || '?'}</div>
               {room.classes.length === 0
                 ? <div style={{fontSize:14,fontWeight:700,color:style.color,marginTop:12}}>{room.status === 'free' ? 'Free for this slot' : 'Roomwise Timetable has no entry for this room'}</div>
-                : <div style={{marginTop:10,display:'grid',gap:7}}>{room.classes.map((item,index)=><div key={`${item.hour}-${item.label}-${index}`} style={{fontSize:12,lineHeight:1.4,padding:'7px 8px',background:'rgba(255,255,255,.72)',border:'1px solid rgba(0,0,0,.08)',borderRadius:6}}><b>Hour {item.hour}:</b> {item.label}</div>)}</div>}
+                : <div style={{marginTop:10,display:'grid',gap:7}}>{room.classes.map((item,index)=><div key={`${item.hours.join('-')}-${item.label}-${index}`} style={{fontSize:12,lineHeight:1.4,padding:'7px 8px',background:'rgba(255,255,255,.72)',border:'1px solid rgba(0,0,0,.08)',borderRadius:6}}><b>{item.hours.length > 1 ? 'Hours' : 'Hour'} {item.hours.join(' & ')}:</b> {item.label}</div>)}</div>}
             </div>
           })}
         </div>
