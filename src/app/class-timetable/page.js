@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import PortalShell from '@/components/PortalShell'
 import { AuthProvider, useApi, useAuth } from '@/components/AuthContext'
+import PeriodPicker from '@/components/ui/PeriodPicker'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const STATUS = {
@@ -19,7 +20,7 @@ function ClassTimetableContent() {
   const { get } = useApi()
   const router = useRouter()
   const [day, setDay] = useState('1')
-  const [hour, setHour] = useState('1')
+  const [hours, setHours] = useState([1])
   const [rooms, setRooms] = useState([])
   const [counts, setCounts] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -31,9 +32,10 @@ function ClassTimetableContent() {
   useEffect(() => { if (!loading && !user) router.replace('/login') }, [user, loading, router])
 
   const load = async () => {
+    if (!hours.length) return toast.error('Select one hour')
     setBusy(true)
     try {
-      const data = await get(`/api/free/class-timetable?day=${day}&hour=${hour}`)
+      const data = await get(`/api/free/class-timetable?day=${day}&hour=${hours[0]}`)
       if (!data.success) throw new Error(data.message)
       if (data.noData) { setRooms([]); setCounts(null); setFetched(true); return toast.error(data.message) }
       setRooms(data.rooms || [])
@@ -58,15 +60,15 @@ function ClassTimetableContent() {
       <h2 style={{margin:'0 0 6px',fontFamily:"'DM Serif Display',serif",fontSize:'1.25rem'}}>Class Timetable</h2>
       <p style={{margin:'0 0 18px',color:'var(--text-3)',fontSize:13}}>Day and hour-wise status of every room from Room Department Assignments.</p>
 
-      <div style={{display:'flex',gap:10,flexWrap:'wrap',padding:14,background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:10,alignItems:'center'}}>
-        <select className="input" value={day} onChange={event=>setDay(event.target.value)} style={{maxWidth:180}}>
-          {DAYS.map((name,index)=><option key={name} value={index+1}>{name}</option>)}
-        </select>
-        <select className="input" value={hour} onChange={event=>setHour(event.target.value)} style={{maxWidth:140}}>
-          {Array.from({length:24},(_,index)=>index+1).map(value=><option key={value} value={value}>Hour {value}</option>)}
-        </select>
-        <button className="btn btn-primary" onClick={load} disabled={busy}>{busy ? 'Loading…' : 'Show Classes'}</button>
+      <div style={{padding:14,background:'var(--surface-2)',border:'1px solid var(--border)',borderRadius:10}}>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
+          <select className="input" value={day} onChange={event=>setDay(event.target.value)} style={{maxWidth:250}}>
+            {DAYS.map((name,index)=><option key={name} value={index+1}>{name}</option>)}
+          </select>
+          <button className="btn btn-primary" onClick={load} disabled={busy}>{busy ? 'Checking…' : 'Check Availability'}</button>
+        </div>
       </div>
+      <PeriodPicker selected={hours} onChange={values=>setHours(values.length ? [values[values.length-1]] : [])} max={24} />
 
       {counts && <div style={{display:'flex',gap:10,flexWrap:'wrap',margin:'16px 0'}}>
         {[['Total',counts.total],['Free',counts.free],['Occupied',counts.occupied],['Clashes',counts.clashes],['No Data',counts.noData]].map(([label,value])=><div key={label} style={{padding:'8px 14px',border:'1px solid var(--border)',borderRadius:8,background:'var(--surface)',fontSize:13}}><b>{value}</b> {label}</div>)}
