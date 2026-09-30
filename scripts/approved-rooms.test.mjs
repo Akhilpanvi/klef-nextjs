@@ -463,6 +463,37 @@ test('final rooms absent from Roomwise are No data and never reported free', asy
   assert.deepEqual(result.diagnostics.uncoveredInventoryRooms, ['R706B'])
 })
 
+test('class timetable shows free, occupied, clashes, and no-data rooms for one slot', async () => {
+  const uploaded = [
+    { room_no: 'C007', source_name: 'C007', block: 'C', capacity: 72, room_type: 'CR', day_assignments: {} },
+    { room_no: 'C008', source_name: 'C008', block: 'C', capacity: 72, room_type: 'CR', day_assignments: {} },
+    { room_no: 'C009', source_name: 'C009', block: 'C', capacity: 80, room_type: 'LAB', day_assignments: {} },
+    { room_no: 'R706B', source_name: 'R706B', block: 'R', capacity: 40, room_type: 'LAB', day_assignments: {} },
+  ]
+  const entries = [
+    { room_no: 'C008-A', label: 'Btech CSE-4-23CS001- SEC:1' },
+    { room_no: 'C009-A', label: 'Btech ECE-4-23EC001- SEC:2' },
+    { room_no: 'C009-MA', label: 'Btech ME-4-23ME001- SEC:3' },
+  ]
+  const { default: handler } = await load('src/pages/api/free/class-timetable.js', {
+    RoomAssignmentSnapshot: { default: { findOne: () => ({ lean: async () => ({ dataset: 'uploaded', filename: 'final.xlsx' }) }) } },
+    RoomAssignment: { default: { find: () => ({ lean: async () => uploaded }) } },
+    RoomwiseSnapshot: snapshot,
+    RoomwiseEntry: { default: {
+      distinct: async () => ['C007', 'C008-A', 'C009-A', 'C009-MA'],
+      find: () => ({ lean: async () => entries }),
+    } },
+  })
+  const result = await request(handler, { day: '1', hour: '4' })
+  assert.deepEqual(result.rooms.map(room => [room.number, room.status]), [
+    ['C007', 'free'], ['C008', 'occupied'], ['C009', 'clash'], ['R706B', 'no_data'],
+  ])
+  assert.deepEqual(result.rooms.find(room => room.number === 'C009').classes, [
+    'Btech ECE-4-23EC001- SEC:2', 'Btech ME-4-23ME001- SEC:3',
+  ])
+  assert.deepEqual(result.counts, { total: 4, free: 1, occupied: 1, clashes: 1, noData: 1 })
+})
+
 test('free rooms preserve distinct uploaded names that end in section-like letters', async () => {
   const uploaded = ['R106', 'R106A', 'R107A', 'R107B'].map(room_no => ({
     room_no, source_name: room_no, block: 'R', floor: 1, capacity: 72,

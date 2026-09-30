@@ -10,6 +10,7 @@ const ALL_TABS = [
   { label: 'Courses',       path: '/courses' },
   { label: 'Free Faculty',  path: '/free-faculty' },
   { label: 'Free Rooms',    path: '/free-rooms' },
+  { label: 'Class TT',      path: '/class-timetable' },
   { label: '⚠ Clashes',    path: '/clash', bold: true, perm: 'view_clash' },
   { label: 'ERP',           path: '/erp' },
   { label: 'Converter',     path: '/converter' },
