@@ -9,6 +9,3 @@ dist/
 
 # scratch probes
 .tmp-*
-
-# The planning service stays in its existing private repository.
-planning/
