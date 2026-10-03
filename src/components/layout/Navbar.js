@@ -14,6 +14,7 @@ const ALL_TABS = [
   { label: '⚠ Clashes',    path: '/clash', bold: true, perm: 'view_clash' },
   { label: 'ERP',           path: '/erp' },
   { label: 'Converter',     path: '/converter' },
+  ...(process.env.NEXT_PUBLIC_PLANNING_ENABLED === 'true' ? [{ label: 'Planning', path: '/planning', hardNavigate: true }] : []),
 ]
 
 export default function Navbar({ onManageData }) {
@@ -34,7 +35,9 @@ export default function Navbar({ onManageData }) {
   }
 
   const go = (t) => {
-    if (t.external) {
+    if (t.hardNavigate) {
+      window.location.assign(t.path)
+    } else if (t.external) {
       window.open(t.path, '_blank', 'noopener,noreferrer')
     } else {
       router.push(t.path)
