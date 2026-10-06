@@ -12,6 +12,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useApi } from '@/components/AuthContext'
 import toast from 'react-hot-toast'
+import { ROOMWISE_UPDATED } from '@/components/admin/ErpFetchCard'
 
 export default function RoomwiseUploadCard() {
   const { get, del, postForm } = useApi()
@@ -23,7 +24,12 @@ export default function RoomwiseUploadCard() {
   const [clearing,  setClearing]  = useState(false)
   const [file,      setFile]      = useState(null)
 
-  useEffect(() => { fetchStatus() }, [])
+  useEffect(() => {
+    fetchStatus()
+    // ErpFetchCard replaces the snapshot too; refresh when it does.
+    window.addEventListener(ROOMWISE_UPDATED, fetchStatus)
+    return () => window.removeEventListener(ROOMWISE_UPDATED, fetchStatus)
+  }, [])
 
   const fetchStatus = async () => {
     setLoading(true)

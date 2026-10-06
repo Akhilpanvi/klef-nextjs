@@ -3,23 +3,12 @@ import { connectDB }      from '@/lib/mongodb'
 import RoomwiseEntry      from '@/lib/models/RoomwiseEntry'
 import RoomwiseSnapshot   from '@/lib/models/RoomwiseSnapshot'
 import { parseRoomwiseBuffer } from '@/lib/roomwiseParser'
+import { makeSnapshotId, replaceRoomwiseSnapshot } from '@/lib/roomwiseStore'
 import formidable from 'formidable'
 import fs from 'fs'
 
 export const config = {
   api: { bodyParser: false },
-}
-
-function makeSnapshotId() {
-  return `roomwise_${Date.now()}`
-}
-
-function makeLabel(filename) {
-  const now     = new Date()
-  const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
-  const base    = filename ? filename.replace(/\.[^.]+$/, '') : 'Roomwise-TT'
-  return `${base} (${dateStr} ${timeStr})`
 }
 
 export default async function handler(req, res) {
@@ -75,24 +64,9 @@ export default async function handler(req, res) {
 
     await connectDB()
 
-    // Clear all previous roomwise data
-    const prevSnap = await RoomwiseSnapshot.findOne().lean()
-    if (prevSnap) {
-      await RoomwiseEntry.deleteMany({ dataset: prevSnap.snapshotId })
-      await RoomwiseSnapshot.deleteMany({})
-    }
-
-    // Insert new entries in chunks
-    const CHUNK  = 1000
-    let inserted = 0
-    for (let i = 0; i < docs.length; i += CHUNK) {
-      await RoomwiseEntry.insertMany(docs.slice(i, i + CHUNK), { ordered: false })
-      inserted += Math.min(CHUNK, docs.length - i)
-    }
-
-    // Save snapshot record
-    const label = makeLabel(file.originalFilename || file.newFilename)
-    await RoomwiseSnapshot.create({ snapshotId, label, filename: file.originalFilename || file.newFilename, rowCount: inserted })
+    const { inserted, label } = await replaceRoomwiseSnapshot({
+      docs, snapshotId, filename: file.originalFilename || file.newFilename,
+    })
 
     return res.json({ success: true, inserted, snapshotId, label,
       message: `Roomwise TT uploaded — ${inserted} slot entries` })
