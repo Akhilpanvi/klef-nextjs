@@ -1,20 +1,19 @@
 'use client'
 /**
- * ErpFetchCard
- * ────────────
- * Logs in to the KL ERP with an admin's own faculty account (captcha, plus an
- * MFA code when the account has MFA) and pulls the Room-wise TT directly,
- * replacing the active Roomwise snapshot. The password goes to the ERP once
- * via /api/admin/erp-fetch and is never stored.
+ * ErpFetchModal
+ * ─────────────
+ * Opened from the Roomwise Timetable card. Logs in to the KL ERP with an
+ * admin's own faculty account (captcha, plus an MFA code when the account has
+ * MFA) and pulls the Room-wise TT directly, replacing the active Roomwise
+ * snapshot. The password goes to the ERP once via /api/admin/erp-fetch and is
+ * never stored.
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApi } from '@/components/AuthContext'
 import toast from 'react-hot-toast'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, X } from 'lucide-react'
 
-export const ROOMWISE_UPDATED = 'roomwise-updated'
-
-export default function ErpFetchCard() {
+export default function ErpFetchModal({ onClose, onFetched }) {
   const { get, post } = useApi()
 
   const [captchaImg, setCaptchaImg] = useState(null)
@@ -31,10 +30,11 @@ export default function ErpFetchCard() {
   const [academicyear, setAcademicyear] = useState(29)
   const [semesterid,   setSemesterid]   = useState(1)
 
+  useEffect(() => { loadCaptcha() }, [])
+
   const loadCaptcha = async () => {
     setLoadingCap(true)
     setCaptcha('')
-    setMfa(null)
     try {
       const d = await get('/api/admin/erp-fetch')
       if (!d.success) throw new Error(d.message)
@@ -76,11 +76,8 @@ export default function ErpFetchCard() {
       })
       if (!d.success) throw new Error(d.message)
       toast.success(`Fetched from ERP — ${d.inserted.toLocaleString()} slot entries`)
-      window.dispatchEvent(new Event(ROOMWISE_UPDATED))
-      setPassword('')
-      setMfaCode('')
-      setCaptcha('')
-      setCaptchaImg(null)
+      onFetched?.()
+      onClose()
     } catch (err) {
       toast.error(err.message)
       // The captcha is single-use; get a fresh one for the next attempt.
@@ -93,25 +90,29 @@ export default function ErpFetchCard() {
 
   return (
     <div style={{
-      background: 'var(--surface-2)', border: '1px solid var(--border)',
-      borderRadius: 12, padding: 20, marginBottom: 24,
-    }}>
-      <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>🔐 Fetch Roomwise Timetable from ERP</div>
-      <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 14 }}>
-        Log in with your KL ERP faculty account to pull the Day Room Timetable directly.
-        It replaces the Roomwise TT above. Your password goes to the ERP only and is not saved.
-      </div>
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)',
+      zIndex: 2000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 16,
+    }}
+      onClick={e => e.target === e.currentTarget && !fetching && onClose()}>
+      <div className="card fade-up" style={{ width: '100%', maxWidth: 520, padding: 24, maxHeight: '90vh', overflowY: 'auto' }}>
 
-      {!captchaImg ? (
-        <button className="btn btn-primary" onClick={loadCaptcha} disabled={loadingCap}>
-          {loadingCap ? 'Connecting…' : 'Connect to ERP'}
-        </button>
-      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+          <div style={{ fontWeight: 700, fontSize: 16 }}>🔐 Fetch Roomwise Timetable from ERP</div>
+          <button className="btn btn-ghost" onClick={onClose} disabled={fetching}
+            title="Close" style={{ padding: '4px 6px' }}>
+            <X size={16} />
+          </button>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 18 }}>
+          Log in with your KL ERP faculty account to pull the Day Room Timetable directly.
+          It replaces the active Roomwise TT. Your password goes to the ERP only and is not saved.
+        </div>
+
         <form onSubmit={fetchRooms} autoComplete="off"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
           <div>
             <label style={label}>ERP username</label>
-            <input className="input" value={username} autoComplete="username"
+            <input className="input" value={username} autoComplete="username" autoFocus
               onChange={e => { setUsername(e.target.value); setMfa(null) }}
               onBlur={lookupMfa} />
             {checkingMfa && <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>Checking MFA…</div>}
@@ -121,27 +122,31 @@ export default function ErpFetchCard() {
             <input className="input" type="password" value={password} autoComplete="current-password"
               onChange={e => setPassword(e.target.value)} />
           </div>
-          <div>
-            <label style={label}>
-              MFA code {mfa === true ? '(required for this account)' : '(leave blank if not enabled)'}
-            </label>
-            <input className="input" inputMode="numeric" maxLength={6} value={mfaCode}
-              placeholder={mfa === false ? 'Not needed for this account' : '6-digit code'}
-              onChange={e => setMfaCode(e.target.value.replace(/\D/g, ''))} />
-          </div>
-          <div>
+
+          <div style={{ gridColumn: '1 / -1' }}>
             <label style={label}>Captcha</label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={captchaImg} alt="ERP captcha" style={{ height: 38, borderRadius: 6, background: '#fff' }} />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              {captchaImg
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={captchaImg} alt="ERP captcha" style={{ height: 38, borderRadius: 6, background: '#fff' }} />
+                : <span style={{ fontSize: 12, color: 'var(--text-3)', minWidth: 100 }}>{loadingCap ? 'Loading…' : 'No captcha'}</span>}
               <button type="button" className="btn btn-ghost" onClick={loadCaptcha} disabled={loadingCap}
                 title="New captcha" style={{ padding: '6px 8px' }}>
-                <RefreshCw size={14} />
+                <RefreshCw size={14} style={loadingCap ? { animation: 'spin 1s linear infinite' } : undefined} />
               </button>
+              <input className="input" value={captcha} placeholder="Enter the code shown"
+                onChange={e => setCaptcha(e.target.value)} style={{ flex: 1, minWidth: 160 }} />
             </div>
-            <input className="input" value={captcha} placeholder="Enter the code shown"
-              onChange={e => setCaptcha(e.target.value)} style={{ marginTop: 6 }} />
           </div>
+          <div>
+            <label style={label}>
+              MFA code {mfa === true ? '(required)' : '(blank if not enabled)'}
+            </label>
+            <input className="input" inputMode="numeric" maxLength={6} value={mfaCode}
+              placeholder={mfa === false ? 'Not needed' : '6-digit code'}
+              onChange={e => setMfaCode(e.target.value.replace(/\D/g, ''))} />
+          </div>
+
           <div>
             <label style={label}>Campus</label>
             <select className="input" value={1} disabled>
@@ -160,13 +165,15 @@ export default function ErpFetchCard() {
               {options?.semesters.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
             </select>
           </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <button className="btn btn-primary" type="submit" disabled={fetching || checkingMfa}>
-              {fetching ? 'Logging in & downloading…' : '⬇ Fetch Room Timetable (CSV)'}
+
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={fetching}>Cancel</button>
+            <button className="btn btn-primary" type="submit" disabled={fetching || checkingMfa || !captchaImg}>
+              {fetching ? 'Logging in & downloading…' : '⬇ Fetch Room Timetable'}
             </button>
           </div>
         </form>
-      )}
+      </div>
     </div>
   )
 }

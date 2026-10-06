@@ -8,7 +8,6 @@ import toast from 'react-hot-toast'
 import { UploadCloud, Trash2, RefreshCw, CheckCircle, AlertCircle, Users, Search, ShieldCheck, ExternalLink, UserPlus, ChevronDown, ChevronUp } from 'lucide-react'
 import ColMappingPreview from '@/components/ui/ColMappingPreview'
 import RoomwiseUploadCard from '@/components/admin/RoomwiseUploadCard'
-import ErpFetchCard from '@/components/admin/ErpFetchCard'
 import FacultywiseUploadCard from '@/components/admin/FacultywiseUploadCard'
 import ErpRoomUploadCard from '@/components/admin/ErpRoomUploadCard'
 import RoomAllocationUploadCard from '@/components/admin/RoomAllocationUploadCard'
@@ -781,7 +780,6 @@ function AdminContent() {
         {/* Roomwise TT Upload */}
         <div style={{ gridColumn:'span 2' }}>
           <RoomwiseUploadCard />
-          <ErpFetchCard />
           <FacultywiseUploadCard />
           <ErpRoomUploadCard />
           <RoomAssignmentUploadCard />

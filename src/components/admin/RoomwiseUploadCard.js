@@ -12,7 +12,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useApi } from '@/components/AuthContext'
 import toast from 'react-hot-toast'
-import { ROOMWISE_UPDATED } from '@/components/admin/ErpFetchCard'
+import ErpFetchModal from '@/components/admin/ErpFetchModal'
 
 export default function RoomwiseUploadCard() {
   const { get, del, postForm } = useApi()
@@ -23,13 +23,9 @@ export default function RoomwiseUploadCard() {
   const [uploading, setUploading] = useState(false)
   const [clearing,  setClearing]  = useState(false)
   const [file,      setFile]      = useState(null)
+  const [erpOpen,   setErpOpen]   = useState(false)
 
-  useEffect(() => {
-    fetchStatus()
-    // ErpFetchCard replaces the snapshot too; refresh when it does.
-    window.addEventListener(ROOMWISE_UPDATED, fetchStatus)
-    return () => window.removeEventListener(ROOMWISE_UPDATED, fetchStatus)
-  }, [])
+  useEffect(() => { fetchStatus() }, [])
 
   const fetchStatus = async () => {
     setLoading(true)
@@ -77,16 +73,22 @@ export default function RoomwiseUploadCard() {
         <div>
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>🏫 Roomwise Timetable</div>
           <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            Upload Roomwise-TT-xx.xx.xxxx.csv for free room analysis.<br />
+            Upload Roomwise-TT-xx.xx.xxxx.csv, or fetch it straight from the ERP, for free room analysis.<br />
             Can be cleared and re-uploaded anytime — old data is not kept.
           </div>
         </div>
-        {status && (
-          <button className="btn btn-danger" onClick={clear} disabled={clearing}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <button className="btn btn-primary" onClick={() => setErpOpen(true)}
             style={{ fontSize: 12, padding: '6px 12px', whiteSpace: 'nowrap' }}>
-            {clearing ? 'Clearing…' : '🗑 Clear'}
+            🔐 Fetch from ERP
           </button>
-        )}
+          {status && (
+            <button className="btn btn-danger" onClick={clear} disabled={clearing}
+              style={{ fontSize: 12, padding: '6px 12px', whiteSpace: 'nowrap' }}>
+              {clearing ? 'Clearing…' : '🗑 Clear'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Current status */}
@@ -137,6 +139,8 @@ export default function RoomwiseUploadCard() {
           Selected: {file.name} ({(file.size / 1024).toFixed(0)} KB)
         </div>
       )}
+
+      {erpOpen && <ErpFetchModal onClose={() => setErpOpen(false)} onFetched={fetchStatus} />}
     </div>
   )
 }
